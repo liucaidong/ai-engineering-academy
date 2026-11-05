@@ -52,3 +52,16 @@ async def set_security_context(
             "tenant_id": str(tenant_id) if tenant_id is not None else "",
         },
     )
+
+
+@asynccontextmanager
+async def authenticated_transaction_scope(
+    database: Database,
+    *,
+    user_id: UUID,
+    tenant_id: UUID | None = None,
+) -> AsyncIterator[AsyncSession]:
+    """Open an atomic transaction and set its RLS identity before yielding."""
+    async with transaction_scope(database) as session:
+        await set_security_context(session, user_id=user_id, tenant_id=tenant_id)
+        yield session
