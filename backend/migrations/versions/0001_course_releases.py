@@ -24,11 +24,12 @@ def upgrade() -> None:
         sa.Column("schema_version", sa.Integer(), nullable=False),
         sa.Column("content_sha256", sa.String(length=64), nullable=False),
         sa.Column("content", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.Column("status", sa.String(length=16), nullable=False),
+        sa.Column("status", sa.String(length=16), server_default="draft", nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=True),
         sa.CheckConstraint("schema_version > 0", name="ck_course_releases_schema_version_positive"),
         sa.CheckConstraint("status IN ('draft', 'published', 'retired')", name="ck_course_releases_status_valid"),
+        sa.CheckConstraint("content_sha256 ~ '^[0-9a-f]{64}$'", name="ck_course_releases_content_sha256_hex"),
         sa.PrimaryKeyConstraint("id", name="pk_course_releases"),
         sa.UniqueConstraint("course_key", "version", name="uq_course_releases_course_version"),
     )
