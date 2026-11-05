@@ -451,11 +451,16 @@ M20 是课程体系的综合交付阶段，不以 Demo 演示作为唯一完成�
 
 
 
-## 教师教学指南与作业参考解答（0.20.0 完整版）
 
-教师级配套材料已覆盖 M04–M20 全部 17 个旗舰模块，共 85 讲、85 项正式作业参考解答。每份指南包含先修与课前准备、五讲教学路径、学习检查点、课后复习、逐项 Rubric 对照、常见错误和批改总表。
 
-- [教师指南总索引](./teaching-guides/README.md)
-- [M07–M20 全部教师指南](./teaching-guides/)
+## 教师指南与教学资源（0.21.0）
 
-M07–M20 指南的参考解答按各模块原始题目和 Rubric 编写；课程 lesson/assessment IDs、Schema、先修关系、Lab registry 均保持不变。本次只增加 Markdown 教师材料并更新课程版本，不新增平台功能、运行时或 CI 工作流。
+教师指南已覆盖 M01–M20 全部 20 个模块，共 100 讲和 100 项正式作业参考解答。每份指南对应原始课程题目和 Rubric，提供教学路径、检查点、课后复习、参考解答、评分对照与常见错误。
+
+- [M01–M20 教师指南总索引](./teaching-guides/README.md)
+- [教师教学实施手册](./TEACHING_PLAYBOOK.md)：24 周节奏、单讲模板、实验执行模式、评分政策和 Capstone 评审。
+- [学习者手册](./LEARNER_GUIDE.md)：学习闭环、作业方法、实验边界和 Capstone 准备。
+- [课程术语表](./GLOSSARY.md)：统一 M01–M20 核心术语。
+- [课程参考来源静态审计](./CURRICULUM_SOURCE_AUDIT.md)：306 条来源、204 个唯一 URL 的结构统计与核验边界。
+
+教师材料只扩展教学文档，不改变课程 Schema、Lesson/Assessment IDs、先修关系、Lab Registry 或平台功能。

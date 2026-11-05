@@ -187,3 +187,19 @@ Added 14 standalone teaching guides for M07–M20, completing the teacher-guide 
 - The guide index now lists M04–M20 (17 guides total). M01–M03 content remains retained and unchanged.
 - Curriculum version updated to 0.20.0. Course Schema, lesson/assessment IDs, prerequisites, lab registry and platform scope were not changed.
 - This is documentation authoring and source review only. No CI, build, E2E, local runtime or live provider integration tests were run.
+
+
+## 11. M01–M03 instructor materials and course-wide teaching package (0.21.0)
+
+Added instructor guides for M01–M03, completing teacher-guide coverage across the entire M01–M20 curriculum.
+
+- M01–M03: 15 formal assessment reference solutions, with original prompts, Rubric criteria and points retained.
+- Total teacher-guide coverage: 20 modules, 100 lessons, 100 formal assessments and 100 reference solutions.
+- Added a 24-week course delivery playbook, learner handbook, cross-course glossary and source-reference static audit.
+- Course source inventory: 306 reference entries and 204 unique URLs; all authored URLs are absolute HTTPS. This is a syntax/structure audit, not a live-link availability check.
+- M01–M03 reference solutions include worked examples for learning/generalization, attention matrices, tensor shapes, embedding storage and context-budget calculations. For M02 assessment 1, the guide supplies a reproducible example matrix because the formal prompt refers to “given matrices” without embedding numeric values in the prompt text.
+- Updated curriculum content version to 0.21.0. No course Schema, Lesson IDs, Assessment IDs, prerequisites, Lab Registry, frontend/backend feature or runtime behavior changed.
+
+## 12. Remaining verification boundary
+
+Curriculum authoring and course-level instructional documentation are complete. Remaining operational verification tasks are local Zod/course validation, TypeScript build, unit tests, browser rendering/accessibility/E2E, live HTTP checks for all 204 unique reference URLs, and real-browser verification of lab-mode labels. They remain unclaimed because this documentation-only cloud pass did not run a local browser/build environment or CI.

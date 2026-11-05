@@ -1,3 +1,14 @@
+## 0.21.0 — 2026-11-06
+
+### Curriculum completion and teaching resources
+- Completed instructor guides for M01–M03, bringing full teacher-guide coverage to M01–M20.
+- Added 15 lesson-level formal assessment reference solutions for M01–M03, preserving original prompts and rubric point allocations.
+- Added a course-wide instructor playbook with a 24-week pacing plan, lesson delivery template, eight lab execution-mode boundaries, assessment policy and Capstone review evidence.
+- Added a learner handbook, cross-course glossary and static source audit: 306 reference entries, 204 unique URLs, all authored as absolute HTTPS URLs. Live HTTP reachability is not claimed.
+- Expanded the teacher-guide index and synchronized README/CURRICULUM navigation.
+- Updated curriculum content version to 0.21.0. No course Schema, lesson IDs, assessment IDs, prerequisites, lab registry, platform features or runtime behavior changed.
+- No CI, build, unit test, E2E, browser or local runtime command was executed.
+
 ## 0.20.0 — 2026-11-06
 
 ### Teaching materials

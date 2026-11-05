@@ -21,6 +21,11 @@ AI Engineering Academy 将以工程能力为主线，覆盖 AI 基础认知、�
 - [工程治理](docs/ENGINEERING_GOVERNANCE.md)
 - [课程内容契约](docs/COURSE_CONTENT_CONTRACT.md)
 - [课程内容编写与迁移规范](docs/CONTENT_AUTHORING.md)
+- [教师教学实施手册](docs/TEACHING_PLAYBOOK.md)
+- [学习者手册](docs/LEARNER_GUIDE.md)
+- [课程术语表](docs/GLOSSARY.md)
+- [课程参考来源静态审计](docs/CURRICULUM_SOURCE_AUDIT.md)
+- [教师指南与作业参考解答（M01–M20）](docs/teaching-guides/README.md)
 - [工程验收清单](docs/ACCEPTANCE.md)
 - [ADR-0001：独立平台决策](docs/adr/0001-independent-platform.md)
 - [ADR-0002：后端模块化单体决策](docs/adr/0002-backend-modular-monolith.md)
@@ -75,6 +80,8 @@ alembic -c alembic.ini upgrade head
 
 - 20 个课程模块导航、全文搜索、先修依赖和课程 Schema 校验；
 - M01–M20 均具备章节化教材、参考来源和 Rubric 测评；
+- M01–M20 全部配有教师教学指南与正式作业参考解答；
+- 提供课程级教师实施手册、学习者手册和统一术语表；
 - 模块完成状态、收藏、测评草稿和 Rubric 自评保存在当前浏览器的 localStorage；
 - 浏览器本地课程编辑工作区：JSON 导入、严格 Schema 校验、UTF-8 字节限制、草稿自动保存与校验通过后导出；
 - Tokenizer、Transformer、RAG、Tool Calling、Agent Runtime、MCP、Multi-Agent 和 Evaluation 八个本地教学实验；
