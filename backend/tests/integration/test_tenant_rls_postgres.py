@@ -202,6 +202,22 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                 assert (
                     await connection.execute(text("SELECT id FROM assessment_results"))
                 ).scalars().all() == [result_a]
+                progress_update = await connection.execute(
+                    text(
+                        "UPDATE learning_progress SET module_key = 'M99' "
+                        "WHERE id = :other_progress_id"
+                    ),
+                    {"other_progress_id": progress_c},
+                )
+                assert progress_update.rowcount == 0
+                assessment_update = await connection.execute(
+                    text(
+                        "UPDATE assessment_results SET response = '{\\"tampered\\":true}'::jsonb "
+                        "WHERE id = :other_result_id"
+                    ),
+                    {"other_result_id": result_c},
+                )
+                assert assessment_update.rowcount == 0
 
             async with connection.begin():
                 await connection.execute(
