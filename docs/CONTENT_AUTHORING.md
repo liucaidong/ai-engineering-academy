@@ -17,7 +17,7 @@ The curriculum is authored in `src/data/curriculum.ts`. The runtime contract is 
 - `version` is the curriculum content release version (SemVer).
 - `schemaVersion` is the structural data contract version.
 - Content-only edits bump `version`; structural changes bump `schemaVersion` and require a migration.
-- The current migration adds `schemaVersion: 1` to legacy payloads that predate the field.
+- The current migration adds `schemaVersion: 1` to legacy payloads that predate the field. All object schemas are strict: unknown keys are rejected rather than silently stripped.
 - Unknown schema versions are rejected. Do not silently discard fields or guess how to transform future schemas.
 
 ## Validation commands
