@@ -120,11 +120,11 @@ export const flagshipM01Lessons: Course["modules"][number]["lessons"] = [
         body: "模型参数是训练过程中调整的内部数值；损失函数把预测与目标之间的差异转化为可优化的数值信号。",
         markdown: "可以把模型抽象为一个函数：
 
-`\hat{y}=f_{\theta}(x)`
+`ŷ = fθ(x)`
 
-其中，`x` 是输入特征，`\theta` 表示模型参数，`\hat{y}` 是预测结果。训练时，模型根据参数产生预测，再由损失函数衡量预测与训练目标之间的差异：
+其中，`x` 是输入特征，`θ` 表示模型参数，`ŷ` 是预测结果。训练时，模型根据参数产生预测，再由损失函数衡量预测与训练目标之间的差异：
 
-`\theta^*=\arg\min_{\theta}\frac{1}{N}\sum_{i=1}^{N}L(f_{\theta}(x_i),y_i)`
+`θ* = arg minθ (1/N) Σᵢ L(fθ(xᵢ), yᵢ)`
 
 这里的表达是简化的经验风险最小化视角：训练过程寻找一组参数，使训练样本上的平均损失降低。实际训练还涉及批次、优化器、正则化、学习率调度、数值稳定性和分布式计算。
 
@@ -199,9 +199,9 @@ export const flagshipM01Lessons: Course["modules"][number]["lessons"] = [
       {
         heading: "LLM 为什么训练预测下一个 token",
         body: "自回归语言模型通常通过最大化训练序列中下一个 token 的条件概率来学习语言序列结构。",
-        markdown: "给定 token 序列 `x_1,x_2,\ldots,x_T`，自回归模型把联合概率分解为：
+        markdown: "给定 token 序列 `x₁, x₂, …, xₜ`，自回归模型把联合概率分解为：
 
-`P(x_1,\ldots,x_T)=\prod_{t=1}^{T}P(x_t\mid x_{<t})`
+`P(x₁, …, xₜ) = ∏ₜ P(xₜ | x₁, …, xₜ₋₁)`
 
 训练时，模型读取前面的 token，预测下一个 token 的概率分布，并根据真实 token 计算训练损失。模型在大量、多样的序列上重复这一过程，逐步调整参数。
 
