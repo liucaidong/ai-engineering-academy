@@ -91,7 +91,7 @@ Labs are referenced only as declared by the existing registry. Simulations are n
 | Read latest GitHub main before each batch | Completed | Main head re-read before each batch commit |
 | Preserve M01–M03 | Completed by change scope | No M01–M03 source file included in writes |
 | M04–M20 registration | Static review completed | Imports, module objectives and lesson selectors updated |
-| Lesson/assessment/rubric ID invariants | Not runtime-validated | Schema has checks; validator not executed |
+| Lesson/assessment/rubric ID invariants | Static source scan completed; runtime validator not executed | 100 lesson IDs and 100 assessment IDs are unique; no duplicate rubric criterion names were found within authored assessments |
 | Prerequisite references/cycle detection | Declarations retained | No prerequisite edge changed; validator not executed |
 | Source URL syntax | Editorial/static review | Absolute HTTPS authored; no full live-link crawl |
 | Lab references | Static review | Only existing lab IDs referenced |
@@ -100,6 +100,8 @@ Labs are referenced only as declared by the existing registry. Simulations are n
 | Unit tests | Not executed | npm test intentionally not run |
 | E2E/browser acceptance | Not executed | npm run test:e2e intentionally not run |
 | GitHub Actions / CI | Not executed | No workflow added or intentionally triggered |
+
+The static source scan counted 100 lessons, 100 assessments, 410 teaching sections and 306 source references across M01–M20. For M04–M20, each module has exactly five lessons, 20 sections, five assessments and 15 HTTPS source references. The scan also found no duplicate lesson IDs, assessment IDs or rubric criterion names. This is a source-level consistency check, not execution of the Zod validator or TypeScript compiler.
 
 ## 7. Unresolved verification items
 
