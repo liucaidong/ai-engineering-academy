@@ -22,6 +22,13 @@ async def test_learner_data_routes_are_disabled_by_default(monkeypatch):
         responses = [
             await client.get("/learning/progress", headers={"X-Tenant-ID": tenant}),
             await client.get("/assessments/attempts", headers={"X-Tenant-ID": tenant}),
-            await client.post("/assessments/attempts", headers={"X-Tenant-ID": tenant}, json={}),
+            await client.post(
+                "/assessments/attempts",
+                headers={"X-Tenant-ID": tenant},
+                json={
+                    "course_release_id": "00000000-0000-0000-0000-000000000002",
+                    "assessment_key": "M01-L01-A01",
+                },
+            ),
         ]
     assert [response.status_code for response in responses] == [503, 503, 503]
