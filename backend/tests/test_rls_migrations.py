@@ -80,3 +80,17 @@ def test_rls_downgrade_removes_policies_and_disables_protection(
         assert "DROP POLICY IF EXISTS" in source
         assert "NO FORCE ROW LEVEL SECURITY" in source
         assert "DISABLE ROW LEVEL SECURITY" in source
+
+
+def test_session_lookup_rls_is_limited_to_exact_transaction_token_hash(
+    migration_sources: dict[str, str],
+) -> None:
+    source = migration_sources["0006_session_lookup_rls.py"]
+
+    assert "CREATE POLICY auth_sessions_token_hash_bootstrap_select ON auth_sessions" in source
+    assert "FOR SELECT USING" in source
+    assert "current_setting('app.session_token_hash', true)" in source
+    assert "token_hash = " in source
+    assert "USING (true)" not in source
+    assert "FOR ALL" not in source
+    assert "DROP POLICY IF EXISTS auth_sessions_token_hash_bootstrap_select" in source

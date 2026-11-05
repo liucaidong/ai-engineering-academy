@@ -45,7 +45,8 @@ async def set_security_context(
         text(
             "SELECT "
             "set_config('app.user_id', :user_id, true), "
-            "set_config('app.tenant_id', :tenant_id, true)"
+            "set_config('app.tenant_id', :tenant_id, true), "
+            "set_config('app.session_token_hash', '', true)"
         ),
         {
             "user_id": str(user_id),
@@ -65,3 +66,34 @@ async def authenticated_transaction_scope(
     async with transaction_scope(database) as session:
         await set_security_context(session, user_id=user_id, tenant_id=tenant_id)
         yield session
+
+
+
+async def set_session_lookup_context(session: AsyncSession, token_hash: str) -> None:
+    """Set the narrow transaction-local RLS context used before user resolution."""
+    if not session.in_transaction():
+        raise RuntimeError("Session lookup context must be set inside an active transaction")
+    if (
+        not isinstance(token_hash, str)
+        or len(token_hash) != 64
+        or any(character not in "0123456789abcdef" for character in token_hash)
+    ):
+        raise ValueError("session token hash must be 64 lowercase hexadecimal characters")
+    await session.execute(
+        text(
+            "SELECT "
+            "set_config('app.user_id', '', true), "
+            "set_config('app.tenant_id', '', true), "
+            "set_config('app.session_token_hash', :token_hash, true)"
+        ),
+        {"token_hash": token_hash},
+    )
+
+
+async def clear_session_lookup_context(session: AsyncSession) -> None:
+    """Remove the bootstrap token hash after a missing or expired lookup."""
+    if not session.in_transaction():
+        raise RuntimeError("Session lookup context must be cleared inside an active transaction")
+    await session.execute(
+        text("SELECT set_config('app.session_token_hash', '', true)")
+    )

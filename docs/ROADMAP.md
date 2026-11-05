@@ -38,7 +38,11 @@
 - [x] Add dormant user, OIDC identity, session, tenant, membership, role, invitation and audit schemas with Alembic migration (no HTTP exposure)
 - [x] Add provider-neutral opaque session hashing, CSRF HMAC, OIDC state/nonce and PKCE S256 primitives with RFC-vector tests
 - [x] Implement strict OIDC discovery, HTTPS endpoint validation, cached JWKS retrieval/key rotation refresh and PyJWT ID-token verification (signature, issuer, audience, exp/iat, sub, nonce, azp)
-- [ ] Implement authorization-code exchange, durable one-time login transaction storage, callback/session lifecycle, cookie issuance and CSRF/Origin middleware
+- [x] Implement opaque session create/resolve/revoke/rotate services and HttpOnly cookie helpers (not yet routed)
+- [x] Implement opt-in CSRF/Origin middleware with explicit origin allowlist and session-bound double-submit HMAC (not yet installed)
+- [x] Implement active tenant-membership resolution and default-deny role permission checks; tenant admins cannot grant tenant_admin
+- [x] Add narrow transaction-local token-hash RLS bootstrap for session lookup before user identity resolution
+- [ ] Implement authorization-code exchange, durable one-time login transaction storage, callback/session HTTP routes and production provider/origin configuration
 - [x] Implement transaction-local user/tenant context helper and forced PostgreSQL RLS policies for identity/tenant tables
 - [x] Author optional PostgreSQL RLS integration acceptance using a separate non-owner runtime role (execution pending)
 - [ ] Execute RLS integration acceptance with provisioned admin/runtime database roles before learner-data APIs
@@ -47,7 +51,7 @@
 - [x] Apply forced RLS to learner records and author non-owner cross-tenant integration acceptance (execution pending)
 - [x] Add static migration-policy tests and same-tenant cross-user read/update isolation assertions to PostgreSQL acceptance (execution pending)
 - [ ] Execute PostgreSQL RLS acceptance with provisioned runtime role before learner-data APIs
-- [ ] Implement OIDC authentication, instructor authorization and learner-data application services
+- [ ] Wire OIDC authentication routes and add resource-scoped instructor authorization plus learner-data application services
 - [ ] Sandboxed code execution with quotas and isolation
 - [ ] Model gateway with explicit provider configuration
 - [ ] Evaluation datasets, trace capture and observability

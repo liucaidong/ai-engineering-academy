@@ -36,7 +36,8 @@ class OIDCProviderConfig:
             or not parsed.netloc
             or parsed.query
             or parsed.fragment
-            or self.issuer.endswith("/")
+            or parsed.username is not None
+            or parsed.password is not None
         ):
             raise ValueError("OIDC issuer must be a canonical HTTPS URL without query or fragment")
         if not self.client_id or len(self.client_id) > 512:
@@ -103,7 +104,7 @@ class OIDCVerifier:
         if not isinstance(value, str):
             raise OIDCProviderError(f"OIDC metadata is missing {name}")
         parsed = urlparse(value)
-        if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+        if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password or parsed.fragment:
             raise OIDCProviderError(f"OIDC {name} must be an HTTPS URL")
         return value
 
@@ -112,7 +113,7 @@ class OIDCVerifier:
         if not force_refresh and self._discovery is not None and now < self._discovery_expires_at:
             return self._discovery
 
-        url = f"{self.config.issuer}/.well-known/openid-configuration"
+        url = f"{self.config.issuer.rstrip('/')}/.well-known/openid-configuration"
         try:
             response = await (await self._client()).get(url)
             response.raise_for_status()
