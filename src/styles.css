@@ -299,3 +299,23 @@ a { color: inherit; text-decoration: none; }
   .recommendation-card { margin-left: 0; margin-right: 0; }
   .bookmark-filter { width: 100%; margin: 0 0 14px; }
 }
+
+
+.authoring-workspace { display: grid; gap: 14px; }
+.authoring-workspace h2 { margin: 8px 0 0; color: #e1ebf7; font-size: 20px; }
+.authoring-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.authoring-toolbar .secondary-button, .authoring-toolbar .primary-button { margin: 0; }
+.authoring-toolbar button:disabled { cursor: not-allowed; opacity: .45; }
+.authoring-file-label { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1px solid #526a84; border-radius: 6px; color: #c5d3e4; background: #1a2b40; font-size: 11px; cursor: pointer; }
+.authoring-file-label input { width: min(220px, 42vw); color: #aebfd3; font-size: 10px; }
+.authoring-status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 12px; border: 1px solid #34506a; border-radius: 7px; background: #132337; color: #b9d9f8; font-size: 11px; }
+.authoring-status span { color: #9baec3; }
+.authoring-editor { width: 100%; min-height: 520px; resize: vertical; padding: 14px; border: 1px solid #34475e; border-radius: 7px; outline: none; color: #d2e3f6; background: #0b1522; font: 11px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; tab-size: 2; }
+.authoring-editor:focus { border-color: #5d9ddc; box-shadow: 0 0 0 3px #3b8bd322; }
+.authoring-workspace .validation-warning { overflow-wrap: anywhere; }
+.authoring-workspace .validation-warning ul { padding-left: 20px; margin-bottom: 0; }
+@media (max-width: 640px) {
+  .authoring-toolbar { align-items: stretch; }
+  .authoring-file-label { justify-content: space-between; }
+  .authoring-editor { min-height: 360px; }
+}
