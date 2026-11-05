@@ -1,6 +1,6 @@
 # Backend foundation
 
-FastAPI modular-monolith foundation. The current slice provides operational endpoints, PostgreSQL connectivity, async session/transaction primitives and the first versioned course-catalog schema. It does not expose learner data or execute user code.
+FastAPI modular-monolith foundation. The current slice provides operational endpoints, PostgreSQL connectivity, async session/transaction primitives, five Alembic migrations, versioned course releases, identity/tenant schemas, owner-scoped learner records, forced RLS policies and domain lifecycle services. It does not expose account, tenant-management or learner-data HTTP routes, and it does not execute user code.
 
 ## Local development
 
