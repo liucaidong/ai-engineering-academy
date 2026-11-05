@@ -75,4 +75,4 @@ ACADEMY_TEST_RUNTIME_DATABASE_URL='postgresql+asyncpg://...' \
 pytest -q tests/integration/test_tenant_rls_postgres.py
 ```
 
-The test verifies that a non-owner runtime role sees only the current user's membership in the selected tenant, receives no rows when the user/tenant context is mismatched, and receives no tenant rows when context is absent. It also verifies that progress and assessment records are visible only to their owning user within the selected tenant. It skips when the two test-only URLs are not configured. Never use production credentials for this test.
+The test seeds two users in the same tenant plus a user in a second tenant. It verifies that a non-owner runtime role sees only the current user's membership and learner records, cannot update another learner's progress or assessment attempt in the same tenant, receives no rows when the user/tenant context is mismatched, and receives no tenant rows when context is absent. It skips when the two test-only URLs are not configured. Never use production credentials for this test.
