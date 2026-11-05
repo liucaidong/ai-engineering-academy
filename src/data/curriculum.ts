@@ -5,6 +5,9 @@ import { flagshipM03Lessons } from "./flagshipM03";
 import { flagshipM04Lessons } from "./flagshipM04";
 import { flagshipM05Lessons } from "./flagshipM05";
 import { flagshipM06Lessons } from "./flagshipM06";
+import { flagshipM07Lessons } from "./flagshipM07";
+import { flagshipM08Lessons } from "./flagshipM08";
+import { flagshipM09Lessons } from "./flagshipM09";
 
 const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][number], "content" | "assessments" | "sources">> = {
   M01: {
@@ -355,9 +358,9 @@ const moduleRows = [
   ["M04","L2","预训练、微调与对齐","从训练目标、数据工程、架构家族、参数高效微调到偏好对齐，理解模型能力的形成与验证。",["M02"],["推导自回归语言模型的负对数似然目标并估算训练计算量","审查训练语料许可、去重、污染和数据混合策略","比较 Encoder-only、Decoder-only、Encoder–Decoder、Dense 与 MoE","设计 SFT 数据、loss mask 和 LoRA 适配方案","解释 RLHF、Reward Model、PPO、DPO 及奖励投机风险","建立训练评测、模型卡和发布治理档案"],""],
   ["M05","L2","推理、解码与部署","从 Prefill/Decode、KV Cache、解码、批处理、量化到推理服务架构，建立完整的性能与容量工程方法。",["M02","M03"],["区分 Prefill 与 Decode 并推导 KV Cache 内存模型","解释采样分布、Temperature、Top-k、Top-p 和停止条件","设计 Continuous Batching、排队、背压和公平调度","比较 Speculative Decoding、权重量化、激活量化与 KV 量化","设计模型加载、并行策略、内存预算、监控和故障降级"],""],
   ["M06","L3","Prompt Engineering","把 Prompt 作为可版本化的任务契约，覆盖示例选择、结构化输出、安全边界和回归评测。",["M01","M03"],["将需求拆解为任务、输入、约束、输出和失败策略","设计 Few-shot 示例选择并控制上下文预算","区分 JSON 语法、Schema 合法性和业务语义正确性","识别 Prompt Injection 并设计服务端信任边界与工具控制","建立 Prompt 数据集、评分器、版本发布和回滚流程"],""],
-  ["M07","L3","结构化输出与 Tool Calling","掌握模型与外部工具之间的契约交互。",["M06"],["定义工具 schema 与参数校验","区分工具请求和工具执行"],"tool-calling"],
-  ["M08","L3","检索增强生成 RAG","构建可追溯知识检索与生成链路。",["M03","M07"],["解释切分、向量检索和重排","设计引用与检索评估"],"rag"],
-  ["M09","L3","多模态 AI","理解文本、图像、音频等模态的输入输出路径。",["M03","M05"],["识别多模态编码与融合方式","分析模态数据的限制和风险"],""],
+  ["M07","L3","结构化输出与 Tool Calling","从工具协议、参数契约、发现路由、副作用幂等到安全评测，建立可靠的模型—工具执行边界。",["M06"],["描述 tool call 请求、宿主执行和结果回传生命周期","设计 JSON Schema、分层参数校验和接口版本","构建工具注册表、能力路由和 allowlist","为副作用工具设计幂等、事务、补偿和审批","建立工具调用 benchmark、安全回归和审计证据"],"tool-calling"],
+  ["M08","L3","检索增强生成 RAG","覆盖文档摄取、Chunking、Embedding、向量/混合检索、重排、引用和生产评测。",["M03","M07"],["设计离线索引与在线检索两条流水线","比较文档切分策略并计算索引规模","解释 embedding、相似度和 ANN 索引机制","融合 BM25 与 dense retrieval 并设计 reranking","分离检索/生成评测并治理 ACL、更新和故障降级"],"rag"],
+  ["M09","L3","多模态 AI","从表示对齐、Vision Transformer、图像生成、音频 tokenization 到多模态系统工程。",["M03","M05"],["比较 early/late fusion 与 cross-attention","计算 ViT patch 序列与注意力规模","解释扩散模型去噪目标和条件引导","设计 ASR/TTS 音频数据流并计算 PCM 数据量","构建多模态评测、时间同步、成本和隐私治理"],""],
   ["M10","L4","Agent 基础与 Runtime","理解 Agent 循环、状态和工具执行边界。",["M07","M08"],["描述观察、决策、行动循环","设计可终止、可恢复的 Agent 状态机"],"agent"],
   ["M11","L4","Planning、Memory 与状态","理解任务分解、记忆读写和状态持久化。",["M10"],["区分短期状态与长期记忆","设计计划更新和记忆治理"],""],
   ["M12","L4","MCP 协议与集成","理解 MCP 的参与角色、能力发现和消息交互。",["M07","M10"],["解释 Host、Client、Server 关系","理解工具、资源和提示模板"],"mcp"],
@@ -376,7 +379,7 @@ export const course: Course = {
   id: "ai-engineering-foundations",
   title: "AI Engineering Academy",
   description: "从大模型原理、AI 应用开发到 Agent 系统与平台工程的系统化学习路径。",
-  version: "0.7.0",
+  version: "0.8.0",
   language: "zh-CN",
   labs: [
     { id: "tokenizer", title: "Tokenizer Lab", executionMode: "browser-local", description: "使用玩具 BPE 词表观察子词合并。", safetyNotes: ["仅使用内置示例词表，不调用外部模型。"], inputs: [{ name: "text", description: "待切分文本" }], outputs: [{ name: "tokens", description: "示例 token 片段与合并过程" }], status: "implemented" },
@@ -390,7 +393,7 @@ export const course: Course = {
   ],
   modules: moduleRows.map(([id, level, title, summary, prerequisites, objectives, labId]) => ({
     id, level, title, summary, prerequisites: [...prerequisites], objectives: [...objectives],
-    lessons: id === "M01" ? flagshipM01Lessons : id === "M02" ? flagshipM02Lessons : id === "M03" ? flagshipM03Lessons : id === "M04" ? flagshipM04Lessons : id === "M05" ? flagshipM05Lessons : id === "M06" ? flagshipM06Lessons : [lesson(id, title, summary, [...objectives])],
+    lessons: id === "M01" ? flagshipM01Lessons : id === "M02" ? flagshipM02Lessons : id === "M03" ? flagshipM03Lessons : id === "M04" ? flagshipM04Lessons : id === "M05" ? flagshipM05Lessons : id === "M06" ? flagshipM06Lessons : id === "M07" ? flagshipM07Lessons : id === "M08" ? flagshipM08Lessons : id === "M09" ? flagshipM09Lessons : [lesson(id, title, summary, [...objectives])],
     ...(labId ? { labId } : {})
   }))
 };

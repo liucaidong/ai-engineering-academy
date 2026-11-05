@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.0 — 2026-11-06
+
+### Course content
+- Rebuilt M07–M09 as five-lesson flagship modules with four substantive sections per lesson, five scored assessments per module, and 45 source references.
+- M07 covers tool-call lifecycle, strict parameter contracts, tool discovery/routing, idempotency/transactions, and safety evaluation.
+- M08 covers ingestion/chunking, embeddings/ANN, hybrid retrieval/RRF/reranking, evidence citations, ACLs, and production RAG evaluation.
+- M09 covers multimodal fusion, ViT patch calculations, diffusion objectives, audio tokenization/ASR/TTS, synchronization, privacy, and cost.
+- Reused existing Tool Calling and RAG labs; no new lab runtime, platform, backend, or CI workflow was added.
+
 ## 0.7.0 — 2026-11-06
 
 ### Course content
