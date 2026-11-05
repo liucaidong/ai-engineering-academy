@@ -1,4 +1,4 @@
-# ADR 0001: Backend foundation as a modular monolith
+# ADR 0002: Backend foundation as a modular monolith
 
 - Status: Accepted
 - Date: 2026-11-05
