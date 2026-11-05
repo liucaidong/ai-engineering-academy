@@ -128,6 +128,7 @@ def verify_oidc_state(supplied_state: str, expected_state_hash: str) -> bool:
         or not 32 <= len(supplied_state) <= 512
         or not isinstance(expected_state_hash, str)
         or len(expected_state_hash) != 64
+        or any(character not in string.hexdigits for character in expected_state_hash)
     ):
         return False
     return hmac.compare_digest(sha256_hex(supplied_state), expected_state_hash)
@@ -139,6 +140,7 @@ def verify_oidc_nonce(id_token_nonce: str, expected_nonce_hash: str) -> bool:
         or not 32 <= len(id_token_nonce) <= 512
         or not isinstance(expected_nonce_hash, str)
         or len(expected_nonce_hash) != 64
+        or any(character not in string.hexdigits for character in expected_nonce_hash)
     ):
         return False
     return hmac.compare_digest(sha256_hex(id_token_nonce), expected_nonce_hash)
