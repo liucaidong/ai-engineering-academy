@@ -1,6 +1,6 @@
 # Backend foundation
 
-FastAPI modular-monolith foundation. The current slice provides operational endpoints, PostgreSQL connectivity, async session/transaction primitives, nine Alembic migrations, versioned course releases, identity/tenant schemas, OIDC sign-in/session routes (disabled until configured), owner-scoped learner records, forced RLS policies and domain lifecycle services. It does not expose general account-management, tenant-management or learner-data HTTP routes, and it does not execute user code.
+FastAPI modular-monolith foundation. The current slice provides operational endpoints, PostgreSQL connectivity, async session/transaction primitives, nine Alembic migrations, versioned course releases, identity/tenant schemas, OIDC sign-in/session routes (disabled until configured), owner-scoped learner records, forced RLS policies and domain lifecycle services. General account-management and tenant-management routes are not exposed. Learner progress and assessment routes are mounted but return HTTP 503 by default; explicit activation requires completed PostgreSQL RLS acceptance and privacy review. The backend does not execute user code.
 
 ## Local development
 
@@ -41,7 +41,7 @@ alembic -c alembic.ini current
 alembic -c alembic.ini history
 ```
 
-Run migration commands from the `backend/` directory. The URL is read from environment settings; the placeholder URL in `alembic.ini` is not a credential source. Run migrations with a schema-owner/migrator role; the API must connect with a separate non-owner role that is neither superuser nor `BYPASSRLS` and has only the required table privileges. When OIDC is enabled, grant that role `SELECT` on `alembic_version` so the API can fail closed unless the database head is `0008_oidc_identity_provisioning`.
+Run migration commands from the `backend/` directory. The URL is read from environment settings; the placeholder URL in `alembic.ini` is not a credential source. Run migrations with a schema-owner/migrator role; the API must connect with a separate non-owner role that is neither superuser nor `BYPASSRLS` and has only the required table privileges. When OIDC is enabled, grant that role `SELECT` on `alembic_version` so the API can fail closed unless the database head matches the enabled feature set: `0008_oidc_identity_provisioning` for OIDC-only operation or `0009_assessment_self_grading_guard` when learner APIs are explicitly enabled.
 
 ## Session and transaction rules
 
