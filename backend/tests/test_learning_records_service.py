@@ -246,3 +246,52 @@ def test_grade_assessment_requires_submitted_state() -> None:
 
     with pytest.raises(ValueError, match="submitted"):
         grade_assessment(result, score=90, now=NOW)
+
+
+def test_self_review_payload_is_stored_only_for_self_review_mode() -> None:
+    result = create_assessment_attempt(
+        tenant_id=uuid4(),
+        user_id=uuid4(),
+        course_release_id=uuid4(),
+        assessment_key="A01",
+        attempt_number=1,
+        grading_mode="self_review",
+        rubric_self_review={"criterion-1": "meets"},
+    )
+
+    assert result.rubric_self_review == {"criterion-1": "meets"}
+
+    with pytest.raises(ValueError, match="only valid for self_review"):
+        create_assessment_attempt(
+            tenant_id=uuid4(),
+            user_id=uuid4(),
+            course_release_id=uuid4(),
+            assessment_key="A01",
+            attempt_number=1,
+            grading_mode="automated",
+            rubric_self_review={"criterion-1": "meets"},
+        )
+
+
+def test_instructor_grading_records_reviewer_identity() -> None:
+    reviewer_id = uuid4()
+    result = create_assessment_attempt(
+        tenant_id=uuid4(),
+        user_id=uuid4(),
+        course_release_id=uuid4(),
+        assessment_key="A01",
+        attempt_number=1,
+        grading_mode="instructor",
+    )
+    submit_assessment(result, now=NOW)
+
+    grade_assessment(
+        result,
+        score=Decimal("91.125"),
+        graded_by_user_id=reviewer_id,
+        now=NOW,
+    )
+
+    assert result.status == "graded"
+    assert result.graded_by_user_id == reviewer_id
+    assert result.score == Decimal("91.125")
