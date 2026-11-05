@@ -87,7 +87,7 @@ Course（课程元数据与版本）、Module（模块及先修关系）、Lesso
 - 模块完成状态、测评草稿和 Rubric 自评保存在浏览器 localStorage；
 - 当前进度和测评记录没有账号身份、服务端持久化或跨设备同步；
 - 后端已建立 FastAPI 运行骨架、liveness/readiness、环境配置、异步 SQLAlchemy session/transaction 基础及 Alembic 迁移环境；首个数据库迁移定义课程发布版本快照表，尚未在受控环境执行迁移；
-- 用户、外部身份、会话、租户、成员关系、角色、邀请和审计基础表已建模，但尚无登录或业务 API；OIDC 会话、CSRF、transaction-local tenant context、PostgreSQL RLS 和跨租户拒绝测试仍未实现。学习进度 API、真实模型调用、生产向量数据库和服务端隔离沙箱尚未实现。
+- 用户、外部身份、会话、租户、成员关系、角色、邀请和审计基础表已建模，但尚无登录或业务 API；OIDC 登录、CSRF、角色管理 API 尚未实现；transaction-local user/tenant context helper 与身份/租户表 PostgreSQL RLS 策略已编写，非 owner runtime role 的集成验收已编写但尚未执行。学习进度 API、真实模型调用、生产向量数据库和服务端隔离沙箱尚未实现。
 
 ## 9. 演进约束
 先完成静态内容与本地交互 MVP，再引入 API、持久化、真实模型调用和隔离执行。任何新增基础设施都应以已验证需求、容量数据或安全要求为依据。
