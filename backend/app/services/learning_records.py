@@ -5,6 +5,7 @@ All database writes must run through an authenticated transaction so RLS is
 applied; these helpers never infer identity from request payloads.
 """
 from datetime import datetime, timezone
+import json
 from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
 from uuid import UUID
@@ -12,6 +13,14 @@ from uuid import UUID
 from app.models.learning import AssessmentResult, LearningProgress
 
 VALID_GRADING_MODES = {"self_review", "automated", "instructor"}
+
+
+def _json_object(value: Mapping[str, Any] | None) -> dict[str, Any]:
+    payload = dict(value or {})
+    try:
+        return json.loads(json.dumps(payload, ensure_ascii=False, allow_nan=False))
+    except (TypeError, ValueError) as error:
+        raise ValueError("payload must contain only finite JSON-compatible values") from error
 
 
 def _aware_now(value: datetime | None = None) -> datetime:
@@ -30,8 +39,8 @@ def start_progress(
     now: datetime | None = None,
 ) -> LearningProgress:
     key = module_key.strip()
-    if not key:
-        raise ValueError("module_key must not be empty")
+    if not key or len(key) > 80:
+        raise ValueError("module_key must contain between 1 and 80 characters")
     timestamp = _aware_now(now)
     return LearningProgress(
         tenant_id=tenant_id,
@@ -94,8 +103,8 @@ def create_assessment_attempt(
     response: Mapping[str, Any] | None = None,
 ) -> AssessmentResult:
     key = assessment_key.strip()
-    if not key:
-        raise ValueError("assessment_key must not be empty")
+    if not key or len(key) > 120:
+        raise ValueError("assessment_key must contain between 1 and 120 characters")
     if attempt_number < 1:
         raise ValueError("attempt_number must be positive")
     if grading_mode not in VALID_GRADING_MODES:
@@ -108,7 +117,7 @@ def create_assessment_attempt(
         attempt_number=attempt_number,
         status="draft",
         grading_mode=grading_mode,
-        response=dict(response or {}),
+        response=_json_object(response),
     )
 
 
@@ -149,5 +158,5 @@ def grade_assessment(
     result.score = numeric_score.quantize(Decimal("0.001"))
     result.graded_by_user_id = graded_by_user_id
     result.graded_at = _aware_now(now)
-    result.feedback = dict(feedback) if feedback is not None else None
+    result.feedback = _json_object(feedback) if feedback is not None else None
     return result
