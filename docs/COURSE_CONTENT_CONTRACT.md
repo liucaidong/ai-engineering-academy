@@ -7,7 +7,7 @@ Defines the versioned content model consumed by the academy frontend. The curren
 - Course: stable ID, title, description, semantic content version, locale, ordered modules and lab registry.
 - Module: stable MNN identifier, level, summary, prerequisite module IDs, measurable objectives, lessons and optional lab ID.
 - Lesson: stable ID, title, summary, measurable objectives, estimated duration, ordered sections, source references and assessments.
-- Content section: heading, plain-text fallback, optional Markdown source and source references.
+- Content section: heading, required plain-text fallback, optional Markdown source and optional section-level source references.
 - Source reference: title, canonical URL, optional publisher, access date and editorial note.
 - Lab definition: stable ID, explicit execution mode, description, safety notes, input/output descriptions and implementation status.
 - Assessment: stable ID, type, prompt and rubric criteria with positive point values.

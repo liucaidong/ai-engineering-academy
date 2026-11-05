@@ -47,7 +47,7 @@ export const LessonSchema = z.object({
     heading: z.string().min(1),
     body: z.string().min(1),
     markdown: z.string().optional(),
-    sources: z.array(SourceReferenceSchema).default([])
+    sources: z.array(SourceReferenceSchema).optional()
   })).default([]),
   assessments: z.array(AssessmentSchema).default([]),
   sources: z.array(SourceReferenceSchema).default([])
