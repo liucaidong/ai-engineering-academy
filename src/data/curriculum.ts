@@ -17,6 +17,8 @@ import { flagshipM15Lessons } from "./flagshipM15";
 import { flagshipM16Lessons } from "./flagshipM16";
 import { flagshipM17Lessons } from "./flagshipM17";
 import { flagshipM18Lessons } from "./flagshipM18";
+import { flagshipM19Lessons } from "./flagshipM19";
+import { flagshipM20Lessons } from "./flagshipM20";
 
 const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][number], "content" | "assessments" | "sources">> = {
   M01: {
@@ -379,8 +381,8 @@ const moduleRows = [
   ["M16","L4","Workflow 与编排","从 Workflow/Agent 边界、事件编排、重试补偿、人工审批到版本化测试，掌握确定性流程工程。",["M10","M15"],["比较 Workflow、状态机和 Agent 的适用边界","设计顺序/并行/事件驱动 DAG 与 Saga","建立有界重试、超时、熔断和补偿策略","将审批、参数绑定和审计纳入状态机","通过状态覆盖、故障注入和回放验收流程"],""],
   ["M17","L5","Evaluation 与 Observability","从评测指标、数据集、自动评分、Trace/Metrics/Logs 到线上 SLO，建立质量闭环。",["M08","M10"],["定义模型/组件/端到端评测层次和指标分母","设计无泄漏 benchmark、标注和统计区间","校准规则评分、LLM Judge 与人工评审","设计 GenAI trace、低基数 metrics 和隐私日志","监测线上漂移并建立质量 SLI/SLO 与回归闭环"],"evaluation"],
   ["M18","L5","AI 平台架构","设计控制/数据平面、Model Gateway、租户配额、密钥策略和平台可靠性。",["M05","M17"],["划分控制平面、数据平面和应用责任","建立模型能力目录、路由和安全 fallback","设计多维配额、限流、计量与成本归因","构建租户隔离、secret broker 和 policy engine","定义平台故障域、弹性、RTO/RPO 和 SLO"],""],
-  ["M19","L5","应用工程化与交付","将 AI 能力转化为可部署、可维护的产品。",["M15","M17","M18"],["设计测试、发布和运维流程","建立安全、数据和成本治理"],""],
-  ["M20","L6","Capstone 综合项目","完成覆盖需求、架构、实现、评测和交付的综合项目。",["M01","M02","M03","M04","M05","M06","M07","M08","M09","M10","M11","M12","M13","M14","M15","M16","M17","M18","M19"],["交付端到端 AI 工程系统","提交测试、威胁模型和运行文档"],""]
+  ["M19","L5","应用工程化与交付","从用户问题、AI UX、人机协作、单位经济性、产品实验到持续交付，完成 AI 产品工程闭环。",["M15","M17","M18"],["定义可验证用户任务、AI 适用性和产品价值","设计不确定性表达、人工复核、纠错和撤销体验","计算模型/人工/工具成本并建立单位经济性","设计产品质量指标树、A/B 实验和反馈漏斗","建立版本化交付、canary、回滚、运营和退役机制"],""],
+  ["M20","L6","Capstone 综合项目","以可验收的真实问题为起点，交付涵盖模型、RAG、Agent、工具、安全、评测、观测和部署的端到端系统。",["M01","M02","M03","M04","M05","M06","M07","M08","M09","M10","M11","M12","M13","M14","M15","M16","M17","M18","M19"],["编写项目章程、范围、非目标和验收指标","提交架构图、数据流、ADR 和信任边界","集成模型、RAG、Agent 与工具并保留执行审计","完成端到端评测、威胁模型、SLO 和部署方案","提交可复现演示、答辩材料和未验证事项清单"],""],
 ] as const;
 
 export const course: Course = {
@@ -388,7 +390,7 @@ export const course: Course = {
   id: "ai-engineering-foundations",
   title: "AI Engineering Academy",
   description: "从大模型原理、AI 应用开发到 Agent 系统与平台工程的系统化学习路径。",
-  version: "0.11.0",
+  version: "0.12.0",
   language: "zh-CN",
   labs: [
     { id: "tokenizer", title: "Tokenizer Lab", executionMode: "browser-local", description: "使用玩具 BPE 词表观察子词合并。", safetyNotes: ["仅使用内置示例词表，不调用外部模型。"], inputs: [{ name: "text", description: "待切分文本" }], outputs: [{ name: "tokens", description: "示例 token 片段与合并过程" }], status: "implemented" },
@@ -402,7 +404,7 @@ export const course: Course = {
   ],
   modules: moduleRows.map(([id, level, title, summary, prerequisites, objectives, labId]) => ({
     id, level, title, summary, prerequisites: [...prerequisites], objectives: [...objectives],
-    lessons: id === "M01" ? flagshipM01Lessons : id === "M02" ? flagshipM02Lessons : id === "M03" ? flagshipM03Lessons : id === "M04" ? flagshipM04Lessons : id === "M05" ? flagshipM05Lessons : id === "M06" ? flagshipM06Lessons : id === "M07" ? flagshipM07Lessons : id === "M08" ? flagshipM08Lessons : id === "M09" ? flagshipM09Lessons : id === "M10" ? flagshipM10Lessons : id === "M11" ? flagshipM11Lessons : id === "M12" ? flagshipM12Lessons : id === "M13" ? flagshipM13Lessons : id === "M14" ? flagshipM14Lessons : id === "M15" ? flagshipM15Lessons : id === "M16" ? flagshipM16Lessons : id === "M17" ? flagshipM17Lessons : id === "M18" ? flagshipM18Lessons : [lesson(id, title, summary, [...objectives])],
+    lessons: id === "M01" ? flagshipM01Lessons : id === "M02" ? flagshipM02Lessons : id === "M03" ? flagshipM03Lessons : id === "M04" ? flagshipM04Lessons : id === "M05" ? flagshipM05Lessons : id === "M06" ? flagshipM06Lessons : id === "M07" ? flagshipM07Lessons : id === "M08" ? flagshipM08Lessons : id === "M09" ? flagshipM09Lessons : id === "M10" ? flagshipM10Lessons : id === "M11" ? flagshipM11Lessons : id === "M12" ? flagshipM12Lessons : id === "M13" ? flagshipM13Lessons : id === "M14" ? flagshipM14Lessons : id === "M15" ? flagshipM15Lessons : id === "M16" ? flagshipM16Lessons : id === "M17" ? flagshipM17Lessons : id === "M18" ? flagshipM18Lessons : id === "M19" ? flagshipM19Lessons : id === "M20" ? flagshipM20Lessons : [lesson(id, title, summary, [...objectives])],
     ...(labId ? { labId } : {})
   }))
 };
