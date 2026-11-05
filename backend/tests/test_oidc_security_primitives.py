@@ -25,7 +25,7 @@ def test_session_token_is_random_and_only_hash_is_database_safe() -> None:
     assert first.raw_token not in first.token_hash
 
 
-@pytest.mark.parametrize("token", ["", "short", "x" * 513, None])
+@pytest.mark.parametrize("token", ["", "short", "x" * 513, None, "😀" * 32])
 def test_session_hash_rejects_invalid_token_lengths(token: object) -> None:
     with pytest.raises(ValueError, match="invalid length"):
         hash_session_token(token)
@@ -38,6 +38,7 @@ def test_csrf_token_is_bound_to_session_and_secret() -> None:
     assert verify_csrf_token(session, csrf, CSRF_SECRET)
     assert not verify_csrf_token(generate_session_token().raw_token, csrf, CSRF_SECRET)
     assert not verify_csrf_token(session, csrf, "another-secret-value-that-is-32-bytes")
+    assert not verify_csrf_token(session, "🙂" * 43, CSRF_SECRET)
 
 
 def test_csrf_secret_must_have_at_least_32_bytes() -> None:
