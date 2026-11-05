@@ -140,3 +140,18 @@ def test_personal_workspace_rls_never_allows_admin_role_self_grant(
     assert "role = 'instructor'" not in source
     assert "personal_owner_user_id" in source
     assert "user_id = NULLIF(current_setting('app.user_id', true), '')::uuid" in source
+
+
+def test_assessment_self_grading_guard_is_installed_and_reversible(
+    migration_sources: dict[str, str],
+) -> None:
+    source = migration_sources["0009_assessment_self_grading_guard.py"]
+    assert "CREATE FUNCTION public.guard_learner_assessment_fields" in source
+    assert "SECURITY INVOKER" in source
+    assert "NEW.grading_mode <> 'self_review'" in source
+    assert "NEW.score IS NOT NULL" in source
+    assert "learners cannot change assessment attempt identity" in source
+    assert "learners cannot grade or modify submitted attempts" in source
+    assert "CREATE TRIGGER trg_guard_learner_assessment_fields" in source
+    assert "DROP TRIGGER IF EXISTS" in source
+    assert "DROP FUNCTION IF EXISTS" in source

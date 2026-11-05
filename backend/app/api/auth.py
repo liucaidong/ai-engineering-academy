@@ -44,7 +44,11 @@ async def _database(request: Request):
     if database is None:
         raise HTTPException(status_code=503, detail="Database is unavailable")
     try:
-        await database.check_schema_revision("0008_oidc_identity_provisioning")
+        await database.check_schema_revision(
+            "0009_assessment_self_grading_guard"
+            if get_settings().learner_data_api_enabled
+            else "0008_oidc_identity_provisioning"
+        )
     except Exception as error:
         raise HTTPException(
             status_code=503,

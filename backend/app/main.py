@@ -11,7 +11,9 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.assessments import router as assessments_router
 from app.api.auth import router as auth_router
+from app.api.learning import router as learning_router
 from app.core.config import get_settings
 from app.core.database import Database
 from app.security.oidc_provider import OIDCVerifier
@@ -42,6 +44,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.include_router(auth_router)
+app.include_router(learning_router)
+app.include_router(assessments_router)
 
 if settings.oidc_login_enabled:
     app.add_middleware(
@@ -77,7 +81,11 @@ async def readiness(request: Request) -> JSONResponse:
     try:
         await database.check()
         if settings.oidc_login_enabled:
-            await database.check_schema_revision("0008_oidc_identity_provisioning")
+            await database.check_schema_revision(
+                "0009_assessment_self_grading_guard"
+                if settings.learner_data_api_enabled
+                else "0008_oidc_identity_provisioning"
+            )
     except Exception:
         return JSONResponse(
             status_code=503,

@@ -168,7 +168,7 @@ def test_submit_assessment_sets_submission_timestamp_once() -> None:
         submit_assessment(result, now=NOW)
 
 
-def test_self_review_grade_records_score_without_reviewer() -> None:
+def test_self_review_cannot_become_an_authoritative_grade() -> None:
     result = create_assessment_attempt(
         tenant_id=uuid4(),
         user_id=uuid4(),
@@ -179,13 +179,11 @@ def test_self_review_grade_records_score_without_reviewer() -> None:
     )
     submit_assessment(result, now=NOW)
 
-    grade_assessment(result, score="88.25", now=NOW, feedback={"note": "reviewed"})
+    with pytest.raises(ValueError, match="not an authoritative grade"):
+        grade_assessment(result, score="88.25", now=NOW, feedback={"note": "reviewed"})
 
-    assert result.status == "graded"
-    assert result.score == Decimal("88.250")
-    assert result.graded_at == NOW
-    assert result.graded_by_user_id is None
-    assert result.feedback == {"note": "reviewed"}
+    assert result.status == "submitted"
+    assert result.score is None
 
 
 def test_instructor_grade_requires_reviewer_identity() -> None:

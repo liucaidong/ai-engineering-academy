@@ -151,10 +151,14 @@ def grade_assessment(
 ) -> AssessmentResult:
     if result.status != "submitted":
         raise ValueError("only submitted assessment attempts can be graded")
+    if result.grading_mode == "self_review":
+        raise ValueError("learner self-review is not an authoritative grade")
     if result.grading_mode == "instructor" and graded_by_user_id is None:
         raise ValueError("instructor grading requires a reviewer identity")
-    if result.grading_mode != "instructor" and graded_by_user_id is not None:
-        raise ValueError("only instructor grading may record a reviewer identity")
+    if result.grading_mode == "automated" and graded_by_user_id is not None:
+        raise ValueError("automated grading cannot record a reviewer identity")
+    if result.grading_mode not in {"instructor", "automated"}:
+        raise ValueError("unsupported grading mode for authoritative grading")
     try:
         numeric_score = Decimal(str(score))
     except (InvalidOperation, ValueError) as error:

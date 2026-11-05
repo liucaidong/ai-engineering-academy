@@ -78,6 +78,7 @@ class Settings(BaseSettings):
     csrf_secret: SecretStr | None = None
     session_ttl_seconds: int = 43200
     session_cookie_secure: bool = True
+    learner_data_api_enabled: bool = False
 
     @model_validator(mode="after")
     def enforce_production_database(self) -> "Settings":
@@ -103,6 +104,7 @@ class Settings(BaseSettings):
             any(value is not None for value in required_values)
             or self.oidc_client_secret is not None
             or bool(self.oidc_allowed_origins)
+            or self.learner_data_api_enabled
         )
         if not configured:
             return self

@@ -58,7 +58,10 @@
 - [x] Apply forced RLS to learner records and author non-owner cross-tenant integration acceptance (execution pending)
 - [x] Add static migration-policy tests and same-tenant cross-user read/update isolation assertions to PostgreSQL acceptance (execution pending)
 - [ ] Execute PostgreSQL RLS acceptance with provisioned runtime role before learner-data APIs
-- [ ] Add resource-scoped instructor authorization plus learner-data application services
+- [x] Implement self-scoped learner progress and assessment-attempt routes with session, membership, role and owner filters (disabled by default)
+- [x] Add database trigger preventing learner self-grading and assessment identity mutation
+- [ ] Execute non-owner PostgreSQL RLS acceptance and privacy review before enabling learner APIs
+- [ ] Add resource-scoped instructor authorization and instructor grading APIs
 - [ ] Sandboxed code execution with quotas and isolation
 - [ ] Model gateway with explicit provider configuration
 - [ ] Evaluation datasets, trace capture and observability

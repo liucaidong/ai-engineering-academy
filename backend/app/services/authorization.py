@@ -9,7 +9,14 @@ from app.models.identity import Tenant, TenantMembership, TenantMembershipRole
 
 ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
     "learner": frozenset(
-        {"course:read", "learning:read:self", "learning:write:self", "assessment:self_review"}
+        {
+            "course:read",
+            "learning:read:self",
+            "learning:write:self",
+            "assessment:read:self",
+            "assessment:write:self",
+            "assessment:self_review",
+        }
     ),
     # Instructor visibility is intentionally not granted for learner records until
     # cohort/class ownership and resource-level assignment checks exist.
