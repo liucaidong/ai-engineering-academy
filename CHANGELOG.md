@@ -1,3 +1,12 @@
+## 0.17.0 — 2026-11-06
+
+### Course content
+- Deepened all 15 lessons in M16–M18 with a fifth practical section focused on deterministic workflow orchestration, evaluation/observability and AI platform engineering.
+- M16 adds workflow/Agent boundary decisions, event-driven Saga, retry/deadline calculations, approval binding and state/replay testing.
+- M17 adds layered evaluation metrics, benchmark uncertainty, LLM Judge calibration, GenAI trace design and online quality SLOs.
+- M18 adds control/data-plane boundaries, model capability routing, quota/cost calculations, tenant/secret isolation and gateway reliability reviews.
+- Updated curriculum version to 0.17.0. Existing Schema, prerequisites, lab registry and platform scope remain unchanged.
+
 ## 0.16.0 — 2026-11-06
 
 ### Course content
