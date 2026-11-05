@@ -1,4 +1,4 @@
-"""Versioned, immutable-by-contract course content snapshots."""
+"""Versioned course content snapshots."""
 from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
@@ -16,6 +16,7 @@ class CourseRelease(Base):
         UniqueConstraint("course_key", "version", name="uq_course_releases_course_version"),
         CheckConstraint("schema_version > 0", name="schema_version_positive"),
         CheckConstraint("status IN ('draft', 'published', 'retired')", name="status_valid"),
+        CheckConstraint("content_sha256 ~ '^[0-9a-f]{64}$'", name="content_sha256_hex"),
         Index("ix_course_releases_course_status", "course_key", "status"),
     )
 
@@ -25,6 +26,10 @@ class CourseRelease(Base):
     schema_version: Mapped[int] = mapped_column(Integer, nullable=False)
     content_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     content: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
-    status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    status: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="draft", server_default="draft"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
