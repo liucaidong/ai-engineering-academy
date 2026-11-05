@@ -1,7 +1,7 @@
 """Add dormant identity, tenant and audit foundations.
 
 Revision ID: 0003_identity_tenancy
-Revises: 0001_course_releases
+Revises: 0002_release_publication_state
 """
 from typing import Sequence, Union
 
