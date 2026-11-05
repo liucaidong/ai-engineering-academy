@@ -102,5 +102,5 @@ Course（课程元数据与版本）、Module（模块及先修关系）、Lesso
 - Alembic async migration environment；
 - 首个 `course_releases` 版本快照表，保存课程版本、schema version、内容 SHA-256、JSONB 内容和发布状态；
 - 用户、身份、会话、租户、成员关系、角色、邀请和审计基础表已建模；尚无登录/API 暴露，RLS 和跨租户拒绝测试仍待实现；
-- 学习进度、测评结果和授权策略表尚未建立；
+- 学习进度与测评结果基础表已建立，并按 tenant/user/course release 约束；两类表已启用 owner-only RLS，但应用服务、教师可见性和写 API 尚未实现；
 - 迁移、单元测试和真实 PostgreSQL 集成尚待受控运行环境验证。
