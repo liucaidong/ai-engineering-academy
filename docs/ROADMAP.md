@@ -14,7 +14,7 @@
 - [x] Browser-local module completion progress (localStorage; no account sync)
 - [x] Browser-local assessment drafts and rubric self-review (no server sync)
 - [x] Keyboard skip link, semantic navigation, focus-visible and reduced-motion support
-- [x] Playwright Chromium E2E suite authored for search, progress, assessments, all three labs, keyboard navigation, mobile width and axe WCAG A/AA scan
+- [x] Playwright Chromium E2E suite authored for search, progress, assessments, all eight labs, keyboard navigation, mobile width and axe WCAG A/AA scan
 - [ ] Execute browser E2E suite and complete full accessibility audit
 - [ ] Generate and commit a dependency lockfile after resolving the final package set
 - [ ] Verified clean install, test and production build in a controlled runtime

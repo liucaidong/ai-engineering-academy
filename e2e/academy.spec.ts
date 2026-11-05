@@ -54,6 +54,52 @@ test("has no automated WCAG A/AA violations on the lesson view", async ({ page }
   expect(results.violations).toEqual([]);
 });
 
+test("runs the Tool Calling lab and enforces local permission policy", async ({ page }) => {
+  await page.getByRole("button", { name: /M07.*结构化输出与 Tool Calling/ }).click();
+  await expect(page.getByRole("heading", { name: "Tool Calling Lab" })).toBeVisible();
+  await page.getByRole("button", { name: "提交工具调用" }).click();
+  await expect(page.locator(".lab-json")).toContainText('"ok": true');
+  await page.getByRole("checkbox", { name: /Runtime 策略允许/ }).uncheck();
+  await page.getByRole("button", { name: "提交工具调用" }).click();
+  await expect(page.locator(".lab-json")).toContainText("permission_denied");
+});
+
+test("requires explicit approval in the Agent Runtime lab", async ({ page }) => {
+  await page.getByRole("button", { name: /M10.*Agent 基础与 Runtime/ }).click();
+  await expect(page.getByRole("heading", { name: "Agent Runtime Lab" })).toBeVisible();
+  await page.getByRole("button", { name: "启动 Agent" }).click();
+  await page.getByRole("button", { name: "推进下一步" }).click();
+  await page.getByRole("button", { name: "推进下一步" }).click();
+  await expect(page.getByText(/等待人工批准/)).toBeVisible();
+  await page.getByRole("button", { name: "拒绝并终止" }).click();
+  await expect(page.getByText(/已阻止/)).toBeVisible();
+});
+
+test("discovers local MCP capabilities without a network connection", async ({ page }) => {
+  await page.getByRole("button", { name: /M12.*MCP 协议与集成/ }).click();
+  await expect(page.getByRole("heading", { name: "MCP Protocol Lab" })).toBeVisible();
+  await page.getByRole("button", { name: "发现 Server 能力" }).click();
+  await expect(page.getByText("search_course", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "调用 search_course Tool" }).click();
+  await expect(page.locator(".result-block pre")).toContainText('"ok": true');
+});
+
+test("runs a deterministic Multi-Agent synthesis", async ({ page }) => {
+  await page.getByRole("button", { name: /M14.*Multi-Agent 系统/ }).click();
+  await expect(page.getByRole("heading", { name: "Multi-Agent Orchestration Lab" })).toBeVisible();
+  await page.getByRole("button", { name: "运行三个专业 Agent" }).click();
+  await expect(page.locator(".multi-agent-findings article")).toHaveCount(4);
+});
+
+test("runs the local Evaluation dataset and reports failures", async ({ page }) => {
+  await page.getByRole("button", { name: /M17.*Evaluation 与 Observability/ }).click();
+  await expect(page.getByRole("heading", { name: "AI Evaluation Lab" })).toBeVisible();
+  await page.getByRole("button", { name: "运行评测集" }).click();
+  await expect(page.getByText("3/4", { exact: true })).toBeVisible();
+  await expect(page.getByText("75%", { exact: true })).toBeVisible();
+  await expect(page.getByText(/E03 · FAIL/)).toBeVisible();
+});
+
 test("has no automated WCAG A/AA violations in the Transformer lab", async ({ page }) => {
   await page.getByRole("button", { name: /M02.*Transformer 与 Attention/ }).click();
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
