@@ -157,7 +157,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["tenant_id", "membership_id"],
             ["tenant_memberships.tenant_id", "tenant_memberships.id"],
-            name="fk_tenant_membership_roles_tenant_membership_tenant_memberships",
+            name="fk_tenant_membership_roles_tenant_id_tenant_memberships",
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
