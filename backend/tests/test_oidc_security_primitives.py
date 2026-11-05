@@ -25,7 +25,7 @@ def test_session_token_is_random_and_only_hash_is_database_safe() -> None:
     assert first.raw_token not in first.token_hash
 
 
-@pytest.mark.parametrize("token", ["", "short", "x" * 513, None, "😀" * 32])
+@pytest.mark.parametrize("token", ["", "short", "x" * 513, None])
 def test_session_hash_rejects_invalid_token_lengths(token: object) -> None:
     with pytest.raises(ValueError, match="invalid length"):
         hash_session_token(token)
@@ -83,3 +83,9 @@ def test_oidc_state_and_nonce_reject_mismatches() -> None:
     assert not verify_oidc_nonce("wrong-nonce-" + parameters.nonce, parameters.nonce_hash)
     assert not verify_oidc_state("", parameters.state_hash)
     assert not verify_oidc_nonce("", parameters.nonce_hash)
+
+
+
+def test_session_hash_rejects_non_ascii_tokens() -> None:
+    with pytest.raises(ValueError, match="ASCII"):
+        hash_session_token("😀" * 32)
