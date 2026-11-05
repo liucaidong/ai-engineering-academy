@@ -13,6 +13,7 @@ describe("course content contract", () => {
     expect(course.modules.every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].assessments.length === 1)).toBe(true);
+    expect(course.labs.filter((lab) => lab.status === "implemented")).toHaveLength(8);
   });
 
   it("migrates legacy payloads without schemaVersion to version 1", () => {
