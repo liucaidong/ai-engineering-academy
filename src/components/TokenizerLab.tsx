@@ -36,9 +36,9 @@ export default function TokenizerLab() {
 
       <div className="result-block">
         <h3>最终切分结果</h3>
-        <div className="token-list" aria-label="切分后的 token 片段">
+        <div className="token-list" role="list" aria-label="切分后的 token 片段">
           {result.tokens.length ? result.tokens.map((token, index) => (
-            <span className={/^\s+$/u.test(token) ? "token whitespace-token" : "token"} key={`${index}-${token}`}>
+            <span role="listitem" className={/^\s+$/u.test(token) ? "token whitespace-token" : "token"} key={`${index}-${token}`}>
               {/^\s+$/u.test(token) ? "␠".repeat(Math.min(token.length, 4)) : token}
             </span>
           )) : <span className="muted">输入内容后显示结果</span>}

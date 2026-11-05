@@ -11,7 +11,7 @@ export default function TransformerLab() {
   ), [causalMask]);
 
   const matrix = (label: string, values: number[][]) => (
-    <div className="matrix-card"><h3>{label}</h3><div className="matrix-grid">{values.map((row, i) => <div key={i}>{row.map((value, j) => <span key={j}>{value.toFixed(2)}</span>)}</div>)}</div></div>
+    <div className="matrix-card"><h3>{label}</h3><div className="matrix-grid" role="table" aria-label={label}>{values.map((row, i) => <div key={i} role="row">{row.map((value, j) => <span key={j} role="cell">{value.toFixed(2)}</span>)}</div>)}</div></div>
   );
 
   return <section className="lab-panel" aria-labelledby="transformer-title">
