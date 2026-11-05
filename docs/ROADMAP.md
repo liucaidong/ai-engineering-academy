@@ -31,7 +31,8 @@
 - [x] Alembic async PostgreSQL migration environment
 - [x] Initial versioned course-release snapshot schema and ORM model
 - [x] Backend health and model tests authored (execution pending)
-- [ ] Add identity, tenant isolation, learner profiles and authorization model before learner-data APIs
+- [x] Define OIDC identity, tenant membership, session and learner-data isolation baseline in ADR-0003
+- [ ] Implement identity and tenant schema, RLS policies and cross-tenant denial tests before learner-data APIs
 - [ ] Persist learner progress and assessment history with explicit transaction boundaries
 - [ ] Sandboxed code execution with quotas and isolation
 - [ ] Model gateway with explicit provider configuration
