@@ -114,4 +114,27 @@ describe("course content contract", () => {
       .toBe("预训练：从大规模数据中学习表示");
   });
 
+  it("rejects unknown keys in source, rubric and lab records", () => {
+    const firstModule = course.modules[0];
+    const sourceExtra = {
+      ...course,
+      modules: course.modules.map((module, index) => index === 0
+        ? { ...module, lessons: [{ ...module.lessons[0], sources: [{ ...module.lessons[0].sources[0], extraSourceField: true }, ...module.lessons[0].sources.slice(1)] }] }
+        : module)
+    };
+    expect(getCourseValidationErrors(sourceExtra).some((error) => error.includes("extraSourceField"))).toBe(true);
+
+    const rubricExtra = {
+      ...course,
+      modules: course.modules.map((module, index) => index === 0
+        ? { ...module, lessons: [{ ...module.lessons[0], assessments: [{ ...module.lessons[0].assessments[0], rubric: [{ ...module.lessons[0].assessments[0].rubric[0], extraRubricField: true }, ...module.lessons[0].assessments[0].rubric.slice(1)] }] }] }
+        : module)
+    };
+    expect(getCourseValidationErrors(rubricExtra).some((error) => error.includes("extraRubricField"))).toBe(true);
+
+    const labExtra = { ...course, labs: [{ ...course.labs[0], extraLabField: true }, ...course.labs.slice(1)] };
+    expect(getCourseValidationErrors(labExtra).some((error) => error.includes("extraLabField"))).toBe(true);
+    expect(firstModule.id).toBe("M01");
+  });
+
 });
