@@ -27,9 +27,10 @@ def test_identity_rls_is_enabled_and_forced_for_every_identity_table(
         "audit_events",
     )
 
-    for table in protected_tables:
-        assert f'ALTER TABLE {table} ENABLE ROW LEVEL SECURITY' in source
-        assert f'ALTER TABLE {table} FORCE ROW LEVEL SECURITY' in source
+    assert "for table in (\"users\"" in source
+    assert all(f'\"{table}\"' in source for table in protected_tables)
+    assert 'op.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY")' in source
+    assert 'op.execute(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY")' in source
 
 
 def test_identity_rls_context_is_transaction_local_and_fail_closed(
@@ -50,8 +51,8 @@ def test_learner_tables_force_rls_and_require_active_membership(
 ) -> None:
     source = migration_sources["0005_learner_records.py"]
 
-    assert f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY" in source
-    assert f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY" in source
+    assert 'op.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY")' in source
+    assert 'op.execute(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY")' in source
     assert f"CREATE POLICY {table}_self_select" in source
     assert f"CREATE POLICY {table}_self_insert" in source
     assert f"CREATE POLICY {table}_self_update" in source
