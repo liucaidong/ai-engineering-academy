@@ -131,6 +131,8 @@ Acceptance checklist:
 - [ ] ORM metadata and migration schema agree; no unexplained autogenerate diff remains.
 - [ ] Course-release digest, unique course/version, status and publication-timestamp constraints reject invalid rows.
 - [ ] Identity uniqueness is `issuer + subject`; email is not used as an account identity key.
+- [ ] Opaque session tokens are stored only as SHA-256 hashes; CSRF tokens are session-bound and compared in constant time.
+- [ ] OIDC state/nonce are single-use, hashed at rest, and PKCE uses S256; provider signature/issuer/audience/nonce validation is still required before login is enabled.
 - [ ] Tenant membership roles carry tenant scope and use a composite foreign key to their membership.
 - [ ] RLS is enabled and forced on identity/tenant tables and learner progress/assessment tables.
 - [ ] The optional RLS integration test passes using a non-owner, non-superuser, non-`BYPASSRLS` runtime role.
