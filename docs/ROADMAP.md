@@ -1,43 +1,32 @@
-# 实施路线图
+# Roadmap
 
-## 阶段总览
-| 阶段 | 目标 | 主要交付 | 退出条件 |
-|---|---|---|---|
-| P0 | 项目基线与知识审计 | 产品、课程、架构、治理文档 | 范围与原则经确认 |
-| P1 | 内容模型与前端骨架 | 课程 schema、导航、内容渲染 | 可加载版本化课程 |
-| P2 | 核心交互实验 | Tokenizer、Transformer、RAG Lab | 实验可复现且说明模拟边界 |
-| P3 | Agent 工程实验 | Tool Calling、Agent、MCP、Skills | 状态、权限、失败路径可观察 |
-| P4 | 学习闭环 | 测验、进度、评估、Tutor 设计 | 学习成果可衡量 |
-| P5 | 后端与真实服务 | API、模型网关、数据存储 | 安全、成本、可靠性验收 |
-| P6 | 综合项目与 STEM 集成 | Capstone、实验平台适配 | 端到端验收和部署文档 |
+## P1 — Frontend learning platform foundation
+- [x] React + TypeScript + Vite application shell
+- [x] 20-module curriculum navigation
+- [x] Runtime schema validation for course content
+- [x] Prerequisite integrity and cycle validation
+- [x] Explicit lab execution registry and safety notes
+- [x] Safe Markdown rendering without raw HTML
+- [x] Tokenizer, Transformer Attention and RAG teaching labs
+- [ ] Complete authoritative lesson content and source review for all 20 modules
+- [ ] Learner progress and assessment persistence
+- [ ] Accessibility and browser E2E acceptance
+- [ ] Verified clean install, test and production build in a controlled runtime
 
-## P0 — 当前优先级
-- 建立项目定位和范围；
-- 将课程、架构和路线方案沉淀为文档；
-- 审计参考课件的真实技术形态和边界；
-- 建立内容质量与安全治理规则；
-- 不创建自动触发的 CI workflow。
+## P2 — Learning experience
+- Content authoring workflow and schema migration
+- Lesson-level assessments, feedback and progress
+- Search, bookmarks and learning-path recommendations
+- More interactive labs: Tool Calling, Agent Runtime, MCP and Evaluation
 
-## P1 — 内容模型和前端骨架
-定义课程、模块、章节、实验和测评 schema；选择 React/TypeScript 工程结构；建立路由、目录、搜索和内容渲染；实现最小无障碍与响应式布局；建立静态内容校验命令。
+## P3 — Backend and execution platform
+- API service and PostgreSQL persistence
+- Identity, learner profiles and progress events
+- Sandboxed code execution with quotas and isolation
+- Model gateway with explicit provider configuration
+- Evaluation datasets, trace capture and observability
 
-## P2 — 实验室
-优先实现 Tokenizer Lab、Transformer Lab 和 RAG Lab。先使用确定性数据和明确的模拟模式，避免过早依赖模型 API 或云端数据库。
-
-## P3 — Agent 工程
-按 Tool Calling → Agent Runtime → MCP → Skills → Multi-Agent 的顺序实施。每个实验需包含权限模型、状态机、错误恢复、预算限制和人工审批示例。
-
-## P4 — 学习闭环
-引入测验、学习进度和能力评估。AI Tutor 仅在课程内容引用、回答置信边界和安全策略明确后进入实现。
-
-## P5 — 后端能力
-只有当真实服务成为产品必需时才引入 API、数据库、模型网关和沙箱。先进行威胁建模和容量估算，再决定部署形态。
-
-## P6 — 综合项目与 STEM 集成
-将课程实验能力接入 Integrated STEM & Virtual Laboratory Platform，作为科学实验中的 AI 助手、实验规划、数据解释和报告生成能力。通过稳定 API/事件契约集成，不共享内部数据库，不形成跨项目强耦合。
-
-## 交付治理
-- 优先以完整阶段为单位进行提交和推送；
-- 不为每个微小文档改动触发流水线；
-- 在测试和构建命令稳定前，不启用自动触发 Actions；
-- 每阶段必须给出完成项、未完成项、风险、验证证据和下一阶段准入条件。
+## P4 — Production readiness
+- Threat modelling, privacy review and operational controls
+- Performance, reliability and cost budgets
+- CI/CD enablement after workflow governance is approved

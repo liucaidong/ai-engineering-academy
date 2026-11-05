@@ -1,36 +1,22 @@
-# 工程治理约定
+# Engineering Governance
 
-## 1. 知识质量
-- 优先采用标准组织、官方文档、论文和官方技术博客；
-- 标注来源、版本、发布日期/访问日期及适用范围；
-- 区分规范要求、厂商实现、社区惯例和教学简化；
-- 对快速变化的产品功能设置复核周期；
-- 发现错误时记录修正原因，必要时更新相关测验和实验。
+## Execution safety
+Every lab must declare one execution mode: simulation, browser-local, server-sandbox or provider-backed. A UI label is not proof of an isolation boundary. Server sandbox and provider-backed modes remain unavailable until their controls are implemented and tested.
 
-## 2. 实验真实性
-所有实验必须显式声明执行模式：simulation、browser-local、server-sandbox 或 provider-backed。界面、日志和结果页均应保持标识一致。合成数据、简化算法和假设都要在实验说明中披露。
+## Least privilege
+- Do not execute arbitrary learner code in the main application origin.
+- Do not expose provider secrets to browser bundles.
+- Require explicit authorization for tools with external side effects.
+- Validate inputs and outputs at trust boundaries.
+- Keep simulation datasets local and clearly labelled.
 
-## 3. 安全与隐私
-- 最小权限，默认拒绝；
-- 不在客户端保存服务端密钥；
-- 不把模型输出视为可信代码或策略；
-- 外部工具调用需经过身份、权限、参数和资源范围校验；
-- 高影响操作必须设置人工审批；
-- 记录审计事件但避免记录不必要的个人数据和敏感原文；
-- 对数据保留、删除和导出建立明确策略。
+## Content integrity
+- Validate module references and prerequisite DAGs at build/test time.
+- Keep source metadata adjacent to the content it supports.
+- Do not fabricate citations or imply scaffold copy is authoritative courseware.
+- Render Markdown without raw HTML by default.
 
-## 4. 测试与发布
-后续测试层级建议：
-1. 内容与 schema 校验；
-2. 单元测试；
-3. 组件和实验契约测试；
-4. API/集成测试；
-5. 端到端关键路径；
-6. 安全、性能和可访问性检查。
-
-CI 暂缓自动触发。引入 Actions 前先确认测试命令稳定、缓存策略明确、并发/取消策略合理，并提供手动触发或受控触发路径。
-
-## 5. 变更与阶段验收
-每个阶段应提供变更范围与设计理由、关键文件和接口、测试命令及真实执行结果、未解决问题和风险、数据迁移/兼容性说明（如适用）、下一阶段准入条件。
-
-尽量将相关变更整合为阶段性提交，避免无意义的小提交和频繁推送。
+## Delivery governance
+- Batch related source changes into a small number of commits.
+- Do not add or enable GitHub Actions workflows during the current foundation phase.
+- Report code written, repository state, and runtime verification separately.

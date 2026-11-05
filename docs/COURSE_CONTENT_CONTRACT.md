@@ -1,33 +1,39 @@
-# Course Content Contract v0.1
+# Course Content Contract v0.2
 
 ## Purpose
-This contract defines the first version of the structured course content model used by the frontend. It is intentionally small and versionable; backend persistence and authoring workflows are out of scope for this phase.
+Defines the versioned content model consumed by the academy frontend. The current contract is a typed authoring and validation boundary; it is not yet a CMS or a persisted backend schema.
 
 ## Entities
-- Course: stable ID, title, description, version, locale and ordered modules.
-- Module: stable MNN identifier, level, title, summary, prerequisites, learning objectives, lessons and optional lab identifier.
-- Lesson: stable ID, title, summary, learning objectives, estimated duration and ordered content sections.
-- LabDefinition (next schema revision): lab ID, execution mode, parameter schema, outputs, safety notes and evaluation contract.
-- Assessment (next schema revision): assessment ID, question/task definition, scoring rubric and feedback.
+- Course: stable ID, title, description, semantic content version, locale, ordered modules and lab registry.
+- Module: stable MNN identifier, level, summary, prerequisite module IDs, measurable objectives, lessons and optional lab ID.
+- Lesson: stable ID, title, summary, measurable objectives, estimated duration, ordered sections, source references and assessments.
+- Content section: heading, plain-text fallback, optional Markdown source and source references.
+- Source reference: title, canonical URL, optional publisher, access date and editorial note.
+- Lab definition: stable ID, explicit execution mode, description, safety notes, input/output descriptions and implementation status.
+- Assessment: stable ID, type, prompt and rubric criteria with positive point values.
 
-## Validation
-The current implementation uses Zod runtime schemas in `src/types/course.ts`. Invalid content must fail validation rather than silently render partial data. The course fixture is in `src/data/curriculum.ts`.
+## Execution modes
+- `simulation`: deterministic or illustrative teaching simulation; no external side effects.
+- `browser-local`: computation runs in the learner's browser; no server execution implied.
+- `server-sandbox`: isolated server-side execution; must not be claimed until an actual sandbox exists.
+- `provider-backed`: external model/service calls; requires credentials, quota, privacy and approval controls.
 
-## Identifier rules
-- Course IDs use stable kebab-case identifiers.
-- Module IDs use M01 through M99.
-- Lesson IDs are stable within the course and must not be derived from display titles at runtime.
-- Lab IDs are stable integration identifiers, not presentation labels.
+The UI must never infer an execution mode from the lab name. The registry is authoritative.
 
-## Content rules
-- Learning objectives must be observable and assessable.
-- Prerequisites refer to existing module IDs.
-- Lesson durations are positive integer minutes.
-- Content sections are ordered and each has a heading and body.
-- A lab must declare its execution mode before it is exposed to learners.
+## Validation invariants
+- Module IDs follow MNN and are unique within a course.
+- Lesson IDs are unique within each module.
+- Prerequisite IDs must exist, cannot repeat, cannot self-reference and must form a directed acyclic graph.
+- Lab IDs are unique. When a lab registry is present, each module lab reference must resolve.
+- Learning objectives and lesson sections are non-empty.
+- Assessment rubric points are positive.
+- Source URLs must be valid absolute URLs.
+
+## Markdown safety
+Lesson Markdown is rendered with `react-markdown` and `remark-gfm`. Raw HTML is not enabled; no `rehype-raw` plugin is installed. Content authors must use Markdown rather than embedded HTML.
 
 ## Compatibility
-Changes that remove or reinterpret fields require a schema version change and a migration note. Additive optional fields may be introduced in a minor version after tests are updated.
+The schema uses additive optional fields where possible. Contract changes that reinterpret persisted data require an explicit version and migration note. Course content version is separate from application package version.
 
-## Known limitations
-The first schema revision does not yet model citations, source freshness, assessments, progress events, lab execution metadata or localized variants. These are planned extensions, not implemented features.
+## Current limitations
+The registry and schemas exist, but assessment authoring, citations, learner progress persistence, server sandboxing, provider-backed execution and content version migration tooling are not yet implemented. Most modules still contain concise scaffold content rather than complete instructional material.

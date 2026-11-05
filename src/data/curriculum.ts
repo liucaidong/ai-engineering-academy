@@ -8,7 +8,7 @@ const lesson = (moduleId: string, title: string, summary: string, objectives: st
   estimatedMinutes: 25,
   content: [
     { heading: "本节要解决的问题", body: summary },
-    { heading: "学习方法", body: "先建立概念模型，再观察数据流和边界条件，最后通过实验或工程任务验证理解。" }
+    { heading: "学习方法", markdown: "先建立概念模型，再观察数据流和边界条件，最后通过实验或工程任务验证理解。\n\n- 识别核心对象\n- 跟踪关键数据流\n- 明确系统边界" }
   ]
 });
 
@@ -39,8 +39,14 @@ export const course: Course = {
   id: "ai-engineering-foundations",
   title: "AI Engineering Academy",
   description: "从大模型原理、AI 应用开发到 Agent 系统与平台工程的系统化学习路径。",
-  version: "0.1.0",
+  version: "0.2.0",
   language: "zh-CN",
+  labs: [
+    { id: "tokenizer", title: "Tokenizer Lab", executionMode: "browser-local", description: "使用玩具 BPE 词表观察子词合并。", safetyNotes: ["仅使用内置示例词表，不调用外部模型。"], inputs: [{ name: "text", description: "待切分文本" }], outputs: [{ name: "tokens", description: "示例 token 片段与合并过程" }], status: "implemented" },
+    { id: "transformer", title: "Transformer Attention Lab", executionMode: "browser-local", description: "使用固定小矩阵计算 scaled dot-product attention。", safetyNotes: ["仅在浏览器内执行固定矩阵运算，不加载模型权重。"], inputs: [{ name: "mask", description: "可选因果注意力掩码" }], outputs: [{ name: "attention", description: "分数、权重与加权输出矩阵" }], status: "implemented" },
+    { id: "rag", title: "RAG Pipeline Lab", executionMode: "simulation", description: "演示 chunking、教学向量、Top-K 检索与重排。", safetyNotes: ["使用内置虚构语料和确定性教学向量，不连接外部数据或模型。"], inputs: [{ name: "query", description: "检索查询" }], outputs: [{ name: "results", description: "教学检索与重排结果" }], status: "implemented" },
+    ...["tool-calling", "agent", "mcp", "multi-agent", "evaluation"].map((id) => ({ id, title: id, executionMode: "simulation" as const, description: "尚处于规划阶段。", safetyNotes: ["未实现，不会执行真实工具或外部操作。"], inputs: [], outputs: [], status: "planned" as const }))
+  ],
   modules: moduleRows.map(([id, level, title, summary, prerequisites, objectives, labId]) => ({
     id, level, title, summary, prerequisites: [...prerequisites], objectives: [...objectives],
     lessons: [lesson(id, title, summary, [...objectives])],
