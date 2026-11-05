@@ -30,7 +30,7 @@ The readiness endpoint then executes `SELECT 1` and returns HTTP 503 if the data
 
 ## Database migrations
 
-The initial migration creates `course_releases`, a versioned course-content snapshot table. Each course key/version pair is unique; schema versions must be positive; release status is constrained to `draft`, `published` or `retired`. JSONB stores the validated content snapshot, while SHA-256 records its content digest.
+The initial migration creates `course_releases`, a versioned course-content snapshot table. Each course key/version pair is unique; schema versions must be positive; release status is constrained to `draft`, `published` or `retired`. JSONB stores the content snapshot, while SHA-256 records its canonical UTF-8 JSON digest. The domain service in `app/services/course_releases.py` builds draft snapshots and publishes them only after verifying the digest; persistence and commit remain the caller's responsibility. The service does not replace the frontend course-schema validator, and no public create/publish HTTP endpoint is exposed yet.
 
 ```bash
 # With ACADEMY_DATABASE_URL set and PostgreSQL reachable:
