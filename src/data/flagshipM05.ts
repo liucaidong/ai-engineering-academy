@@ -6,12 +6,8 @@ export const flagshipM05Lessons: Course["modules"][number]["lessons"] = [
 id:"m05-01-prefill-decode-kv",title:"第一讲：Prefill、Decode 与 KV Cache",summary:"推导生成阶段、缓存张量和显存容量。",learningObjectives:["区分 Prefill 与 Decode 的工作量","推导 KV Cache 内存公式","解释 MHA、MQA、GQA 对缓存的影响"],estimatedMinutes:80,
 content:[
 {heading:"一次生成请求的两个阶段",body:"Prefill 并行处理 prompt 并建立 KV；Decode 逐 token 生成并复用历史 KV。",markdown:"Prefill 处理输入长度 T_in，计算各位置隐藏状态和 K/V。Decode 每轮通常只输入最新 token，读取历史 KV 并预测下一 token。TTFT 包含排队、prefill 和首轮生成；TPOT 描述持续 decode 的每 token 时间。长 prompt 常放大 prefill 延迟；长输出与高并发持续占用 decode 计算和 KV 内存。"},
-{heading:"KV Cache 内存公式",body:"缓存保存每层每个 KV head 的 Key 和 Value，避免每步重新计算历史投影。",markdown:"近似公式：M_KV=2×L×B×T×H_kv×d_h×bytes。2 表示 K/V，L 层数，B batch，T 缓存 token，H_kv KV heads，d_h 每头维度。
-
-例：32 层、B=1、T=8192、32 KV heads、head_dim=128、BF16 每元素 2 bytes：2×32×1×8192×32×128×2=4,294,967,296 bytes，约 4 GiB。真实运行还需考虑块对齐、并发、元数据和碎片。"},
-{heading:"MHA、MQA 与 GQA",body:"减少 KV heads 可降低缓存容量和读取带宽，但要求模型架构支持并需验证质量。",markdown:"MHA 通常每个 query head 对应独立 KV head；MQA 让多个 query heads 共享一组 KV；GQA 把 query heads 分组共享较少 KV heads。若 query heads=32，KV heads 从 32 降到 8，其他维度不变时公式中的 KV 项降至四分之一。
-
-这不是无代价优化：模型训练结构、内核实现、序列长度和硬件带宽都会影响实际收益。"},
+{heading:"KV Cache 内存公式",body:"缓存保存每层每个 KV head 的 Key 和 Value，避免每步重新计算历史投影。",markdown:"近似公式：M_KV=2×L×B×T×H_kv×d_h×bytes。2 表示 K/V，L 层数，B batch，T 缓存 token，H_kv KV heads，d_h 每头维度。\n\n例：32 层、B=1、T=8192、32 KV heads、head_dim=128、BF16 每元素 2 bytes：2×32×1×8192×32×128×2=4,294,967,296 bytes，约 4 GiB。真实运行还需考虑块对齐、并发、元数据和碎片。"},
+{heading:"MHA、MQA 与 GQA",body:"减少 KV heads 可降低缓存容量和读取带宽，但要求模型架构支持并需验证质量。",markdown:"MHA 通常每个 query head 对应独立 KV head；MQA 让多个 query heads 共享一组 KV；GQA 把 query heads 分组共享较少 KV heads。若 query heads=32，KV heads 从 32 降到 8，其他维度不变时公式中的 KV 项降至四分之一。\n\n这不是无代价优化：模型训练结构、内核实现、序列长度和硬件带宽都会影响实际收益。"},
 {heading:"缓存生命周期与隔离",body:"缓存必须与模型版本、token 前缀、位置偏移、会话身份和分支状态保持一致。",markdown:"缓存复用错误可能混合不同会话状态，造成生成错误或数据泄漏。请求取消、beam/speculative 分支、前缀共享和多租户调度需要引用计数、回收与隔离。KV 是派生状态，不能任意跨模型/适配器版本复用。"}
 ],
 assessments:[{id:"m05-01-kv-capacity",type:"code-task",prompt:"计算 32 层、8 KV heads、head_dim=128、BF16、batch=4、每请求 16k token 的理论 KV 容量，并说明分页分配和共享前缀如何改变实际占用。",rubric:[{criterion:"公式单位",description:"正确代入维度并区分 bytes 与 GiB",points:4},{criterion:"架构影响",description:"解释 GQA/MQA 对 KV head 项的影响",points:3},{criterion:"生命周期",description:"覆盖隔离、回收、共享或失效",points:3}]}],

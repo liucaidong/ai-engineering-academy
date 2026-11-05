@@ -5,18 +5,10 @@ export const flagshipM04Lessons: Course["modules"][number]["lessons"] = [
 {
 id:"m04-01-pretraining-data",title:"第一讲：预训练目标与数据工程",summary:"从自回归似然、训练数据管线和计算预算理解基础模型训练。",learningObjectives:["推导 Next Token Prediction 的负对数似然目标","区分语料规模、有效 token 数和训练步数","审查数据许可、去重、污染和质量"],estimatedMinutes:75,
 content:[
-{heading:"预训练的目标与边界",body:"预训练使参数化模型从大规模序列数据中学习可迁移统计结构，但参数记忆不等于可靠数据库。",markdown:"设参数为 θ，训练序列为 x。经验风险最小化为 R̂(θ)=1/N Σᵢ ℓ(fθ(xᵢ),yᵢ)。语言模型以 token 序列为样本，通过预测下一个 token 学习条件分布。能力取决于数据、目标函数、架构、优化过程、计算预算和后训练，不能仅由参数量推断。
-
-预训练适合学习通用语言、代码和模式；它不能自动提供最新事实、来源证明、工具权限或业务正确性。知识更新、权限和事实验证需要系统层机制。"},
-{heading:"Next Token Prediction 数学推导",body:"自回归语言模型按链式法则分解序列概率，并最小化真实下一个 token 的负对数概率。",markdown:"Pθ(x₁:T)=Πₜ Pθ(xₜ|x<ₜ)，损失 L(θ)=−(1/T)Σₜ log Pθ(xₜ|x<ₜ)。若真实 token 概率为 0.8，单 token 损失 −ln(0.8)≈0.223；若概率为 0.1，损失约 2.303。损失更大意味着模型给真实 token 分配的概率更低。
-
-实际训练还涉及 padding mask、loss mask、样本打包、梯度累积和分布式归约。统计 token 数时应说明是否包含 padding、特殊 token 和被 mask 的目标。"},
-{heading:"数据管线与污染控制",body:"数据质量、许可、去重和评测污染控制会直接影响模型行为与结果可信度。",markdown:"典型管线：来源登记 → 许可检查 → 解析 → 语言/质量过滤 → PII 处理 → 精确与近似去重 → 数据混合 → 切分 → tokenizer → packing → 版本封存。精确哈希适合完全重复；MinHash/LSH 可发现近重复，但阈值需要评估误删与漏删。
-
-测试集内容或答案进入训练集会造成污染并高估泛化。应保留来源、许可、过滤规则、数据快照、采样权重、排除列表和审计记录。"},
-{heading:"数据混合与计算预算",body:"训练数据域的采样权重塑造能力分布；参数量和训练 token 数可用于粗略估算计算量。",markdown:"若领域 d 的采样权重为 w_d，则 Σw_d=1。过采样高质量小众数据可能改善目标能力，也可能损害通用分布表现。对 dense Transformer，常用粗略估算 C≈6ND，其中 N 是参数量、D 是训练 token 数。
-
-例：7B 参数、1.2T token，C≈6×7×10⁹×1.2×10¹²=5.04×10²² FLOPs。该估算忽略激活重计算、稀疏路由、通信、padding 和硬件效率，不是账单或实测值。"}
+{heading:"预训练的目标与边界",body:"预训练使参数化模型从大规模序列数据中学习可迁移统计结构，但参数记忆不等于可靠数据库。",markdown:"设参数为 θ，训练序列为 x。经验风险最小化为 R̂(θ)=1/N Σᵢ ℓ(fθ(xᵢ),yᵢ)。语言模型以 token 序列为样本，通过预测下一个 token 学习条件分布。能力取决于数据、目标函数、架构、优化过程、计算预算和后训练，不能仅由参数量推断。\n\n预训练适合学习通用语言、代码和模式；它不能自动提供最新事实、来源证明、工具权限或业务正确性。知识更新、权限和事实验证需要系统层机制。"},
+{heading:"Next Token Prediction 数学推导",body:"自回归语言模型按链式法则分解序列概率，并最小化真实下一个 token 的负对数概率。",markdown:"Pθ(x₁:T)=Πₜ Pθ(xₜ|x<ₜ)，损失 L(θ)=−(1/T)Σₜ log Pθ(xₜ|x<ₜ)。若真实 token 概率为 0.8，单 token 损失 −ln(0.8)≈0.223；若概率为 0.1，损失约 2.303。损失更大意味着模型给真实 token 分配的概率更低。\n\n实际训练还涉及 padding mask、loss mask、样本打包、梯度累积和分布式归约。统计 token 数时应说明是否包含 padding、特殊 token 和被 mask 的目标。"},
+{heading:"数据管线与污染控制",body:"数据质量、许可、去重和评测污染控制会直接影响模型行为与结果可信度。",markdown:"典型管线：来源登记 → 许可检查 → 解析 → 语言/质量过滤 → PII 处理 → 精确与近似去重 → 数据混合 → 切分 → tokenizer → packing → 版本封存。精确哈希适合完全重复；MinHash/LSH 可发现近重复，但阈值需要评估误删与漏删。\n\n测试集内容或答案进入训练集会造成污染并高估泛化。应保留来源、许可、过滤规则、数据快照、采样权重、排除列表和审计记录。"},
+{heading:"数据混合与计算预算",body:"训练数据域的采样权重塑造能力分布；参数量和训练 token 数可用于粗略估算计算量。",markdown:"若领域 d 的采样权重为 w_d，则 Σw_d=1。过采样高质量小众数据可能改善目标能力，也可能损害通用分布表现。对 dense Transformer，常用粗略估算 C≈6ND，其中 N 是参数量、D 是训练 token 数。\n\n例：7B 参数、1.2T token，C≈6×7×10⁹×1.2×10¹²=5.04×10²² FLOPs。该估算忽略激活重计算、稀疏路由、通信、padding 和硬件效率，不是账单或实测值。"}
 ],
 assessments:[{id:"m04-01-pretraining-audit",type:"design-review",prompt:"为 7B dense 模型和 1.2T token 训练计划计算理想化 FLOPs，并提交数据许可、去重、污染、PII、质量和版本控制审查单。",rubric:[{criterion:"目标函数",description:"写出自回归似然/交叉熵并解释条件上下文",points:3},{criterion:"预算估算",description:"正确得到约 5.04×10²² FLOPs 并说明假设",points:3},{criterion:"数据治理",description:"覆盖许可、去重、污染、PII、质量和追溯",points:4}]}],
 sources:[
@@ -28,14 +20,10 @@ sources:[
 {
 id:"m04-02-architecture-families",title:"第二讲：模型架构家族与稀疏专家",summary:"比较 Encoder、Decoder、Encoder–Decoder、Dense 与 MoE 的信息流和计算成本。",learningObjectives:["比较三类 Transformer 的注意力可见性","区分 MoE 总参数与激活参数","解释专家路由、负载均衡和通信代价"],estimatedMinutes:80,
 content:[
-{heading:"Encoder、Decoder 与 Encoder–Decoder",body:"架构差异首先体现在 token 之间允许的信息流，而非产品名称。",markdown:"Encoder-only 通常使用双向 self-attention，适合表示和判别任务；Decoder-only 使用 causal self-attention，适合自回归生成；Encoder–Decoder 先编码输入，再由 Decoder 通过 cross-attention 读取编码结果，适合条件转换。
-
-架构不单独决定能力，训练目标、数据、位置机制、模型规模、后训练和推理接口同样重要。"},
+{heading:"Encoder、Decoder 与 Encoder–Decoder",body:"架构差异首先体现在 token 之间允许的信息流，而非产品名称。",markdown:"Encoder-only 通常使用双向 self-attention，适合表示和判别任务；Decoder-only 使用 causal self-attention，适合自回归生成；Encoder–Decoder 先编码输入，再由 Decoder 通过 cross-attention 读取编码结果，适合条件转换。\n\n架构不单独决定能力，训练目标、数据、位置机制、模型规模、后训练和推理接口同样重要。"},
 {heading:"Dense Transformer 计算路径",body:"Dense 模型的主要权重矩阵会参与每个 token 的前向计算。",markdown:"典型 FFN：FFN(h)=W₂σ(W₁h+b₁)+b₂。忽略 bias，参数量约为 2dd_ff。若 d=4096、d_ff=11008，则单层 FFN 约有 2×4096×11008=90,177,536 个参数。每个 token 都执行相应矩阵运算，参数量与每 token 计算成本通常相关。"},
 {heading:"MoE 路由与激活参数",body:"MoE 路由器为 token 选择少量专家，扩大总容量而不激活所有专家。",markdown:"路由器计算 p=softmax(Wᵣh)，选择 top-k 专家，专家输出再按路由权重组合。若有 8 个专家、每 token top-2，则总专家参数包含 8 份，但单 token 只经过 2 份专家 FFN，另有共享层和路由开销。因此总参数不能直接等同于每 token 计算量。"},
-{heading:"负载均衡、容量与通信",body:"MoE 的稀疏计算引入专家热点、all-to-all 通信和容量溢出。",markdown:"大量 token 可能集中到少数专家，导致负载倾斜。训练中可用负载均衡辅助损失鼓励专家分配均匀；capacity factor 限制专家接收 token 数，溢出 token 需要丢弃或备用路径。
-
-MoE 可能降低专家计算量，却增加跨设备通信、路由同步和部署复杂度。收益取决于硬件拓扑、专家并行布局、批量与 token 分布。"}
+{heading:"负载均衡、容量与通信",body:"MoE 的稀疏计算引入专家热点、all-to-all 通信和容量溢出。",markdown:"大量 token 可能集中到少数专家，导致负载倾斜。训练中可用负载均衡辅助损失鼓励专家分配均匀；capacity factor 限制专家接收 token 数，溢出 token 需要丢弃或备用路径。\n\nMoE 可能降低专家计算量，却增加跨设备通信、路由同步和部署复杂度。收益取决于硬件拓扑、专家并行布局、批量与 token 分布。"}
 ],
 assessments:[{id:"m04-02-architecture-review",type:"knowledge-check",prompt:"比较 Encoder-only、Decoder-only、Encoder–Decoder 的信息流，并解释 8-expert top-2 MoE 的总参数、激活参数和两项系统代价。",rubric:[{criterion:"信息流",description:"准确区分双向、因果和 cross-attention",points:3},{criterion:"参数分析",description:"正确区分总专家参数与激活专家参数",points:4},{criterion:"工程取舍",description:"识别通信、负载均衡或容量溢出",points:3}]}],
 sources:[
@@ -80,9 +68,7 @@ content:[
 {heading:"评测集隔离与污染",body:"评测集必须与训练和调参数据隔离，才能估计泛化能力。",markdown:"按用户、时间、来源或实体切分，避免近重复跨越 train/test。时间敏感任务优先时间切分。冻结测试集版本和访问权限；验证集用于调参，不能再当最终盲测。污染审计可结合哈希、近重复检索、benchmark 发布时间和人工抽查。"},
 {heading:"指标的适用边界",body:"困惑度、准确率、校准、安全性和人类偏好衡量不同维度，不能互相替代。",markdown:"Accuracy=正确数/样本数；PPL=exp(平均负对数似然)。若平均 NLL=1.2 nat，PPL≈e¹·²≈3.32。低困惑度不代表指令遵循、事实可靠或安全。生成任务还应报告任务成功率、引用支持率、拒答正确率、格式有效率、成本和延迟。"},
 {heading:"消融与统计不确定性",body:"消融实验隔离单一训练变量，重复实验和置信区间用于判断随机波动。",markdown:"比较数据配比时保持模型、token 预算、训练步数和评测集一致，只改变目标变量。可用 bootstrap 重采样估计指标置信区间。小样本 benchmark 的一次领先可能只是抽样波动；预先定义主要指标与比较规则。"},
-{heading:"模型卡、数据卡与发布",body:"发布档案应说明训练信息、适用范围、评测结果、已知限制和风险缓解。",markdown:"记录模型标识/权重摘要、Tokenizer、训练数据说明和许可、训练配方、评测集版本、指标与区间、已知失败模式、适用和禁用场景。无法公开的商业训练细节应明确标记缺失和审计限制。
-
-模型发布不是安全认证。应用风险和部署环境仍需单独评估权限、监控、回滚和事故响应。"}
+{heading:"模型卡、数据卡与发布",body:"发布档案应说明训练信息、适用范围、评测结果、已知限制和风险缓解。",markdown:"记录模型标识/权重摘要、Tokenizer、训练数据说明和许可、训练配方、评测集版本、指标与区间、已知失败模式、适用和禁用场景。无法公开的商业训练细节应明确标记缺失和审计限制。\n\n模型发布不是安全认证。应用风险和部署环境仍需单独评估权限、监控、回滚和事故响应。"}
 ],
 assessments:[{id:"m04-05-release-dossier",type:"design-review",prompt:"为 SFT+DPO 模型提交发布评测档案目录，覆盖数据隔离、污染审计、能力/安全指标、统计区间、模型卡和已知限制。",rubric:[{criterion:"评测设计",description:"覆盖任务能力、鲁棒性、安全和校准",points:3},{criterion:"数据可信度",description:"说明切分、污染审计和版本冻结",points:3},{criterion:"发布透明度",description:"说明适用边界、已知限制和剩余风险",points:4}]}],
 sources:[

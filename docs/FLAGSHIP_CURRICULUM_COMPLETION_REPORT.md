@@ -84,6 +84,8 @@ Labs are referenced only as declared by the existing registry. Simulations are n
 - Existing prerequisite declarations were retained.
 - Source URLs are authored as absolute HTTPS URLs. No claim is made that all 306 links were individually fetched or live-link verified.
 
+A source-preserving syntax normalization was applied to M01–M06 flagship files: literal line breaks inside double-quoted Markdown string values were converted to escaped newline sequences. This preserves the intended runtime Markdown paragraphs. M07–M20 already used valid single-line string literals. This source normalization does not replace compiler/build verification.
+
 ## 6. Validation status
 
 | Check | Status | Qualification |

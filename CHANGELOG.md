@@ -3,6 +3,7 @@
 ## 0.12.0 — 2026-11-06
 
 ### Course content
+- Normalized Markdown paragraph line breaks in flagship TypeScript content files as escaped string newlines, preserving rendered lesson text and keeping string literals syntactically valid.
 - Rebuilt M19–M20 as five-lesson flagship modules with four substantive sections per lesson, five scored assessments and 15 source references per module.
 - M19 covers product discovery, AI UX/Human-in-the-Loop, unit economics, product experiments, release operations and lifecycle governance.
 - M20 provides a five-stage end-to-end Capstone from charter and architecture through implementation, evaluation/security/deployment and technical defense.
