@@ -1,8 +1,8 @@
-from sqlalchemy import CheckConstraint, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKeyConstraint, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.db.base import Base
-from app.models import CourseRelease
+from app.models import CourseRelease, ExternalIdentity, TenantMembershipRole
 
 
 def test_course_release_is_registered_with_metadata() -> None:
@@ -44,3 +44,54 @@ def test_course_release_status_defaults_to_draft() -> None:
     column = Base.metadata.tables["course_releases"].c.status
     assert column.default is not None
     assert column.server_default is not None
+
+
+def test_external_identity_uses_issuer_and_subject_not_email_as_key() -> None:
+    table = Base.metadata.tables["external_identities"]
+    unique_constraints = {
+        tuple(column.name for column in constraint.columns)
+        for constraint in table.constraints
+        if isinstance(constraint, UniqueConstraint)
+    }
+    user_table = Base.metadata.tables["users"]
+    email_is_unique = any(
+        isinstance(constraint, UniqueConstraint)
+        and tuple(column.name for column in constraint.columns) == ("email",)
+        for constraint in user_table.constraints
+    )
+
+    assert ("issuer", "subject") in unique_constraints
+    assert not email_is_unique
+    assert ExternalIdentity.__tablename__ == "external_identities"
+
+
+def test_membership_role_foreign_key_is_tenant_scoped() -> None:
+    table = Base.metadata.tables["tenant_membership_roles"]
+    composite_foreign_keys = [
+        constraint
+        for constraint in table.constraints
+        if isinstance(constraint, ForeignKeyConstraint)
+        and tuple(element.parent.name for element in constraint.elements)
+        == ("tenant_id", "membership_id")
+    ]
+
+    assert len(composite_foreign_keys) == 1
+    assert tuple(
+        element.target_fullname for element in composite_foreign_keys[0].elements
+    ) == ("tenant_memberships.tenant_id", "tenant_memberships.id")
+    assert TenantMembershipRole.__tablename__ == "tenant_membership_roles"
+
+
+def test_identity_and_tenant_tables_are_registered() -> None:
+    expected = {
+        "users",
+        "external_identities",
+        "auth_sessions",
+        "tenants",
+        "tenant_memberships",
+        "tenant_membership_roles",
+        "tenant_invitations",
+        "audit_events",
+    }
+
+    assert expected.issubset(Base.metadata.tables)
