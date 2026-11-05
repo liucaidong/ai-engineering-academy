@@ -24,6 +24,7 @@
 - [x] Course module search across title, summary, objectives and lesson content
 - [x] Browser-local module bookmarks and prerequisite-aware next-module recommendations
 - [x] Tool Calling, Agent Runtime, MCP, Multi-Agent and Evaluation local teaching labs
+- [x] Browser-local course authoring workspace with JSON import/export, schema validation and local draft persistence
 
 ## P3 — Backend and execution platform
 - Server-side learner progress, assessment history and instructor feedback
