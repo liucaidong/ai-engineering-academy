@@ -30,6 +30,9 @@
 - [x] Explicit session and atomic transaction context managers
 - [x] Alembic async PostgreSQL migration environment
 - [x] Initial versioned course-release snapshot schema and ORM model
+- [x] Deterministic course-content hashing and draft-to-published domain service
+- [x] Publication timestamp/status invariant enforced by a follow-up migration
+- [x] Course release lifecycle and migration-chain unit tests authored
 - [x] Backend health and model tests authored (execution pending)
 - [x] Define OIDC identity, tenant membership, session and learner-data isolation baseline in ADR-0003
 - [ ] Implement identity and tenant schema, RLS policies and cross-tenant denial tests before learner-data APIs
