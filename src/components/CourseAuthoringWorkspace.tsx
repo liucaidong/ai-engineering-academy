@@ -1,20 +1,17 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import type { Course } from "../types/course";
 import { getCourseValidationErrors, validateCourse } from "../lib/validateCourse";
+import { isWithinUtf8ByteLimit } from "../lib/utf8";
 
 const STORAGE_KEY = "ai-engineering-academy:authoring-draft:v1";
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
-
-function utf8ByteLength(value: string): number {
-  return new TextEncoder().encode(value).byteLength;
-}
 
 type ValidationResult =
   | { valid: true; course: Course; errors: [] }
   | { valid: false; course: null; errors: string[] };
 
 function validateSource(source: string): ValidationResult {
-  if (utf8ByteLength(source) > MAX_IMPORT_BYTES) {
+  if (!isWithinUtf8ByteLimit(source, MAX_IMPORT_BYTES)) {
     return { valid: false, course: null, errors: ["课程 JSON 超过 2 MiB 字节限制。"] };
   }
   let parsed: unknown;
