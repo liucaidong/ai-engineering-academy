@@ -50,9 +50,8 @@ export default function App() {
             <p>从模型原理走向 AI 系统工程</p>
           </div>
           <div className="course-progress">
-            <div className="progress-copy"><span>课程模块</span><strong>{course.modules.length} / 20</strong></div>
-            <div className="progress-track"><span style={{ width: "5%" }} /></div>
-            <small>学习进度将在后续阶段接入持久化</small>
+            <div className="progress-copy"><span>课程模块总量</span><strong>{course.modules.length}</strong></div>
+            <small>学习进度功能尚未启用</small>
           </div>
           <nav className="module-nav">
             {Object.entries(groupedModules).map(([level, modules]) => (
@@ -67,7 +66,7 @@ export default function App() {
                   >
                     <span className="module-id">{module.id}</span>
                     <span>{module.title}</span>
-                    {module.labId && <span className="lab-indicator" aria-label="包含实验">◈</span>}
+                    {module.labId && <span className="lab-indicator" title="实验规划中" aria-label="实验规划中">◈</span>}
                   </button>
                 ))}
               </section>
@@ -95,7 +94,7 @@ export default function App() {
 
           <div className="content-tabs" role="tablist" aria-label="学习内容视图">
             <button className={activeView === "lesson" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lesson")} role="tab" aria-selected={activeView === "lesson"} type="button">课程内容</button>
-            {selectedModule.labId && (
+            {selectedModule.labId === "tokenizer" && (
               <button className={activeView === "lab" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lab")} role="tab" aria-selected={activeView === "lab"} type="button">交互实验</button>
             )}
           </div>
