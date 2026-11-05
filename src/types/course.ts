@@ -13,7 +13,7 @@ export const SourceReferenceSchema = z.object({
   publisher: z.string().min(1).optional(),
   accessedAt: z.string().date().optional(),
   note: z.string().optional()
-});
+}).strict();
 
 export const AssessmentSchema = z.object({
   id: z.string().min(1),
@@ -23,8 +23,8 @@ export const AssessmentSchema = z.object({
     criterion: z.string().min(1),
     description: z.string().min(1),
     points: z.number().positive()
-  })).min(1)
-});
+  }).strict()).min(1)
+}).strict();
 
 export const LabDefinitionSchema = z.object({
   id: z.string().min(1),
@@ -32,10 +32,10 @@ export const LabDefinitionSchema = z.object({
   executionMode: ExecutionModeSchema,
   description: z.string().min(1),
   safetyNotes: z.array(z.string().min(1)).min(1),
-  inputs: z.array(z.object({ name: z.string().min(1), description: z.string().min(1) })).default([]),
-  outputs: z.array(z.object({ name: z.string().min(1), description: z.string().min(1) })).default([]),
+  inputs: z.array(z.object({ name: z.string().min(1), description: z.string().min(1) }).strict()).default([]),
+  outputs: z.array(z.object({ name: z.string().min(1), description: z.string().min(1) }).strict()).default([]),
   status: z.enum(["planned", "implemented", "beta"]).default("planned")
-});
+}).strict();
 
 export const LessonSchema = z.object({
   id: z.string().min(1),
@@ -62,7 +62,7 @@ export const ModuleSchema = z.object({
   objectives: z.array(z.string()).min(1),
   lessons: z.array(LessonSchema).min(1),
   labId: z.string().optional()
-});
+}).strict();
 
 export const CourseSchema = z.object({
   schemaVersion: z.literal(1),
@@ -73,7 +73,7 @@ export const CourseSchema = z.object({
   language: z.string().min(2),
   modules: z.array(ModuleSchema).min(1),
   labs: z.array(LabDefinitionSchema).default([])
-}).superRefine((course, ctx) => {
+}).strict().superRefine((course, ctx) => {
   const moduleIds = new Set<string>();
   const globalLessonIds = new Set<string>();
   const globalAssessmentIds = new Set<string>();
