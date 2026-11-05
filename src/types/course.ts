@@ -65,6 +65,7 @@ export const ModuleSchema = z.object({
 });
 
 export const CourseSchema = z.object({
+  schemaVersion: z.literal(1),
   id: z.string().min(1),
   title: z.string().min(1),
   description: z.string().min(1),

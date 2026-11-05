@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { course } from "../data/curriculum";
 import { getCourseValidationErrors, validateCourse } from "./validateCourse";
+import { parseCoursePayload } from "./courseMigration";
 
 describe("course content contract", () => {
   it("accepts the academy curriculum", () => {
@@ -12,6 +13,16 @@ describe("course content contract", () => {
     expect(course.modules.every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].assessments.length === 1)).toBe(true);
+  });
+
+  it("migrates legacy payloads without schemaVersion to version 1", () => {
+    const legacy = Object.fromEntries(Object.entries(course).filter(([key]) => key !== "schemaVersion"));
+    expect(parseCoursePayload(legacy).schemaVersion).toBe(1);
+    expect(getCourseValidationErrors(legacy)).toEqual([]);
+  });
+
+  it("rejects unsupported course schema versions", () => {
+    expect(() => parseCoursePayload({ ...course, schemaVersion: 2 })).toThrow();
   });
 
   it("rejects modules without learning objectives", () => {

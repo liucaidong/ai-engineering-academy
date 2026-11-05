@@ -368,6 +368,7 @@ const moduleRows = [
 ] as const;
 
 export const course: Course = {
+  schemaVersion: 1,
   id: "ai-engineering-foundations",
   title: "AI Engineering Academy",
   description: "从大模型原理、AI 应用开发到 Agent 系统与平台工程的系统化学习路径。",
