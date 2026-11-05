@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import TokenizerLab from "./components/TokenizerLab";
 import TransformerLab from "./components/TransformerLab";
 import RagLab from "./components/RagLab";
@@ -6,6 +6,7 @@ import MarkdownContent from "./components/MarkdownContent";
 import { course } from "./data/curriculum";
 import { getCourseValidationErrors } from "./lib/validateCourse";
 import { EXECUTION_MODE_LABELS, type CourseModule } from "./types/course";
+import { loadProgress, serializeProgress, toggleModuleProgress } from "./lib/progress";
 
 const LEVEL_LABELS: Record<CourseModule["level"], string> = {
   L1: "基础认知", L2: "模型原理", L3: "应用工程", L4: "Agent 工程", L5: "平台工程", L6: "综合实践"
@@ -15,6 +16,15 @@ const IMPLEMENTED_LABS = new Set(["tokenizer", "transformer", "rag"]);
 export default function App() {
   const [selectedModuleId, setSelectedModuleId] = useState("M01");
   const [activeView, setActiveView] = useState<"lesson" | "lab">("lesson");
+  const [completedModules, setCompletedModules] = useState<string[]>(() => {
+    try { return loadProgress(typeof window === "undefined" ? null : window.localStorage.getItem("ai-engineering-academy:progress:v1"), course.modules.map((module) => module.id)); }
+    catch { return []; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("ai-engineering-academy:progress:v1", serializeProgress(completedModules)); }
+    catch { /* Private browsing or storage restrictions must not block learning. */ }
+  }, [completedModules]);
+  const progressPercent = Math.round((completedModules.length / course.modules.length) * 100);
   const validationErrors = useMemo(() => getCourseValidationErrors(course), []);
   const selectedModule = course.modules.find((item) => item.id === selectedModuleId) ?? course.modules[0];
   const selectedLesson = selectedModule.lessons[0];
@@ -36,11 +46,11 @@ export default function App() {
     <div className="workspace">
       <aside className="sidebar" aria-label="课程目录">
         <div className="sidebar-intro"><span className="eyebrow">LEARNING PATH</span><h1>课程目录</h1><p>从模型原理走向 AI 系统工程</p></div>
-        <div className="course-progress"><div className="progress-copy"><span>课程模块总量</span><strong>{course.modules.length}</strong></div><small>学习进度功能尚未启用</small></div>
+        <div className="course-progress"><div className="progress-copy"><span>已完成模块</span><strong>{completedModules.length} / {course.modules.length}</strong></div><div className="progress-track" role="progressbar" aria-label="课程模块完成进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercent}><span style={{ width: `${progressPercent}%` }} /></div><small>{progressPercent}% · 仅保存在当前浏览器</small></div>
         <nav className="module-nav">{Object.entries(groupedModules).map(([level, modules]) => <section className="nav-group" key={level}>
           <h2><span>{level}</span>{LEVEL_LABELS[level as CourseModule["level"]]}</h2>
           {modules.map((module) => <button className={selectedModuleId === module.id ? "module-link active" : "module-link"} key={module.id} onClick={() => selectModule(module)} aria-current={selectedModuleId === module.id ? "page" : undefined} type="button">
-            <span className="module-id">{module.id}</span><span>{module.title}</span>
+            <span className="module-id">{module.id}</span><span>{module.title}</span>{completedModules.includes(module.id) && <span className="module-complete" aria-label="已完成">✓</span>}
             {module.labId && <span className={IMPLEMENTED_LABS.has(module.labId) ? "lab-indicator implemented" : "lab-indicator"} title={IMPLEMENTED_LABS.has(module.labId) ? "交互实验已实现" : "实验规划中"} aria-label={IMPLEMENTED_LABS.has(module.labId) ? "交互实验已实现" : "实验规划中"}>◈</span>}
           </button>)}
         </section>)}</nav>

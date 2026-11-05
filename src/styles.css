@@ -191,3 +191,10 @@ a { color: inherit; text-decoration: none; }
   .rag-results article > div { display: block; }
   .rag-results article > div span { display: block; margin-top: 4px; }
 }
+
+
+.completion-button { margin-top: 20px; padding: 10px 14px; border: 1px solid #456789; border-radius: 6px; color: #b9d9f8; background: #1a3048; font-size: 11px; }
+.completion-button:hover { border-color: #79b7ee; background: #203d5b; }
+.completion-button.completed { border-color: #3d765f; color: #9ce2c1; background: #17372d; }
+.module-complete { margin-left: auto; color: #7ed7ad; font-size: 12px; font-weight: 700; }
+.module-link .module-complete + .lab-indicator { margin-left: 0; }

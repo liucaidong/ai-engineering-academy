@@ -54,7 +54,7 @@ export const LessonSchema = z.object({
 });
 
 export const ModuleSchema = z.object({
-  id: z.string().regex(/^M\\d{2}$/),
+  id: z.string().regex(/^M\d{2}$/),
   level: z.enum(["L1", "L2", "L3", "L4", "L5", "L6"]),
   title: z.string().min(1),
   summary: z.string().min(1),
