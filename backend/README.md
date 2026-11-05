@@ -47,6 +47,9 @@ Run migration commands from the `backend/` directory. The URL is read from envir
 
 - Use `session_scope(database)` for a session where the caller explicitly controls commit/rollback.
 - Use `transaction_scope(database)` for a single atomic transaction that commits on successful exit and rolls back on exception.
+- Use `authenticated_transaction_scope(database, user_id=..., tenant_id=...)` for authenticated tenant-scoped work; it sets RLS context before yielding the session.
+- If managing the transaction manually, call `set_security_context(...)` only after the server has validated the session and active tenant membership.
+- Never pass client-supplied user IDs or unchecked tenant IDs directly into the RLS context helper.
 - Do not share an `AsyncSession` across concurrent tasks.
 - Keep database sessions short; do not hold a transaction open across network calls or user interaction.
 
