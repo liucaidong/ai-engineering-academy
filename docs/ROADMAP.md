@@ -20,7 +20,7 @@
 - [ ] Verified clean install, test and production build in a controlled runtime
 
 ## P2 — Learning experience
-- Content authoring workflow and schema migration
+- [x] Content authoring guide, schemaVersion contract and legacy v0-to-v1 migration
 - Server-synced assessment history and instructor feedback
 - [x] Course module search across title, summary, objectives and lesson content
 - [x] Browser-local module bookmarks and prerequisite-aware next-module recommendations

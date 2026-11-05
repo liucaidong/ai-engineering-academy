@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "validate:course": "vitest run src/lib/validateCourse.test.ts"
   },
   "dependencies": {
     "react": "^19.1.0",
