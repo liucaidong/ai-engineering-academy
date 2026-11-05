@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { course } from "../data/curriculum";
 import { getCourseValidationErrors, validateCourse } from "./validateCourse";
 import { parseCoursePayload } from "./courseMigration";
-import { parseCoursePayload } from "./courseMigration";
 
 describe("course content contract", () => {
   it("accepts the academy curriculum", () => {
@@ -11,7 +10,6 @@ describe("course content contract", () => {
     expect(course.modules.slice(0, 3).every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].content.length >= 3)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].content.every((section) => section.body.trim().length > 0))).toBe(true);
-    expect(course.modules.every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].assessments.length === 1)).toBe(true);
     expect(course.labs.filter((lab) => lab.status === "implemented")).toHaveLength(8);
