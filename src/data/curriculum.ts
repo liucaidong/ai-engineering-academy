@@ -130,9 +130,9 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
   },
   M05: {
     content: [
-      { heading: "自回归推理流程", body: "自回归模型逐 token 生成：模型根据当前上下文计算下一 token 分布，再依解码策略选择 token。", markdown: "推理请求通常先处理 prompt（prefill），计算上下文各位置的隐藏状态和 KV；接着进入 decode 阶段，逐步产生新 token。每一步的输出会成为下一步上下文的一部分。\n\nPrefill 的工作量与输入长度相关；decode 需要反覆执行模型前向计算，并可能受到内存频寬、批量策略和 KV Cache 读取影响。" },
-      { heading: "Greedy、Sampling 与解码参数", body: "解码策略控制如何从下一 token 概率分布中选择输出，会影响多样性、可重现性和任务质量。", markdown: "Greedy decoding 每一步选择概率最高的 token；Sampling 按概率分布抽样。Temperature 调整分布尖锐程度，Top-k 限制候选数量，Top-p 保留累积概率达到阈值的候选集合。\n\n这些参数不是越高越好。确定性任务通常更重视稳定和可控；創意生成可能需要更高多样性。必须用任务数据集测试，而不是只凭主观感受调参。" },
-      { heading: "KV Cache 与内存成本", body: "KV Cache 保存已处理 token 的 Key/Value，避免每生成一个 token 都重新计算整段歷史。", markdown: "在自回归 decode 中，模型可以保留先前 token 的 K/V 張量，新增 token 时只计算新位置的 K/V，降低重复计算。代价是 Cache 需要 GPU 或其他设备内存。\n\nCache 大小受 batch、层数、KV head 数、head dimension、序列长度和数据精度影响。长上下文与高并发会让 KV Cache 成为部署容量规划的重要因素。" },
+      { heading: "自回归推理流程", body: "自回归模型逐 token 生成：模型根据当前上下文计算下一 token 分布，再依解码策略选择 token。", markdown: "推理请求通常先处理 prompt（prefill），计算上下文各位置的隐藏状态和 KV；接着进入 decode 阶段，逐步产生新 token。每一步的输出会成为下一步上下文的一部分。\n\nPrefill 的工作量与输入长度相关；decode 需要反复执行模型前向计算，并可能受到内存带宽、批量策略和 KV Cache 读取影响。" },
+      { heading: "Greedy、Sampling 与解码参数", body: "解码策略控制如何从下一 token 概率分布中选择输出，会影响多样性、可重现性和任务质量。", markdown: "Greedy decoding 每一步选择概率最高的 token；Sampling 按概率分布抽样。Temperature 调整分布尖锐程度，Top-k 限制候选数量，Top-p 保留累积概率达到阈值的候选集合。\n\n这些参数不是越高越好。确定性任务通常更重视稳定和可控；创意生成可能需要更高多样性。必须用任务数据集测试，而不是只凭主观感受调参。" },
+      { heading: "KV Cache 与内存成本", body: "KV Cache 保存已处理 token 的 Key/Value，避免每生成一个 token 都重新计算整段历史。", markdown: "在自回归 decode 中，模型可以保留先前 token 的 K/V 张量，新增 token 时只计算新位置的 K/V，降低重复计算。代价是 Cache 需要 GPU 或其他设备内存。\n\nCache 大小受 batch、层数、KV head 数、head dimension、序列长度和数据精度影响。长上下文与高并发会让 KV Cache 成为部署容量规划的重要因素。" },
       { heading: "部署指标与服务策略", body: "推理服务需要同时衡量延迟、吞吐、并发、首 Token 延迟、每 token 延迟和单位成本。", markdown: "常见指标包括 TTFT（Time To First Token）、TPOT（Time Per Output Token）、tokens/s、请求吞吐、P50/P95/P99 延迟、GPU 利用率、Cache 命中和错误率。\n\nContinuous batching、请求排队、模型量化、KV Cache 管理和多模型路由会互相影响。容量规划应基于真实负载分布和服务等级目标，而不是单次 benchmark。" }
     ],
     assessments: [{ id: "m05-inference-capacity", type: "code-task", prompt: "建立一份推理服务容量规划表，至少纳入 prompt 长度、输出长度、并发数、KV Cache 和 P95 延迟。", rubric: [{ criterion: "解码流程", description: "能区分 Prefill 与 Decode", points: 3 }, { criterion: "Cache 模型", description: "识别 KV Cache 主要维度和内存影响", points: 3 }, { criterion: "服务指标", description: "使用 TTFT、TPOT、吞吐和尾延迟建立容量判断", points: 4 }] }],
@@ -143,9 +143,9 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
   },
   M06: {
     content: [
-      { heading: "Prompt 是可版本化的输入契约", body: "Prompt 不只是自然语言技巧，而是模型应用中的输入介面，需要结构、版本、测试和变更治理。", markdown: "一个稳定 Prompt 通常包含任务目标、角色或行为约束、输入上下文、输出格式、例外处理和示例。动态数据应透过明确的栏位注入，而不是把使用者内容无限制拼接到指令区。\n\n生产 Prompt 应放入版本控制，与代码一起审查、测试和回滚。不要依赖无法追踪的手工复製版本。" },
-      { heading: "指令、上下文与数据边界", body: "明确分隔指令与不可信数据，能降低模型把引用内容误当成控制指令的风险。", markdown: "使用清楚的标题、栏位或结构化分隔符区分任务指令、参考数据和使用者输入。对检索文件、网页和附件，应明确告知模型它们是数据而非高优先级指令。\n\nPrompt Injection 不能只靠一句“忽略恶意指令”解决。工具权限、数据存取和外部副作用必须在模型之外由程式控制。" },
-      { heading: "Few-shot 与输出格式约束", body: "少量高质量示例可以展示期望模式；结构化输出则应由 Schema 和程式验证兜底。", markdown: "Few-shot 示例应覆盖典型输入、边界案例和错误模式，并保持标注一致。若需要 JSON，应定义栏位、型别、必填项和允许值，并在接收端执行验证。\n\n自然语言要求“只输出 JSON”并不能替代结构化输出机制和 Schema 验证。" },
+      { heading: "Prompt 是可版本化的输入契约", body: "Prompt 不只是自然语言技巧，而是模型应用中的输入介面，需要结构、版本、测试和变更治理。", markdown: "一个稳定 Prompt 通常包含任务目标、角色或行为约束、输入上下文、输出格式、例外处理和示例。动态数据应透过明确的栏位注入，而不是把用户内容无限制拼接到指令区。\n\n生产 Prompt 应放入版本控制，与代码一起审查、测试和回滚。不要依赖无法追踪的手工复制版本。" },
+      { heading: "指令、上下文与数据边界", body: "明确分隔指令与不可信数据，能降低模型把引用内容误当成控制指令的风险。", markdown: "使用清楚的标题、栏位或结构化分隔符区分任务指令、参考数据和用户输入。对检索文件、网页和附件，应明确告知模型它们是数据而非高优先级指令。\n\nPrompt Injection 不能只靠一句“忽略恶意指令”解决。工具权限、数据存取和外部副作用必须在模型之外由程序控制。" },
+      { heading: "Few-shot 与输出格式约束", body: "少量高质量示例可以展示期望模式；结构化输出则应由 Schema 和程序验证兜底。", markdown: "Few-shot 示例应覆盖典型输入、边界案例和错误模式，并保持标注一致。若需要 JSON，应定义栏位、型别、必填项和允许值，并在接收端执行验证。\n\n自然语言要求“只输出 JSON”并不能替代结构化输出机制和 Schema 验证。" },
       { heading: "Prompt 评测与回归", body: "Prompt 变更应透过固定测试集、质量指标和回归比较，而不是只看单次示例。", markdown: "建立代表性测试案例，覆盖正常输入、歧义输入、超长内容、注入攻击和拒答边界。记录模型版本、Prompt 版本、参数和评测结果。\n\n可将 Prompt 视为一段可执行的产品配置：每次修改都应回答质量是否改善、哪些案例退化、成本和延迟是否改变。" }
     ],
     assessments: [{ id: "m06-prompt-test-plan", type: "design-review", prompt: "为客服摘要功能设计一份 Prompt 规格和回归测试计画，包含不可信输入隔离和结构化输出验证。", rubric: [{ criterion: "提示结构", description: "明确定义任务、上下文、输出和例外规则", points: 3 }, { criterion: "数据隔离", description: "区分指令与不可信数据，避免越权指令注入", points: 3 }, { criterion: "回归评测", description: "包含测试案例、质量指标和版本记录", points: 4 }] }],
@@ -156,12 +156,12 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
   },
   M07: {
     content: [
-      { heading: "Tool Calling 的控制流", body: "模型提出工具调用请求，应用程式验证并执行工具，再把工具结果交还模型；模型本身不会自动执行你的程式。", markdown: "典型流程：应用把可用工具描述和使用者请求传給模型；模型回传工具名称与参数；应用验证名称、参数、身份和权限；应用执行工具并回传结果；模型再根据结果产生回应或提出下一次工具调用。\n\n这是多步骤控制流，不是模型直接获取数据库或作业系统权限。执行责任始终在应用程式和工具服务端。" },
-      { heading: "Schema 与参数验证", body: "工具定义应使用明确 Schema 描述参数，并在服务端重新验证所有输入。", markdown: "工具 Schema 应定义栏位名称、型别、必填性、范围、列举值和额外栏位策略。即使模型支持 Strict Structured Outputs，也不能省略服务端授权、业务规则和资源存在性检查。\n\nSchema 保证的是数据形状，不代表操作合法、使用者有权执行，或副作用符合业务预期。" },
-      { heading: "授权、幂等与副作用", body: "读取工具和写入工具应区分权限；支付、删除、发送等高风险操作需要额外确认和幂等控制。", markdown: "工具执行前应检查调用者身份、租戶范围、资源所有权、权限和风险等级。对外部写入操作，使用幂等键、审计日志、超时和补償机制。\n\n不要因为模型提出了工具调用就自动授权。高风险操作应要求明确使用者确认或人工审批。" },
+      { heading: "Tool Calling 的控制流", body: "模型提出工具调用请求，应用程序验证并执行工具，再把工具结果交还模型；模型本身不会自动执行你的程序。", markdown: "典型流程：应用把可用工具描述和用户请求传給模型；模型回传工具名称与参数；应用验证名称、参数、身份和权限；应用执行工具并回传结果；模型再根据结果产生回应或提出下一次工具调用。\n\n这是多步骤控制流，不是模型直接获取数据库或作业系统权限。执行责任始终在应用程序和工具服务端。" },
+      { heading: "Schema 与参数验证", body: "工具定义应使用明确 Schema 描述参数，并在服务端重新验证所有输入。", markdown: "工具 Schema 应定义栏位名称、型别、必填性、范围、列举值和额外栏位策略。即使模型支持 Strict Structured Outputs，也不能省略服务端授权、业务规则和资源存在性检查。\n\nSchema 保证的是数据形状，不代表操作合法、用户有权执行，或副作用符合业务预期。" },
+      { heading: "授权、幂等与副作用", body: "读取工具和写入工具应区分权限；支付、删除、发送等高风险操作需要额外确认和幂等控制。", markdown: "工具执行前应检查调用者身份、租户范围、资源所有权、权限和风险等级。对外部写入操作，使用幂等键、审计日志、超时和补償机制。\n\n不要因为模型提出了工具调用就自动授权。高风险操作应要求明确用户确认或人工审批。" },
       { heading: "错误处理与可观测性", body: "工具错误需要结构化回传、可追踪关联 ID 和有限重试，避免 Agent 无限重试或掩蓋失败。", markdown: "工具回应应包含成功/失败状态、稳定错误碼、可安全暴露的讯息和关联 ID。区分参数错误、权限拒绝、资源不存在、速率限制和暂时性故障。\n\n重试必须受次数、时间和副作用语义限制。对非幂等操作，不能盲目重试。" }
     ],
-    assessments: [{ id: "m07-tool-contract", type: "code-task", prompt: "设计一个只读的 get_order 工具 Schema 和服务端验证流程，确保使用者不能读取其他租戶的订单。", rubric: [{ criterion: "Schema", description: "定义嚴格且可验证的输入输出栏位", points: 3 }, { criterion: "授权", description: "从可信身份上下文获取租戶，不信任模型自行提供的 tenant ID", points: 4 }, { criterion: "错误与审计", description: "处理未授权、资源不存在和关联追踪", points: 3 }] }],
+    assessments: [{ id: "m07-tool-contract", type: "code-task", prompt: "设计一个只读的 get_order 工具 Schema 和服务端验证流程，确保用户不能读取其他租户的订单。", rubric: [{ criterion: "Schema", description: "定义嚴格且可验证的输入输出栏位", points: 3 }, { criterion: "授权", description: "从可信身份上下文获取租户，不信任模型自行提供的 tenant ID", points: 4 }, { criterion: "错误与审计", description: "处理未授权、资源不存在和关联追踪", points: 3 }] }],
     sources: [
       { title: "Function calling", url: "https://developers.openai.com/api/docs/guides/function-calling", publisher: "OpenAI", note: "工具调用流程与 Strict Schema" },
       { title: "Function Calling in the OpenAI API", url: "https://help.openai.com/en/articles/8555517-function-calling-in-the-openai-api", publisher: "OpenAI Help Center", note: "Function Calling 与 Structured Outputs" }
@@ -197,7 +197,7 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
     content: [
       { heading: "Agent 与普通 LLM 应用的区别", body: "Agent 在模型推理之外还具有状态、工具使用和多步骤控制循环，能根据中间结果决定下一步行动。", markdown: "普通 LLM 调用通常是输入一次、输出一次；Agent Runtime 则管理一个循环：接收目标和上下文、让模型提出下一步、执行被授权的工具、观察结果、更新状态，直到完成或觸发停止条件。\n\nAgent 不等于“模型自主执行一切”。模型负责提出决策，Runtime 负责控制步骤、权限、超时、预算和状态。" },
       { heading: "Agent Loop 与状态机", body: "可恢复的 Agent 需要明确的状态、事件、转移条件和终止条件。", markdown: "典型状态包括 Ready、Planning、ToolRequested、ToolRunning、WaitingForApproval、Completed 和 Failed。每次转移都应由可观测事件驅动。\n\n设定最大步数、總时间、token 预算和工具调用预算，并为取消、超时、重试和人工接管设计明确路徑。不要只依赖模型说“我已完成”作为完成判断。" },
-      { heading: "Runtime 的责任边界", body: "Runtime 管理工具注册、参数验证、权限检查、执行隔离、日志和错误恢復。", markdown: "Runtime 应把模型输出视为不可信的控制请求。工具名称必须在白名单中，参数需符合 Schema，授权应根据可信使用者上下文判断。对文件、Shell、网路和数据库等能力使用最小权限。\n\n外部副作用需要审批、幂等键和审计。Agent 需要在限定时间和资源内运行，并能被取消。" }
+      { heading: "Runtime 的责任边界", body: "Runtime 管理工具注册、参数验证、权限检查、执行隔离、日志和错误恢復。", markdown: "Runtime 应把模型输出视为不可信的控制请求。工具名称必须在白名单中，参数需符合 Schema，授权应根据可信用户上下文判断。对文件、Shell、网路和数据库等能力使用最小权限。\n\n外部副作用需要审批、幂等键和审计。Agent 需要在限定时间和资源内运行，并能被取消。" }
     ],
     assessments: [{ id: "m10-agent-runtime-design", type: "design-review", prompt: "设计一个只读知识检索 Agent 的状态机，标出模型决策、工具执行、停止条件和错误恢復。", rubric: [{ criterion: "状态与转移", description: "定义可验证的状态、事件和终止条件", points: 4 }, { criterion: "工具控制", description: "模型提出请求、Runtime 验证和执行的责任分离", points: 3 }, { criterion: "资源与恢復", description: "包含预算、超时、取消和失败处理", points: 3 }] }],
     sources: [
@@ -208,8 +208,8 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
   M11: {
     content: [
       { heading: "Planning：把目标转为可检查步骤", body: "Planning 将模糊目标分解为有前置条件、输入输出和完成判定的任务。", markdown: "计画可以是线性步骤、依赖 DAG 或动态更新的任务清单。每个子任务都应有完成条件、所需工具、预期副作用和失败处理。\n\n计画不是执行事实。工具结果可能让计画失效，因此 Runtime 应允许重新规划，同时限制重规划次数和總预算。" },
-      { heading: "短期状态与长期记忆", body: "短期状态支持当前任务恢復；长期记忆保存跨任务可重用资讯，两者需要不同生命周期和权限。", markdown: "Thread 或 session state 通常保存当前对话、任务进度和中间结果；长期 store 则保存经过选择、验证和治理的偏好或知识。\n\n不要把整段对话无差别写入长期记忆。应定义数据来源、用途、租戶隔离、保留期限、删除策略和敏感资讯规则。读取记忆时也要检查时效性与可信度。" },
-      { heading: "Checkpoint、恢復与记忆治理", body: "Checkpoint 让任务能在中断后恢復；记忆治理决定哪些内容可以被保存、更新、过期或删除。", markdown: "Checkpoint 应保存足以重建执行状态的数据，例如当前节点、已完成步骤、工具结果引用和待审批操作。敏感凭证不应直接放入 checkpoint。\n\n恢復时要防止重复执行外部副作用。对工具操作使用幂等键或先查詢执行状态。记忆应支持来源追溯、版本、过期和使用者控制。" }
+      { heading: "短期状态与长期记忆", body: "短期状态支持当前任务恢復；长期记忆保存跨任务可重用资讯，两者需要不同生命周期和权限。", markdown: "Thread 或 session state 通常保存当前对话、任务进度和中间结果；长期 store 则保存经过选择、验证和治理的偏好或知识。\n\n不要把整段对话无差别写入长期记忆。应定义数据来源、用途、租户隔离、保留期限、删除策略和敏感资讯规则。读取记忆时也要检查时效性与可信度。" },
+      { heading: "Checkpoint、恢復与记忆治理", body: "Checkpoint 让任务能在中断后恢復；记忆治理决定哪些内容可以被保存、更新、过期或删除。", markdown: "Checkpoint 应保存足以重建执行状态的数据，例如当前节点、已完成步骤、工具结果引用和待审批操作。敏感凭证不应直接放入 checkpoint。\n\n恢復时要防止重复执行外部副作用。对工具操作使用幂等键或先查詢执行状态。记忆应支持来源追溯、版本、过期和用户控制。" }
     ],
     assessments: [{ id: "m11-memory-policy", type: "design-review", prompt: "为个人助理设计短期状态与长期记忆方案，包含写入规则、来源、过期、删除和恢復语义。", rubric: [{ criterion: "记忆分层", description: "区分 thread state、checkpoint 和跨任务长期记忆", points: 3 }, { criterion: "数据治理", description: "定义敏感数据、来源、保留和删除规则", points: 4 }, { criterion: "恢復安全", description: "处理重复副作用和中断恢復", points: 3 }] }],
     sources: [
@@ -219,8 +219,8 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
   },
   M12: {
     content: [
-      { heading: "MCP 的角色与协議边界", body: "Model Context Protocol 定义 AI Host 与外部 Server 之间发现和使用上下文能力的标准化协議。", markdown: "MCP 通常涉及 Host、Client 和 Server：Host 是承载 AI 应用的环境；Client 管理与 Server 的协議连线；Server 暴露工具、资源或提示模板等能力。\n\nMCP 解决互通协議问题，不会自动替应用完成身份授权、租戶隔离或业务审批。协議连线建立后，Host 仍需决定哪些能力可见、哪些调用可执行。" },
-      { heading: "Tools、Resources 与 Prompts", body: "Tools 表达可调用操作，Resources 提供可读取上下文，Prompts 提供可重用的提示模板。", markdown: "Tool 调用可能产生外部副作用，必须经过权限和风险检查。Resource 让 Client 获取数据或内容，但仍要遵循数据存取控制。Prompt 是可重用模板，不等于授权策略。\n\n能力发现只表示 Server 宣告了能力，不表示所有使用者都应该獲得该能力。" },
+      { heading: "MCP 的角色与协議边界", body: "Model Context Protocol 定义 AI Host 与外部 Server 之间发现和使用上下文能力的标准化协議。", markdown: "MCP 通常涉及 Host、Client 和 Server：Host 是承载 AI 应用的环境；Client 管理与 Server 的协議连线；Server 暴露工具、资源或提示模板等能力。\n\nMCP 解决互通协議问题，不会自动替应用完成身份授权、租户隔离或业务审批。协議连线建立后，Host 仍需决定哪些能力可见、哪些调用可执行。" },
+      { heading: "Tools、Resources 与 Prompts", body: "Tools 表达可调用操作，Resources 提供可读取上下文，Prompts 提供可重用的提示模板。", markdown: "Tool 调用可能产生外部副作用，必须经过权限和风险检查。Resource 让 Client 获取数据或内容，但仍要遵循数据存取控制。Prompt 是可重用模板，不等于授权策略。\n\n能力发现只表示 Server 宣告了能力，不表示所有用户都应该獲得该能力。" },
       { heading: "Transport、生命周期与安全", body: "传输方式、连线生命周期和信任边界会影响 MCP Server 的部署与安全设计。", markdown: "常见传输包含本地程序的 stdio 和遠端的 Streamable HTTP。遠端连线需要考虑身份验证、授权、TLS、来源验证、请求大小限制和速率限制。\n\n对本地 Server，应审核启动命令、执行檔路徑、环境变数和檔案/网路权限。对遠端 Server，应验证来源和授权范围，并将工具调用记录到可追踪的审计事件。" }
     ],
     assessments: [{ id: "m12-mcp-threat-model", type: "design-review", prompt: "为一个遠端 MCP Server 设计工具发现与调用流程，列出 Host、Client、Server 職责及信任边界。", rubric: [{ criterion: "协議角色", description: "正确区分 Host、Client、Server", points: 3 }, { criterion: "能力语义", description: "区分 Tools、Resources 和 Prompts", points: 3 }, { criterion: "安全控制", description: "定义身份、授权、传输和审计控制", points: 4 }] }],
@@ -233,7 +233,7 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
     content: [
       { heading: "Skill 是可发现的程序化能力单元", body: "Skill 把任务方法、操作规则和可选资源封裝成可按需载入的目录，而不是把所有知识塞进每次提示。", markdown: "一个 Skill 通常以数据夾为单位，包含 SKILL.md 和可选的 scripts、references、assets。元数据至少描述名称和适用情境，正文则提供具体工作流程、边界和示例。\n\nSkill 的价值在于可发现、可组合和漸进式揭露：系统先载入简短描述，任务匹配时才载入完整指令与资源。" },
       { heading: "设计输入、输出与依赖契约", body: "可维护 Skill 应明确定义觸发条件、前置条件、输入、输出、依赖和失败处理。", markdown: "避免只写“你是一位专家”这类模糊指令。应描述何时使用、何时不要使用、需要哪些输入、步骤順序、产物格式和验收标准。\n\n若包含腳本，需说明执行环境、依赖、权限和输出副作用。参考数据应拆分为可按需读取的檔案，避免主指令过长。" },
-      { heading: "版本、组合与供应链治理", body: "Skill 需要版本、审查、来源和依赖治理；Skill 内容和附帶腳本都应视为可执行或可影响行为的供应链输入。", markdown: "为 Skill 设定维护者、版本、变更紀录和相容性约束。第三方 Skill 不应因为名称可信就自动执行；应检查指令是否要求读取秘密、上传数据或执行未审核程式。\n\n将 Skill 分成純指令、读取资源和可执行腳本等风险级别，并为每类设定不同权限和审批要求。" }
+      { heading: "版本、组合与供应链治理", body: "Skill 需要版本、审查、来源和依赖治理；Skill 内容和附帶腳本都应视为可执行或可影响行为的供应链输入。", markdown: "为 Skill 设定维护者、版本、变更紀录和相容性约束。第三方 Skill 不应因为名称可信就自动执行；应检查指令是否要求读取秘密、上传数据或执行未审核程序。\n\n将 Skill 分成純指令、读取资源和可执行腳本等风险级别，并为每类设定不同权限和审批要求。" }
     ],
     assessments: [{ id: "m13-skill-package", type: "code-task", prompt: "建立一个文件审查 Skill 的目录规格，包含 SKILL.md、觸发条件、参考文件、可选腳本和权限声明。", rubric: [{ criterion: "元数据与觸发", description: "名称和描述准确界定使用范围", points: 3 }, { criterion: "程序契约", description: "定义输入、步骤、输出和验收条件", points: 4 }, { criterion: "安全与版本", description: "说明腳本权限、依赖和版本治理", points: 3 }] }],
     sources: [
@@ -255,11 +255,11 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
   },
   M15: {
     content: [
-      { heading: "威脅模型：模型不是安全边界", body: "Agent 安全必须建立在应用和基础设施控制上，不能把提示词或模型拒答当成唯一防线。", markdown: "威脅面包括直接/间接 Prompt Injection、敏感资讯洩露、不安全输出处理、工具权限过大、供应链风险和资源耗盡。\n\n攻击内容可能来自使用者讯息，也可能藏在网页、文件、郵件、检索结果和工具输出中。所有外部内容都应视为不可信数据。" },
-      { heading: "最小权限与隔离", body: "工具权限应按任务和资源范围授予，并由服务端强制执行租戶、身份和资源授权。", markdown: "优先使用唯读工具；将读取、写入、删除、支付和对外发送等操作分级。使用者身份和租戶范围应从可信认证上下文获取，不接受模型自行指定的权限主体。\n\n檔案、Shell、网路和代码执行应使用隔离环境、配额、网路出口控制和檔案系统限制。秘密不应暴露在模型上下文或工具输出中。" },
+      { heading: "威脅模型：模型不是安全边界", body: "Agent 安全必须建立在应用和基础设施控制上，不能把提示词或模型拒答当成唯一防线。", markdown: "威脅面包括直接/间接 Prompt Injection、敏感资讯洩露、不安全输出处理、工具权限过大、供应链风险和资源耗盡。\n\n攻击内容可能来自用户讯息，也可能藏在网页、文件、郵件、检索结果和工具输出中。所有外部内容都应视为不可信数据。" },
+      { heading: "最小权限与隔离", body: "工具权限应按任务和资源范围授予，并由服务端强制执行租户、身份和资源授权。", markdown: "优先使用唯读工具；将读取、写入、删除、支付和对外发送等操作分级。用户身份和租户范围应从可信认证上下文获取，不接受模型自行指定的权限主体。\n\n檔案、Shell、网路和代码执行应使用隔离环境、配额、网路出口控制和檔案系统限制。秘密不应暴露在模型上下文或工具输出中。" },
       { heading: "人工审批与可审计副作用", body: "高风险操作需要明确确认、不可抵赖的审计记录和可恢复的执行流程。", markdown: "将“模型建議操作”和“系统执行操作”分开。审批介面应展示操作对象、范围、影响和不可逆风险；批准后仍由服务端再次校验权限。\n\n记录请求者、审批者、工具名称、参数摘要、资源 ID、结果和关联追踪 ID。对可重试操作使用幂等键；对可补償操作定义回滚或人工处置。" }
     ],
-    assessments: [{ id: "m15-agent-threat-model", type: "design-review", prompt: "对可修改云端文件的 Agent 完成威脅模型，至少覆盖 Prompt Injection、越权、数据洩露和破壞性操作。", rubric: [{ criterion: "威脅识别", description: "识别直接/间接注入和数据风险", points: 3 }, { criterion: "控制措施", description: "落实最小权限、租戶隔离和输出验证", points: 4 }, { criterion: "审批与审计", description: "设计人工确认、审计和恢復流程", points: 3 }] }],
+    assessments: [{ id: "m15-agent-threat-model", type: "design-review", prompt: "对可修改云端文件的 Agent 完成威脅模型，至少覆盖 Prompt Injection、越权、数据洩露和破壞性操作。", rubric: [{ criterion: "威脅识别", description: "识别直接/间接注入和数据风险", points: 3 }, { criterion: "控制措施", description: "落实最小权限、租户隔离和输出验证", points: 4 }, { criterion: "审批与审计", description: "设计人工确认、审计和恢復流程", points: 3 }] }],
     sources: [
       { title: "Top 10 for LLM and GenAI", url: "https://genai.owasp.org/initiatives/top-10-for-llm-and-genai/", publisher: "OWASP GenAI Security Project", note: "2025 LLM 应用风险分类" },
       { title: "AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", publisher: "NIST", note: "AI 风险治理框架" }
@@ -269,7 +269,7 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
     content: [
       { heading: "Workflow 与自主 Agent 的取舍", body: "Workflow 使用预先定义的控制流；Agent 则可在执行时动态选择下一步，两者可以组合。", markdown: "若流程步骤稳定、可预测且需要强审计，优先使用确定性 Workflow。若任务需要根据上下文动态探索，才引入 Agent 决策。\n\n常见设计是 Workflow 负责外层状态、权限和交易边界，Agent 负责受限子任务。不要把整个业务流程交給无限制的自主循环。" },
       { heading: "重试、超时与补償", body: "可靠編排需要区分暂时性故障和永久性错误，并为每个活动设定重试、超时和幂等语义。", markdown: "网路超时、速率限制和暂时服务不可用可能适合有限重试；参数错误、权限拒绝和业务规则冲突通常不应重试。使用指数退避、最大次数和總截止时间。\n\n重试可能重复外部副作用，因此活动应具备幂等性或执行状态查詢。对跨系统流程设计补償动作和人工恢復路徑。" },
-      { heading: "持久化执行与人工介入", body: "长时间任务需要 checkpoint、事件歷史、取消、暂停和恢復机制。", markdown: "将非确定性外部调用放在可重试活动中，让 Workflow 控制逻辑可重播。持久化事件歷史能支持故障后恢復和稽核。\n\n人工介入点应有明确等待状态、审批期限、拒绝分支和恢復条件。取消任务时，还要定义已发生的副作用如何处置。" }
+      { heading: "持久化执行与人工介入", body: "长时间任务需要 checkpoint、事件历史、取消、暂停和恢復机制。", markdown: "将非确定性外部调用放在可重试活动中，让 Workflow 控制逻辑可重播。持久化事件历史能支持故障后恢復和稽核。\n\n人工介入点应有明确等待状态、审批期限、拒绝分支和恢復条件。取消任务时，还要定义已发生的副作用如何处置。" }
     ],
     assessments: [{ id: "m16-durable-workflow", type: "design-review", prompt: "设计一个跨三个外部服务的文件发布 Workflow，说明重试、幂等、补償、审批和恢復。", rubric: [{ criterion: "流程建模", description: "把确定性流程和 Agent 子任务分开", points: 3 }, { criterion: "故障恢復", description: "定义错误分类、重试、超时和幂等", points: 4 }, { criterion: "人工介入", description: "设计审批、取消和补償路徑", points: 3 }] }],
     sources: [
@@ -281,9 +281,9 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
     content: [
       { heading: "Evaluation：建立可重现的质量定义", body: "AI Evaluation 用代表性数据集、明确指标和评分器检查系统是否达到任务要求。", markdown: "先定义任务成功，再选择指标。分类任务可看准确率、精确率、召回率和 F1；检索任务可看 Recall@k、MRR 和 nDCG；生成任务需要结合人工评分、规则检查和模型輔助评分。\n\n测试集应覆盖正常案例、边界案例、拒答、注入攻击、长尾数据和分布外输入。每次 Prompt、模型、检索器或工具变更都应执行回归。" },
       { heading: "Trace 与 Observability", body: "Trace 把一次端到端任务拆成模型调用、工具执行、检索和交接等可关联事件。", markdown: "Trace 通常包含多个 Span，每个 Span 记录操作名称、开始/结束时间、状态、属性和关联 ID。Metrics 用于聚合趨勢，Logs 用于事件细节，Traces 用于跨服务因果链。\n\nAgent Trace 还应关联模型版本、Prompt 版本、工具名称、token 用量、重试次数和审批结果。记录内容需要做敏感资讯遮罩和存取控制。" },
-      { heading: "质量、成本与延迟的联合分析", body: "质量指标必须与延迟、成本、可靠性和安全指标一起分析，避免单一分数驅动错误优化。", markdown: "建立分层评测：单元级测试验证工具和解析器；组件级测试验证检索或路由；端到端评测验证任务完成；线上监控追踪真实分布和事故。\n\n对模型輔助评分器进行人工校准，检查评分偏差。将成本、延迟和质量按任务类型、模型、租戶和版本切片，才能定位回归来源。" }
+      { heading: "质量、成本与延迟的联合分析", body: "质量指标必须与延迟、成本、可靠性和安全指标一起分析，避免单一分数驅动错误优化。", markdown: "建立分层评测：单元级测试验证工具和解析器；组件级测试验证检索或路由；端到端评测验证任务完成；线上监控追踪真实分布和事故。\n\n对模型輔助评分器进行人工校准，检查评分偏差。将成本、延迟和质量按任务类型、模型、租户和版本切片，才能定位回归来源。" }
     ],
-    assessments: [{ id: "m17-eval-observability-plan", type: "design-review", prompt: "为一个 RAG Agent 设计离线评测集、线上指标和 Trace 栏位，并说明如何识别质量回归。", rubric: [{ criterion: "评测设计", description: "定义数据集、指标和评分器", points: 4 }, { criterion: "可观测性", description: "设计 Trace/Span/Metric/Log 关联栏位", points: 3 }, { criterion: "回归分析", description: "按版本、模型、租戶和任务切片", points: 3 }] }],
+    assessments: [{ id: "m17-eval-observability-plan", type: "design-review", prompt: "为一个 RAG Agent 设计离线评测集、线上指标和 Trace 栏位，并说明如何识别质量回归。", rubric: [{ criterion: "评测设计", description: "定义数据集、指标和评分器", points: 4 }, { criterion: "可观测性", description: "设计 Trace/Span/Metric/Log 关联栏位", points: 3 }, { criterion: "回归分析", description: "按版本、模型、租户和任务切片", points: 3 }] }],
     sources: [
       { title: "Tracing", url: "https://developers.openai.com/api/docs/guides/agents-api/tracing", publisher: "OpenAI", note: "Agent Trace 结构和执行步骤" },
       { title: "OpenTelemetry Documentation", url: "https://opentelemetry.io/docs/", publisher: "OpenTelemetry", note: "Vendor-neutral traces、metrics 和 logs" }
@@ -291,13 +291,13 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
   },
   M18: {
     content: [
-      { heading: "AI Platform 的核心平面", body: "AI 平台需要将模型接入、流量治理、身份租戶、配额、执行和观测分成清晰的责任边界。", markdown: "常见平台能力包括 Model Gateway、Provider Adapter、模型路由、凭证管理、租戶与身份、配额计量、请求排队、快取、评测、审计和观测。\n\n控制平面管理模型/供应商配置、政策、配额和版本；数据平面承接线上请求并执行路由、限流和计量。两者需要有明确的一致性与故障降级策略。" },
-      { heading: "多租戶隔离与公平性", body: "多租戶系统必须隔离数据和权限，同时控制资源公平、噪音鄰居和成本归属。", markdown: "租戶边界应貫穿身份、数据库查詢、向量检索、快取键、日志和模型供应商凭证。只在 API 层检查租戶而不在数据层约束，容易产生跨租戶数据洩露。\n\n资源治理可采用每租戶并发限制、Token 配额、速率限制和优先级队列。Kubernetes Namespace 只是隔离工具之一，仍需考虑网路、节点、RBAC 和共享控制平面风险。" },
-      { heading: "可靠性、性能与成本治理", body: "模型供应商故障、速率限制和成本波动需要透过超时、熔断、回退、路由和预算策略管理。", markdown: "对供应商设定健康检查、超时、重试上限和熔断；重试时要避免放大流量。模型回退需要检查能力相容性、数据政策和输出质量，不可只按价格切换。\n\n建立每租戶、每模型和每功能的成本归因，并监控 TTFT、TPOT、错误率、佇列等待和 Token 消耗。平台架构要同时滿足安全、可靠、性能和成本目标。" }
+      { heading: "AI Platform 的核心平面", body: "AI 平台需要将模型接入、流量治理、身份租户、配额、执行和观测分成清晰的责任边界。", markdown: "常见平台能力包括 Model Gateway、Provider Adapter、模型路由、凭证管理、租户与身份、配额计量、请求排队、快取、评测、审计和观测。\n\n控制平面管理模型/供应商配置、政策、配额和版本；数据平面承接线上请求并执行路由、限流和计量。两者需要有明确的一致性与故障降级策略。" },
+      { heading: "多租户隔离与公平性", body: "多租户系统必须隔离数据和权限，同时控制资源公平、噪音鄰居和成本归属。", markdown: "租户边界应貫穿身份、数据库查詢、向量检索、快取键、日志和模型供应商凭证。只在 API 层检查租户而不在数据层约束，容易产生跨租户数据洩露。\n\n资源治理可采用每租户并发限制、Token 配额、速率限制和优先级队列。Kubernetes Namespace 只是隔离工具之一，仍需考虑网路、节点、RBAC 和共享控制平面风险。" },
+      { heading: "可靠性、性能与成本治理", body: "模型供应商故障、速率限制和成本波动需要透过超时、熔断、回退、路由和预算策略管理。", markdown: "对供应商设定健康检查、超时、重试上限和熔断；重试时要避免放大流量。模型回退需要检查能力相容性、数据政策和输出质量，不可只按价格切换。\n\n建立每租户、每模型和每功能的成本归因，并监控 TTFT、TPOT、错误率、佇列等待和 Token 消耗。平台架构要同时滿足安全、可靠、性能和成本目标。" }
     ],
-    assessments: [{ id: "m18-platform-architecture", type: "design-review", prompt: "设计一个多租戶 Model Gateway，描述控制平面、数据平面、配额、路由、凭证和故障降级。", rubric: [{ criterion: "平面划分", description: "清晰划分配置治理与线上请求处理", points: 3 }, { criterion: "租戶治理", description: "确保身份、数据、配额和计量隔离", points: 4 }, { criterion: "可靠性与成本", description: "定义限流、熔断、回退和成本归因", points: 3 }] }],
+    assessments: [{ id: "m18-platform-architecture", type: "design-review", prompt: "设计一个多租户 Model Gateway，描述控制平面、数据平面、配额、路由、凭证和故障降级。", rubric: [{ criterion: "平面划分", description: "清晰划分配置治理与线上请求处理", points: 3 }, { criterion: "租户治理", description: "确保身份、数据、配额和计量隔离", points: 4 }, { criterion: "可靠性与成本", description: "定义限流、熔断、回退和成本归因", points: 3 }] }],
     sources: [
-      { title: "Multi-tenancy", url: "https://kubernetes.io/docs/concepts/security/multi-tenancy/", publisher: "Kubernetes", note: "多租戶隔离和共享叢集风险" },
+      { title: "Multi-tenancy", url: "https://kubernetes.io/docs/concepts/security/multi-tenancy/", publisher: "Kubernetes", note: "多租户隔离和共享叢集风险" },
       { title: "Google Cloud Well-Architected Framework", url: "https://docs.cloud.google.com/architecture/framework", publisher: "Google Cloud", note: "安全、可靠、性能、成本和运维支柱" }
     ]
   },
@@ -305,7 +305,7 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
     content: [
       { heading: "AI 功能的工程化交付", body: "AI 功能应遵循一般軟体工程的需求、设计、实现、测试、发布和运维流程，同时增加模型行为的不确定性治理。", markdown: "将 Prompt、模型配置、工具 Schema、检索索引和评测数据视为版本化交付物。建立环境隔离、配置审查、测试、灰度发布和回滚流程。\n\nAI 系统的测试除了传统单元与整合测试，还需要 Prompt 回归、模型输出评测、工具权限测试、检索质量和安全测试。" },
       { heading: "供应链与可重现性", body: "模型、数据集、依赖、容器和 Skill 都可能成为供应链风险来源，需要版本和来源证明。", markdown: "记录模型 ID/版本、权重摘要、Tokenizer 版本、数据集版本、依赖鎖檔、容器映像摘要和建置来源。对外部模型与工具 SDK 做许可、漏洞和来源审查。\n\n生产部署应可追溯到代码提交、建置产物和配置版本。对不可完全重现的託管模型，至少保存供应商、模型版本、请求参数和评测快照。" },
-      { heading: "运维、事故与持续改进", body: "上线后需要 SLO、告警、事故处置、容量管理和持续评测。", markdown: "定义服务可用性、延迟、错误率和任务成功率等 SLI，为关键路徑设定 SLO。告警应指向可行动的使用者影响，而不是只報告主机指标。\n\n事故復盤要识别技术根因、检测缺口和治理缺口，并形成有 owner 和期限的改进项。模型或 Prompt 更新应重新跑评测，避免质量回归悄然进入生产。" }
+      { heading: "运维、事故与持续改进", body: "上线后需要 SLO、告警、事故处置、容量管理和持续评测。", markdown: "定义服务可用性、延迟、错误率和任务成功率等 SLI，为关键路徑设定 SLO。告警应指向可行动的用户影响，而不是只報告主机指标。\n\n事故復盤要识别技术根因、检测缺口和治理缺口，并形成有 owner 和期限的改进项。模型或 Prompt 更新应重新跑评测，避免质量回归悄然进入生产。" }
     ],
     assessments: [{ id: "m19-release-readiness", type: "design-review", prompt: "为一个使用外部 LLM 和 RAG 的应用建立上线检查表，覆盖版本、供应链、评测、SLO、回滚和事故响应。", rubric: [{ criterion: "交付流程", description: "建立可追溯版本和灰度/回滚", points: 3 }, { criterion: "供应链", description: "记录模型、数据、依赖和建置来源", points: 3 }, { criterion: "运维治理", description: "定义 SLO、告警和事故復盤", points: 4 }] }],
     sources: [
@@ -315,8 +315,8 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
   },
   M20: {
     content: [
-      { heading: "Capstone：端到端工程问题", body: "綜合项目需要从真实使用者问题出发，定义成功指标、约束、威脅模型和可验收的系统边界。", markdown: "选择一个可在有限时间内交付的 AI 工程问题，例如企业知识助手、开发者 Agent 或多模态文件处理平台。先明确使用者、任务、数据来源、失败成本和非目标。\n\n把需求转成可测量指标：任务成功率、引用正确率、延迟、成本、权限違规率和可用性。没有明确指标的“效果很好”不能作为验收标准。" },
-      { heading: "架构、实现与安全控制", body: "项目需呈现模型、检索、工具、Runtime、数据和平台元件的责任分离。", markdown: "提交架构图、数据流、API/Schema、部署拓撲和状态机。标出模型决策与应用执行的边界，列出每个工具的权限、输入验证和副作用。\n\n完成威脅模型，至少覆盖 Prompt Injection、数据洩露、跨租戶存取、工具越权、供应链和资源耗盡。高风险操作要有人工审批或其他强制控制。" },
+      { heading: "Capstone：端到端工程问题", body: "綜合项目需要从真实用户问题出发，定义成功指标、约束、威脅模型和可验收的系统边界。", markdown: "选择一个可在有限时间内交付的 AI 工程问题，例如企业知识助手、开发者 Agent 或多模态文件处理平台。先明确用户、任务、数据来源、失败成本和非目标。\n\n把需求转成可测量指标：任务成功率、引用正确率、延迟、成本、权限違规率和可用性。没有明确指标的“效果很好”不能作为验收标准。" },
+      { heading: "架构、实现与安全控制", body: "项目需呈现模型、检索、工具、Runtime、数据和平台元件的责任分离。", markdown: "提交架构图、数据流、API/Schema、部署拓撲和状态机。标出模型决策与应用执行的边界，列出每个工具的权限、输入验证和副作用。\n\n完成威脅模型，至少覆盖 Prompt Injection、数据洩露、跨租户存取、工具越权、供应链和资源耗盡。高风险操作要有人工审批或其他强制控制。" },
       { heading: "评测、交付与答辯", body: "Capstone 的完成标准是可运行、可测试、可观测、可审计和可復现，而不是只展示 Demo。", markdown: "提交代码、部署说明、测试報告、评测数据集、Trace 范例、成本估算、威脅模型和已知限制。展示至少一个正常流程、一个故障流程和一个安全拒绝流程。\n\n答辯时说明架构取舍、质量指标、失败案例和后续路线图。未实现的能力应明确列为限制，不得以介面原型冒充已交付功能。" }
     ],
     assessments: [{ id: "m20-capstone-rubric", type: "design-review", prompt: "交付一个端到端 AI 工程项目，并提交架构、代码、测试、评测、威脅模型和运维文件。", rubric: [{ criterion: "问题与架构", description: "需求可验收，架构边界和数据流清晰", points: 2 }, { criterion: "工程实现", description: "核心流程可运行且具备测试", points: 3 }, { criterion: "质量与安全", description: "有评测、威脅模型和权限控制证据", points: 3 }, { criterion: "交付与运维", description: "提供部署、观测、成本和已知限制文件", points: 2 }] }],
