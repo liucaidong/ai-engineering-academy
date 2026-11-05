@@ -36,8 +36,7 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     )
                 )
             ).scalar_one()
-            if not admin_role:
-                pytest.skip("Admin test connection must bypass RLS for isolated fixture setup")
+            assert admin_role is True, "Admin test connection must bypass RLS for isolated fixture setup"
 
             await connection.execute(
                 text(
@@ -99,6 +98,7 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                 )
             ).one()
             assert role_flags == (False, False)
+            await connection.rollback()
 
             async with connection.begin():
                 await connection.execute(
