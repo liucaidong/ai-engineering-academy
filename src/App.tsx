@@ -89,7 +89,7 @@ export default function App() {
             <button className={completedModules.includes(selectedModule.id) ? "completion-button completed" : "completion-button"} type="button" aria-pressed={completedModules.includes(selectedModule.id)} onClick={() => setCompletedModules((current) => toggleModuleProgress(current, selectedModule.id))}>{completedModules.includes(selectedModule.id) ? "✓ 已标记完成 · 点击撤销" : "标记本模块为已完成"}</button>
             {selectedLesson.assessments.length > 0 && <div className="objectives"><h3>本节测评</h3>{selectedLesson.assessments.map((assessment) => <AssessmentWorkspace key={assessment.id} assessment={assessment} value={assessmentResponses[assessment.id] ?? { responseText: "", reviewedCriteria: [] }} onChange={(value) => setAssessmentResponses((current) => ({ ...current, [assessment.id]: value }))} />)}</div>}
             {selectedLesson.sources.length > 0 && <div className="source-list"><h3>参考来源</h3>{selectedLesson.sources.map((source) => <p key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a> · {source.publisher}</p>)}</div>}
-            <div className="coming-next"><span>课程内容状态</span><p>当前课程目录已建立；正式教材、测评和参考来源按模块逐步补齐。空缺内容不会被伪装成已完成教材。</p></div>
+            <div className="coming-next"><span>课程内容状态</span><p>课程内容基线已覆盖 M01–M20；运行验收、更多交互实验和后端能力仍按路线图推进。</p></div>
             {openLab && <button className="primary-button" onClick={() => setActiveView("lab")} type="button">打开交互实验 <span>→</span></button>}
           </article>
           <aside className="learning-aside">
