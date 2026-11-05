@@ -100,15 +100,6 @@ def upgrade() -> None:
         f"FOR SELECT USING (tenant_id = {_TENANT} AND created_by_user_id = {_USER})"
     )
     op.execute(
-        f"CREATE POLICY tenant_invitations_creator_insert ON tenant_invitations "
-        f"FOR INSERT WITH CHECK (tenant_id = {_TENANT} AND created_by_user_id = {_USER})"
-    )
-    op.execute(
-        f"CREATE POLICY tenant_invitations_creator_update ON tenant_invitations "
-        f"FOR UPDATE USING (tenant_id = {_TENANT} AND created_by_user_id = {_USER}) "
-        f"WITH CHECK (tenant_id = {_TENANT} AND created_by_user_id = {_USER})"
-    )
-    op.execute(
         f"CREATE POLICY audit_events_actor_select ON audit_events FOR SELECT USING ("
         f"actor_user_id = {_USER} AND (tenant_id IS NULL OR tenant_id = {_TENANT})"
         f")"
@@ -123,11 +114,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     policies = {
         "audit_events": ("audit_events_actor_insert", "audit_events_actor_select"),
-        "tenant_invitations": (
-            "tenant_invitations_creator_update",
-            "tenant_invitations_creator_insert",
-            "tenant_invitations_creator_select",
-        ),
+        "tenant_invitations": ("tenant_invitations_creator_select",),
         "tenant_membership_roles": ("tenant_membership_roles_self_select",),
         "tenant_memberships": ("tenant_memberships_self_select",),
         "tenants": ("tenants_member_select",),
