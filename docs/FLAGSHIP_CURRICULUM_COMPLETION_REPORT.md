@@ -2,19 +2,19 @@
 
 - Repository: liucaidong/ai-engineering-academy
 - Branch: main
-- Curriculum version: 0.12.0
+- Curriculum version: 0.13.0
 - Report date: 2026-11-06
 - Scope: instructional content, curriculum registration, course documentation and changelog only.
 
 ## 1. Executive summary
 
-M01–M20 are registered as a 20-module curriculum. M01–M03 retain their existing flagship content and were not overwritten. M04–M20 have been expanded into five-lesson flagship modules. Each newly authored module contains four substantive sections per lesson, one scored assessment per lesson, and three topic-matched source references per lesson.
+M01–M20 are registered as a 20-module curriculum. M01–M03 retain their existing flagship content and were not overwritten. M04–M20 are five-lesson flagship modules. M04–M06 now contain five substantive sections per lesson, including reproducible practical exercises; M07–M20 retain four substantive sections per lesson. Each lesson has a scored assessment and three topic-matched source references.
 
 | Metric | M01–M03 | M04–M20 | Total |
 |---|---:|---:|---:|
 | Modules | 3 | 17 | 20 |
 | Lessons | 15 | 85 | 100 |
-| Teaching sections | 70 | 340 | 410 |
+| Teaching sections | 70 | 355 | 425 |
 | Scored assessments | 15 | 85 | 100 |
 | Source references | 51 | 255 | 306 |
 
@@ -27,9 +27,9 @@ These are authored-source counts. They do not imply all references were live-lin
 | M01 | Existing flagship retained | 5 | 24 | 5 | 15 | AI/ML/DL/LLM foundations, learning, neural networks, capability boundaries and AI system design |
 | M02 | Existing flagship retained | 5 | 21 | 5 | 16 | Transformer, Attention, masks, positional mechanisms, blocks and inference complexity |
 | M03 | Existing flagship retained | 5 | 25 | 5 | 20 | Tokenization, embeddings, context budgets, context engineering and tokenizer practice |
-| M04 | Flagship built | 5 | 20 | 5 | 15 | Pretraining/data, architecture families and MoE, SFT/LoRA, RLHF/PPO/DPO, model evaluation |
-| M05 | Flagship built | 5 | 20 | 5 | 15 | Prefill/Decode, KV Cache, decoding, batching, speculative decoding, quantization and serving |
-| M06 | Flagship built | 5 | 20 | 5 | 15 | Prompt specifications, few-shot, structured output, injection defense and regression evaluation |
+| M04 | Flagship built + practical depth | 5 | 25 | 5 | 15 | Pretraining/data, architecture families and MoE, SFT/LoRA, RLHF/PPO/DPO, model evaluation |
+| M05 | Flagship built + practical depth | 5 | 25 | 5 | 15 | Prefill/Decode, KV Cache, decoding, batching, speculative decoding, quantization and serving |
+| M06 | Flagship built + practical depth | 5 | 25 | 5 | 15 | Prompt specifications, few-shot, structured output, injection defense and regression evaluation |
 | M07 | Flagship built | 5 | 20 | 5 | 15 | Tool-call protocol, schema validation, discovery/routing, idempotency and safety evaluation |
 | M08 | Flagship built | 5 | 20 | 5 | 15 | RAG pipeline, chunking, embeddings/ANN, hybrid retrieval/reranking and production evaluation |
 | M09 | Flagship built | 5 | 20 | 5 | 15 | Multimodal fusion, ViT, diffusion, audio tokenization/ASR/TTS and system engineering |
@@ -85,6 +85,14 @@ Labs are referenced only as declared by the existing registry. Simulations are n
 - Source URLs are authored as absolute HTTPS URLs. No claim is made that all 306 links were individually fetched or live-link verified.
 
 A source-preserving syntax normalization was applied to M01–M06 flagship files: literal line breaks inside double-quoted Markdown string values were converted to escaped newline sequences. This preserves the intended runtime Markdown paragraphs. M07–M20 already used valid single-line string literals. This source normalization does not replace compiler/build verification.
+
+### M04–M06 practical-depth revision (0.13.0)
+
+- Added 15 practical teaching sections: five per lesson across M04–M06.
+- Added worked calculations, traceable assumptions, failure cases and explicit evidence expectations.
+- M04–M06 teaching-section count increased from 60 to 75; course-wide section count increased from 410 to 425.
+- Lesson, assessment and reference counts are unchanged.
+- Schema, prerequisites and existing labs are unchanged.
 
 ## 6. Validation status
 
