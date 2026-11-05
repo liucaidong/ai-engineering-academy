@@ -40,7 +40,10 @@
 - [x] Implement transaction-local user/tenant context helper and forced PostgreSQL RLS policies for identity/tenant tables
 - [x] Author optional PostgreSQL RLS integration acceptance using a separate non-owner runtime role (execution pending)
 - [ ] Execute RLS integration acceptance with provisioned admin/runtime database roles before learner-data APIs
-- [ ] Persist learner progress and assessment history with explicit transaction boundaries
+- [x] Add tenant/user/course-release-scoped learning progress and assessment result schemas with lifecycle constraints
+- [x] Apply forced RLS to learner records and author non-owner cross-tenant integration acceptance (execution pending)
+- [ ] Execute PostgreSQL RLS acceptance with provisioned runtime role before learner-data APIs
+- [ ] Implement OIDC authentication, instructor authorization and learner-data application services
 - [ ] Sandboxed code execution with quotas and isolation
 - [ ] Model gateway with explicit provider configuration
 - [ ] Evaluation datasets, trace capture and observability
