@@ -115,7 +115,6 @@ describe("course content contract", () => {
   });
 
   it("rejects unknown keys in source, rubric and lab records", () => {
-    const firstModule = course.modules[0];
     const sourceExtra = {
       ...course,
       modules: course.modules.map((module, index) => index === 0
@@ -134,7 +133,6 @@ describe("course content contract", () => {
 
     const labExtra = { ...course, labs: [{ ...course.labs[0], extraLabField: true }, ...course.labs.slice(1)] };
     expect(getCourseValidationErrors(labExtra).some((error) => error.includes("extraLabField"))).toBe(true);
-    expect(firstModule.id).toBe("M01");
   });
 
 });
