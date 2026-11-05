@@ -35,7 +35,9 @@
 - [x] Course release lifecycle and migration-chain unit tests authored
 - [x] Backend health and model tests authored (execution pending)
 - [x] Define OIDC identity, tenant membership, session and learner-data isolation baseline in ADR-0003
-- [ ] Implement identity and tenant schema, RLS policies and cross-tenant denial tests before learner-data APIs
+- [x] Add dormant user, OIDC identity, session, tenant, membership, role, invitation and audit schemas with Alembic migration (no HTTP exposure)
+- [ ] Implement OIDC sign-in/session lifecycle and CSRF/origin protections
+- [ ] Implement transaction-local tenant context, PostgreSQL RLS policies and cross-tenant denial tests using a non-owner runtime role before learner-data APIs
 - [ ] Persist learner progress and assessment history with explicit transaction boundaries
 - [ ] Sandboxed code execution with quotas and isolation
 - [ ] Model gateway with explicit provider configuration
