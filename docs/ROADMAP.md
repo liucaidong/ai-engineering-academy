@@ -12,7 +12,7 @@
 - [x] Author substantive, sourced lessons and rubric assessments for M04–M09
 - [x] Author substantive, sourced lessons and rubric assessments for M10–M20
 - [x] Browser-local module completion progress (localStorage; no account sync)
-- [ ] Assessment result persistence and server-side learner sync
+- [x] Browser-local assessment drafts and rubric self-review (no server sync)\n- [ ] Server-side learner sync and assessment history
 - [ ] Accessibility and browser E2E acceptance
 - [ ] Verified clean install, test and production build in a controlled runtime
 

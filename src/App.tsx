@@ -7,6 +7,8 @@ import { course } from "./data/curriculum";
 import { getCourseValidationErrors } from "./lib/validateCourse";
 import { EXECUTION_MODE_LABELS, type CourseModule } from "./types/course";
 import { loadProgress, serializeProgress, toggleModuleProgress } from "./lib/progress";
+import AssessmentWorkspace from "./components/AssessmentWorkspace";
+import { loadAssessmentProgress, serializeAssessmentProgress, type AssessmentResponse } from "./lib/assessmentProgress";
 
 const LEVEL_LABELS: Record<CourseModule["level"], string> = {
   L1: "基础认知", L2: "模型原理", L3: "应用工程", L4: "Agent 工程", L5: "平台工程", L6: "综合实践"
@@ -24,6 +26,14 @@ export default function App() {
     try { window.localStorage.setItem("ai-engineering-academy:progress:v1", serializeProgress(completedModules)); }
     catch { /* Private browsing or storage restrictions must not block learning. */ }
   }, [completedModules]);
+  const [assessmentResponses, setAssessmentResponses] = useState<Record<string, AssessmentResponse>>(() => {
+    try { return loadAssessmentProgress(typeof window === "undefined" ? null : window.localStorage.getItem("ai-engineering-academy:assessments:v1"), course.modules.flatMap((module) => module.lessons.flatMap((lesson) => lesson.assessments.map((assessment) => assessment.id)))); }
+    catch { return {}; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("ai-engineering-academy:assessments:v1", serializeAssessmentProgress(assessmentResponses)); }
+    catch { /* Storage restrictions must not block assessment work. */ }
+  }, [assessmentResponses]);
   const progressPercent = Math.round((completedModules.length / course.modules.length) * 100);
   const validationErrors = useMemo(() => getCourseValidationErrors(course), []);
   const selectedModule = course.modules.find((item) => item.id === selectedModuleId) ?? course.modules[0];
@@ -73,7 +83,7 @@ export default function App() {
             {selectedLesson.content.map((section) => <section className="lesson-section" key={section.heading}><h3>{section.heading}</h3><MarkdownContent content={section.markdown ?? section.body} /></section>)}
             <div className="objectives"><h3>本节学习目标</h3><ul>{selectedLesson.learningObjectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></div>
             <button className={completedModules.includes(selectedModule.id) ? "completion-button completed" : "completion-button"} type="button" aria-pressed={completedModules.includes(selectedModule.id)} onClick={() => setCompletedModules((current) => toggleModuleProgress(current, selectedModule.id))}>{completedModules.includes(selectedModule.id) ? "✓ 已标记完成 · 点击撤销" : "标记本模块为已完成"}</button>
-            {selectedLesson.assessments.length > 0 && <div className="objectives"><h3>本节测评</h3>{selectedLesson.assessments.map((assessment) => <section key={assessment.id}><strong>{assessment.prompt}</strong><ul>{assessment.rubric.map((criterion) => <li key={criterion.criterion}>{criterion.criterion}（{criterion.points} 分）：{criterion.description}</li>)}</ul></section>)}</div>}
+            {selectedLesson.assessments.length > 0 && <div className="objectives"><h3>本节测评</h3>{selectedLesson.assessments.map((assessment) => <AssessmentWorkspace key={assessment.id} assessment={assessment} value={assessmentResponses[assessment.id] ?? { responseText: "", reviewedCriteria: [] }} onChange={(value) => setAssessmentResponses((current) => ({ ...current, [assessment.id]: value }))} />)}</div>}
             {selectedLesson.sources.length > 0 && <div className="source-list"><h3>参考来源</h3>{selectedLesson.sources.map((source) => <p key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a> · {source.publisher}</p>)}</div>}
             <div className="coming-next"><span>课程内容状态</span><p>当前课程目录已建立；正式教材、测评和参考来源按模块逐步补齐。空缺内容不会被伪装成已完成教材。</p></div>
             {openLab && <button className="primary-button" onClick={() => setActiveView("lab")} type="button">打开交互实验 <span>→</span></button>}
