@@ -4,7 +4,7 @@
 Defines the versioned content model consumed by the academy frontend. It is a typed authoring and validation boundary, not yet a CMS or persisted backend schema.
 
 ## Entities
-- Course: stable ID, schema version, content version, locale, ordered modules and lab registry.
+- Course: stable ID, schema version, SemVer content version, locale, ordered modules and lab registry.
 - Module: stable MNN identifier, level, summary, prerequisite module IDs, measurable objectives, lessons and optional lab ID.
 - Lesson: stable ID, title, summary, measurable objectives, estimated duration, ordered sections, source references and assessments.
 - Content section: heading, required plain-text fallback, optional Markdown source and optional section-level source references.
@@ -31,6 +31,7 @@ The UI must never infer an execution mode from the lab name. The registry is aut
 - Assessment IDs are unique across the entire course; rubric criterion names are unique within each assessment.
 - Prerequisite IDs must exist, cannot repeat, cannot self-reference and must form a directed acyclic graph.
 - Lab IDs are unique. When a lab registry is present, each module lab reference must resolve.
+- Every lesson has at least three substantive sections, two source references and one assessment.
 - Learning objectives and lesson sections are non-empty.
 - Assessment rubric points are positive.
 - Source URLs must be valid absolute URLs.

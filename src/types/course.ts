@@ -48,9 +48,9 @@ export const LessonSchema = z.object({
     body: z.string().min(1),
     markdown: z.string().optional(),
     sources: z.array(SourceReferenceSchema).optional()
-  })).default([]),
-  assessments: z.array(AssessmentSchema).default([]),
-  sources: z.array(SourceReferenceSchema).default([])
+  })).min(3),
+  assessments: z.array(AssessmentSchema).min(1),
+  sources: z.array(SourceReferenceSchema).min(2)
 });
 
 export const ModuleSchema = z.object({
@@ -69,7 +69,7 @@ export const CourseSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   description: z.string().min(1),
-  version: z.string().min(1),
+  version: z.string().regex(/^\d+\.\d+\.\d+$/),
   language: z.string().min(2),
   modules: z.array(ModuleSchema).min(1),
   labs: z.array(LabDefinitionSchema).default([])

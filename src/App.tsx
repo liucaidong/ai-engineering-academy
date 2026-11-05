@@ -21,7 +21,7 @@ import EvaluationLab from "./components/EvaluationLab";
 const LEVEL_LABELS: Record<CourseModule["level"], string> = {
   L1: "基础认知", L2: "模型原理", L3: "应用工程", L4: "Agent 工程", L5: "平台工程", L6: "综合实践"
 };
-const IMPLEMENTED_LABS = new Set(course.labs.filter((lab) => lab.status === "implemented").map((lab) => lab.id));
+const IMPLEMENTED_LABS = new Set(["tokenizer", "transformer", "rag", "tool-calling", "agent", "mcp", "multi-agent", "evaluation"]);
 
 export default function App() {
   const [selectedModuleId, setSelectedModuleId] = useState("M01");

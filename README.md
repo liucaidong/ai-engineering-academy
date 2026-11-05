@@ -19,7 +19,6 @@ AI Engineering Academy 将以工程能力为主线，覆盖 AI 基础认知、�
 - [参考课件审计](docs/REFERENCE_AUDIT.md)
 - [工程治理](docs/ENGINEERING_GOVERNANCE.md)
 - [课程内容契约](docs/COURSE_CONTENT_CONTRACT.md)
-- [课程内容编写与迁移规范](docs/CONTENT_AUTHORING.md)
 - [工程验收清单](docs/ACCEPTANCE.md)
 - [ADR-0001：独立平台决策](docs/adr/0001-independent-platform.md)
 
@@ -36,7 +35,6 @@ AI Engineering Academy 将以工程能力为主线，覆盖 AI 基础认知、�
 npm install
 npm run dev
 npm test
-npm run validate:course
 npm run build
 npx playwright install chromium
 npm run test:e2e
@@ -46,8 +44,7 @@ npm run test:e2e
 
 - 20 个课程模块导航、全文搜索、先修依赖和课程 Schema 校验；
 - M01–M20 均具备章节化教材、参考来源和 Rubric 测评；
-- 模块完成状态、收藏、测评草稿和 Rubric 自评保存在当前浏览器的 localStorage；
-- 根据先修模块完成情况推荐下一学习模块；
+- 模块完成状态、收藏、测评草稿和 Rubric 自评保存在当前浏览器的 localStorage；\n- 根据先修模块完成情况推荐下一学习模块；
 - Tokenizer：玩具 BPE 词表演示；
 - Transformer：固定小矩阵的 scaled dot-product attention 与因果 Mask；
 - RAG：文本切分、确定性教学向量、Top-K 检索和教学重排；

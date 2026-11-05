@@ -26,6 +26,15 @@ describe("course content contract", () => {
     expect(() => parseCoursePayload({ ...course, schemaVersion: 2 })).toThrow();
   });
 
+  it("requires substantive lesson content, sources and assessments", () => {
+    const incomplete = { ...course, modules: [{ ...course.modules[0], lessons: [{ ...course.modules[0].lessons[0], content: [], sources: [], assessments: [] }] }] };
+    expect(getCourseValidationErrors(incomplete).join(" ")).toMatch(/content|sources|assessments/);
+  });
+
+  it("rejects non-SemVer curriculum versions", () => {
+    expect(getCourseValidationErrors({ ...course, version: "draft" }).some((error) => error.includes("version"))).toBe(true);
+  });
+
   it("rejects modules without learning objectives", () => {
     const invalid = { ...course, modules: [{ ...course.modules[0], objectives: [] }] };
     expect(getCourseValidationErrors(invalid).some((error) => error.includes("objectives"))).toBe(true);
