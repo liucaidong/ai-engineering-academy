@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0 — 2026-11-06
+
+### Course content
+- Rebuilt M03 as a five-lesson flagship sequence covering text/token boundaries, BPE/WordPiece/Unigram, special tokens, embeddings, weight tying, context budgets, context engineering, RAG and long-context trade-offs.
+- Added worked token-budget and embedding parameter/storage calculations, five scored assessments, and primary research/documentation references.
+- Connected M03 to the existing browser-local toy Tokenizer Lab; explicitly documented that it does not reproduce production tokenizer outputs or provider token counts.
+- Expanded M03 learning objectives and documented its teaching sequence and instructional boundaries.
+- No platform features, backend capabilities, lab runtime, or CI workflows were added.
+
 ## 0.5.0 — 2026-11-06
 
 ### Course content

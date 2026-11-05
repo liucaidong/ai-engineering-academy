@@ -67,6 +67,28 @@ M02 承接 M01 的 AI 系统基础，进入现代大语言模型的核心架构�
 - 将标准 Attention 的二次复杂度与 FlashAttention 的 IO 优化区分开：后者不改变标准注意力的数学结果定义。
 - 通过浏览器本地固定矩阵实验验证数值流程；实验不加载真实模型权重，也不代表 GPU 性能基准。
 
+## 旗舰课程：M03《Token、Embedding 与 Context》
+
+M03 将模型输入表示拆成三个相互关联但不能混淆的层次：文本如何被 tokenizer 离散化、离散 token ID 如何通过 embedding 变成向量，以及系统如何把有限上下文预算分配给指令、历史、检索证据和输出。课程同时强调模型接口契约：Tokenizer、词表、特殊 token 和 Chat Template 必须与目标模型匹配。
+
+| 讲次 | 主题 | 核心学习产物 |
+|---|---|---|
+| 01 | 从文本到 Token ID：离散化过程 | Tokenizer 算法比较与多语言输入切分审计 |
+| 02 | 从 Token ID 到 Embedding：向量表示 | Embedding 参数量计算、数据流图与 weight tying 说明 |
+| 03 | Context Window 与 Token Budget：上下文容量规划 | 一份可复算的请求预算表与超限压缩方案 |
+| 04 | Context Engineering：消息、模板与证据组织 | 企业知识助手 Context Assembly Pipeline 设计 |
+| 05 | 综合实操：Token 计量、Embedding 估算与上下文审计 | Tokenizer 实验记录和端到端 Token/Context 审计报告 |
+
+### 教学组织原则
+
+- 严格区分 Unicode 码点、UTF-8 字节、token、token ID 和 embedding vector；**Token ID 是离散索引，不是语义向量**。
+- 比较 BPE、WordPiece、Unigram 和 byte-level 设计时，说明训练目标、预处理与编码规则差异，不把它们混为同一算法。
+- 通过可复算的词表规模 × embedding 维度示例建立参数量和存储量直觉，并明确训练额外状态未计入。
+- 将 context window 视为一次请求的序列容量约束；预算必须纳入消息模板、工具、检索内容、输出预留和安全余量。
+- 区分标称上下文窗口与模型对长上下文的有效利用质量；摘要、滑动窗口和 RAG 都需要任务级验证。
+- Tokenizer Lab 仅使用浏览器本地玩具 BPE 词表，不等同于任何厂商的生产 tokenizer，不验证真实 token ID 或 API 计量结果。
+- 对模型专用 Chat Template、特殊 token 和消息结束语义，以目标模型/服务的官方文档为准。
+
 ## 实验室规划
 | 实验室 | 主要内容 | 执行模式建议 |
 |---|---|---|
