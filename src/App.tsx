@@ -39,7 +39,7 @@ export default function App() {
         <div className="course-progress"><div className="progress-copy"><span>课程模块总量</span><strong>{course.modules.length}</strong></div><small>学习进度功能尚未启用</small></div>
         <nav className="module-nav">{Object.entries(groupedModules).map(([level, modules]) => <section className="nav-group" key={level}>
           <h2><span>{level}</span>{LEVEL_LABELS[level as CourseModule["level"]]}</h2>
-          {modules.map((module) => <button className={selectedModuleId === module.id ? "module-link active" : "module-link"} key={module.id} onClick={() => selectModule(module)} type="button">
+          {modules.map((module) => <button className={selectedModuleId === module.id ? "module-link active" : "module-link"} key={module.id} onClick={() => selectModule(module)} aria-current={selectedModuleId === module.id ? "page" : undefined} type="button">
             <span className="module-id">{module.id}</span><span>{module.title}</span>
             {module.labId && <span className={IMPLEMENTED_LABS.has(module.labId) ? "lab-indicator implemented" : "lab-indicator"} title={IMPLEMENTED_LABS.has(module.labId) ? "交互实验已实现" : "实验规划中"} aria-label={IMPLEMENTED_LABS.has(module.labId) ? "交互实验已实现" : "实验规划中"}>◈</span>}
           </button>)}
@@ -50,9 +50,9 @@ export default function App() {
         <div className="breadcrumb">课程 / {LEVEL_LABELS[selectedModule.level]} / <strong>{selectedModule.id}</strong></div>
         <section className="module-hero"><div><span className="eyebrow">{selectedModule.level} · {selectedModule.id}</span><h1>{selectedModule.title}</h1><p>{selectedModule.summary}</p></div><div className="module-count"><strong>{selectedModule.id}</strong><span>MODULE</span></div></section>
         {validationErrors.length > 0 && <div className="validation-warning" role="alert">课程内容校验失败：{validationErrors.join("；")}</div>}
-        <div className="content-tabs" role="tablist" aria-label="学习内容视图">
-          <button className={activeView === "lesson" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lesson")} role="tab" aria-selected={activeView === "lesson"} type="button">课程内容</button>
-          {openLab && <button className={activeView === "lab" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lab")} role="tab" aria-selected={activeView === "lab"} type="button">交互实验</button>}
+        <div className="content-tabs" aria-label="学习内容视图">
+          <button className={activeView === "lesson" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lesson")} aria-pressed={activeView === "lesson"} type="button">课程内容</button>
+          {openLab && <button className={activeView === "lab" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lab")} aria-pressed={activeView === "lab"} type="button">交互实验</button>}
         </div>
         {activeView === "lab" && selectedModule.labId === "tokenizer" ? <TokenizerLab /> :
          activeView === "lab" && selectedModule.labId === "transformer" ? <TransformerLab /> :

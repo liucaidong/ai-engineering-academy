@@ -34,6 +34,16 @@ describe("course content contract", () => {
     expect(getCourseValidationErrors(invalid).some((error) => error.includes("Prerequisite cycle detected"))).toBe(true);
   });
 
+  it("rejects duplicate module identifiers", () => {
+    const invalid = { ...course, modules: [course.modules[0], { ...course.modules[1], id: "M01" }] };
+    expect(getCourseValidationErrors(invalid).some((error) => error.includes("Duplicate module ID: M01"))).toBe(true);
+  });
+
+  it("rejects unresolved lab references when a lab registry is present", () => {
+    const invalid = { ...course, labs: course.labs.filter((lab) => lab.id !== "transformer") };
+    expect(getCourseValidationErrors(invalid).some((error) => error.includes("Unknown lab ID: transformer"))).toBe(true);
+  });
+
   it("rejects duplicate lesson identifiers", () => {
     const first = course.modules[0];
     const invalid = { ...course, modules: [{ ...first, lessons: [first.lessons[0], first.lessons[0]] }, ...course.modules.slice(1)] };
