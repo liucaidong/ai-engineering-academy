@@ -411,3 +411,22 @@ M20 是课程体系的综合交付阶段，不以 Demo 演示作为唯一完成�
 - 共享状态需要版本冲突检测、写入所有权和可审计仲裁，不默认采用 last-write-wins。
 - AI 安全作业必须将威胁映射到实际控制组件和测试证据；高影响输出需明确人工责任和申诉路径。
 - 安全控制未执行验证时标记 not tested，不得把设计方案写成已通过的安全验收。
+
+
+## M16–M18 教材深化：Workflow、Evaluation 与 AI Platform 实践
+
+本轮为 M16–M18 的 15 讲各增加一个实践章节，覆盖流程一致性、评测可信度和平台级控制边界。
+
+| 模块 | 新增实践重点 | 必须提交的证据 |
+|---|---|---|
+| M16 Workflow | 理赔 Workflow/Agent 边界；订单履约 Saga；重试预算与熔断；审批参数绑定；状态覆盖和回放 | 组件责任矩阵、Saga 状态图、时间预算、审批审计、故障注入记录 |
+| M17 Evaluation & Observability | 分层指标字典；benchmark 置信区间与污染；LLM Judge 校准；GenAI Trace；线上质量 SLO | 指标分母、统计计算、校准实验、Trace/Metric/Log 设计、告警和回滚门槛 |
+| M18 AI Platform | 控制/数据平面；模型能力路由/fallback；Token Bucket 与成本；租户隔离/Secret Broker；平台故障域与 SLO | 架构图、能力矩阵、配额/成本表、策略与密钥治理、RTO/RPO 和演练记录 |
+
+### 教学与评审要求
+
+- Workflow 重试必须有界，外部副作用必须幂等；补偿失败需要显式状态和人工处置。
+- Evaluation 指标必须定义样本单位、分母、窗口和分层；LLM Judge 必须校准并检查偏差。
+- Observability 不得把完整 Prompt、用户 ID 或文档 ID 放入高基数指标标签；日志和 Trace 需要隐私治理。
+- Model Gateway 的 fallback 必须检查模型能力、区域、数据政策和质量契约。
+- 平台安全以服务端身份、租户隔离和策略执行为准，不信任客户端自报租户标识。
