@@ -10,7 +10,8 @@ The curriculum is authored in `src/data/curriculum.ts`. The runtime contract is 
 4. Add at least two source references to the lesson. Prefer primary papers, standards and official documentation. Include publisher and a short note describing why the source is relevant.
 5. Add at least one assessment with a globally unique ID and a rubric whose criteria are unique within that assessment.
 6. If a module has a lab, register it in the course lab registry. Declare execution mode, inputs, outputs and explicit safety notes. Never mark a planned lab as implemented until its UI and tests exist.
-7. Add or update tests that cover content, sources, assessments and prerequisite behavior.
+7. Add or update tests that cover content, sources, assessments, prerequisite behavior and unknown-field rejection.
+8. Keep imported JSON within the 2 MiB UTF-8 authoring limit; the browser editor stores drafts locally and exports only schema-valid payloads.
 
 ## Versioning
 - `version` is the curriculum content release version (SemVer).
