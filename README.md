@@ -12,6 +12,8 @@ AI Engineering Academy 将以工程能力为主线，覆盖 AI 基础认知、�
 
 ## 文档导航
 
+- [版本变更记录](CHANGELOG.md)
+
 - [产品需求](docs/PRODUCT.md)
 - [课程体系](docs/CURRICULUM.md)
 - [技术架构](docs/ARCHITECTURE.md)
