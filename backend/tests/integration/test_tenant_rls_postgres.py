@@ -25,6 +25,7 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
     user_a, user_b = uuid4(), uuid4()
     tenant_a, tenant_b = uuid4(), uuid4()
     membership_a, membership_b = uuid4(), uuid4()
+    admin_can_bypass_rls = False
 
     try:
         async with admin_engine.begin() as connection:
@@ -36,7 +37,8 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     )
                 )
             ).scalar_one()
-            assert admin_role is True, "Admin test connection must bypass RLS for isolated fixture setup"
+            admin_can_bypass_rls = bool(admin_role)
+            assert admin_can_bypass_rls, "Admin test connection must bypass RLS for isolated fixture setup"
 
             await connection.execute(
                 text(
@@ -145,14 +147,15 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                 ).scalars().all() == []
 
     finally:
-        async with admin_engine.begin() as connection:
-            await connection.execute(
-                text("DELETE FROM tenants WHERE id IN (:tenant_a, :tenant_b)"),
-                {"tenant_a": tenant_a, "tenant_b": tenant_b},
-            )
-            await connection.execute(
-                text("DELETE FROM users WHERE id IN (:user_a, :user_b)"),
-                {"user_a": user_a, "user_b": user_b},
-            )
+        if admin_can_bypass_rls:
+            async with admin_engine.begin() as connection:
+                await connection.execute(
+                    text("DELETE FROM tenants WHERE id IN (:tenant_a, :tenant_b)"),
+                    {"tenant_a": tenant_a, "tenant_b": tenant_b},
+                )
+                await connection.execute(
+                    text("DELETE FROM users WHERE id IN (:user_a, :user_b)"),
+                    {"user_a": user_a, "user_b": user_b},
+                )
         await runtime_engine.dispose()
         await admin_engine.dispose()
