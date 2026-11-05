@@ -86,7 +86,19 @@ Course（课程元数据与版本）、Module（模块及先修关系）、Lesso
 - Tokenizer、Transformer Attention、RAG、Tool Calling、Agent Runtime、MCP、Multi-Agent 和 Evaluation 八个教学实验已实现；
 - 模块完成状态、测评草稿和 Rubric 自评保存在浏览器 localStorage；
 - 当前进度和测评记录没有账号身份、服务端持久化或跨设备同步；
-- 尚未实现后端 API、真实模型调用、生产向量数据库和服务端隔离沙箱。
+- 后端已建立 FastAPI 运行骨架、liveness/readiness、环境配置、异步 SQLAlchemy session/transaction 基础及 Alembic 迁移环境；首个数据库迁移定义课程发布版本快照表，尚未在受控环境执行迁移；\n- 尚未实现学习者身份、租户隔离、学习数据 API、真实模型调用、生产向量数据库和服务端隔离沙箱。
 
 ## 9. 演进约束
 先完成静态内容与本地交互 MVP，再引入 API、持久化、真实模型调用和隔离执行。任何新增基础设施都应以已验证需求、容量数据或安全要求为依据。
+
+
+## 10. 后端基础实现状态
+
+当前后端是单体服务的基础切片，而非完整业务 API：
+
+- FastAPI operational endpoints：`/health/live`、`/health/ready`；
+- PostgreSQL async engine、session factory、显式 session/transaction scopes；
+- Alembic async migration environment；
+- 首个 `course_releases` 版本快照表，保存课程版本、schema version、内容 SHA-256、JSONB 内容和发布状态；
+- 尚未建立用户、租户、学习进度、测评结果或授权策略表；在身份与数据隔离 ADR 完成前不开放相应写 API；
+- 迁移、单元测试和真实 PostgreSQL 集成尚待受控运行环境验证。
