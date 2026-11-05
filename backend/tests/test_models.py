@@ -2,7 +2,13 @@ from sqlalchemy import CheckConstraint, ForeignKeyConstraint, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.db.base import Base
-from app.models import CourseRelease, ExternalIdentity, TenantMembershipRole
+from app.models import (
+    AssessmentResult,
+    CourseRelease,
+    ExternalIdentity,
+    LearningProgress,
+    TenantMembershipRole,
+)
 
 
 def test_course_release_is_registered_with_metadata() -> None:
@@ -95,3 +101,42 @@ def test_identity_and_tenant_tables_are_registered() -> None:
     }
 
     assert expected.issubset(Base.metadata.tables)
+
+
+
+def test_learning_progress_is_scoped_to_membership_and_course_release() -> None:
+    table = Base.metadata.tables["learning_progress"]
+    foreign_keys = [
+        constraint
+        for constraint in table.constraints
+        if isinstance(constraint, ForeignKeyConstraint)
+    ]
+    assert any(
+        tuple(element.target_fullname for element in constraint.elements)
+        == ("tenant_memberships.tenant_id", "tenant_memberships.user_id")
+        for constraint in foreign_keys
+    )
+    assert any(
+        tuple(element.target_fullname for element in constraint.elements)
+        == ("course_releases.id",)
+        for constraint in foreign_keys
+    )
+    assert LearningProgress.__tablename__ == "learning_progress"
+
+
+def test_assessment_results_have_tenant_scoped_learner_and_reviewer_keys() -> None:
+    table = Base.metadata.tables["assessment_results"]
+    foreign_keys = [
+        constraint
+        for constraint in table.constraints
+        if isinstance(constraint, ForeignKeyConstraint)
+    ]
+    named = {constraint.name for constraint in foreign_keys}
+
+    assert "fk_assessment_results_learner_membership" in named
+    assert "fk_assessment_results_grader_membership" in named
+    assert AssessmentResult.__tablename__ == "assessment_results"
+
+
+def test_learning_and_assessment_tables_are_registered() -> None:
+    assert {"learning_progress", "assessment_results"}.issubset(Base.metadata.tables)
