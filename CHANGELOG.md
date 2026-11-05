@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 — 2026-11-06
+
+### Course content
+- Rebuilt M01 as a five-lesson flagship foundation sequence: AI system concepts, how machine learning learns, neural networks and LLMs, model capability boundaries, and end-to-end AI system design.
+- Expanded M01 into 24 substantive teaching sections with worked examples, equations, comparison tables, practical transfer exercises, scored rubrics, and primary references.
+- Replaced the single introductory lesson with a progressive learning path and a final AI system blueprint assignment.
+- No platform features, backend capabilities, or runtime integrations were added.
+
 This file records user-visible curriculum and platform changes.
 
 ## 0.3.1
