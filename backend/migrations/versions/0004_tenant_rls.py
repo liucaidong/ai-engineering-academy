@@ -112,7 +112,10 @@ def upgrade() -> None:
     )
     op.execute(
         f"CREATE POLICY audit_events_actor_insert ON audit_events FOR INSERT WITH CHECK ("
-        f"actor_user_id = {_USER} AND (tenant_id IS NULL OR tenant_id = {_TENANT})"
+        f"actor_user_id = {_USER} AND (tenant_id IS NULL OR (tenant_id = {_TENANT} "
+        f"AND EXISTS (SELECT 1 FROM tenant_memberships m "
+        f"WHERE m.tenant_id = audit_events.tenant_id "
+        f"AND m.user_id = {_USER} AND m.status = 'active')))"
         f")"
     )
 
