@@ -10,6 +10,8 @@ import { loadProgress, serializeProgress, toggleModuleProgress } from "./lib/pro
 import AssessmentWorkspace from "./components/AssessmentWorkspace";
 import { loadAssessmentProgress, serializeAssessmentProgress, type AssessmentResponse } from "./lib/assessmentProgress";
 import { searchModules } from "./lib/searchModules";
+import { loadBookmarks, serializeBookmarks, toggleBookmark } from "./lib/bookmarks";
+import { getNextRecommendedModule } from "./lib/learningPath";
 import ToolCallingLab from "./components/ToolCallingLab";
 import AgentRuntimeLab from "./components/AgentRuntimeLab";
 import McpLab from "./components/McpLab";
@@ -25,6 +27,15 @@ export default function App() {
   const [selectedModuleId, setSelectedModuleId] = useState("M01");
   const [activeView, setActiveView] = useState<"lesson" | "lab">("lesson");
   const [moduleQuery, setModuleQuery] = useState("");
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
+  const [bookmarkedModuleIds, setBookmarkedModuleIds] = useState<string[]>(() => {
+    try { return loadBookmarks(typeof window === "undefined" ? null : window.localStorage.getItem("ai-engineering-academy:bookmarks:v1"), course.modules.map((module) => module.id)); }
+    catch { return []; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("ai-engineering-academy:bookmarks:v1", serializeBookmarks(bookmarkedModuleIds)); }
+    catch { /* Storage restrictions must not block learning. */ }
+  }, [bookmarkedModuleIds]);
   const [completedModules, setCompletedModules] = useState<string[]>(() => {
     try { return loadProgress(typeof window === "undefined" ? null : window.localStorage.getItem("ai-engineering-academy:progress:v1"), course.modules.map((module) => module.id)); }
     catch { return []; }
@@ -45,7 +56,10 @@ export default function App() {
   const validationErrors = useMemo(() => getCourseValidationErrors(course), []);
   const selectedModule = course.modules.find((item) => item.id === selectedModuleId) ?? course.modules[0];
   const selectedLesson = selectedModule.lessons[0];
-  const filteredModules = useMemo(() => searchModules(course.modules, moduleQuery), [moduleQuery]);
+  const filteredModules = useMemo(() => {
+    const searched = searchModules(course.modules, moduleQuery);
+    return showBookmarksOnly ? searched.filter((module) => bookmarkedModuleIds.includes(module.id)) : searched;
+  }, [moduleQuery, showBookmarksOnly, bookmarkedModuleIds]);
   const groupedModules = useMemo(() => filteredModules.reduce<Record<string, CourseModule[]>>((groups, item) => {
     (groups[item.level] ??= []).push(item);
     return groups;
@@ -54,6 +68,7 @@ export default function App() {
     setSelectedModuleId(module.id);
     setActiveView(module.labId && IMPLEMENTED_LABS.has(module.labId) ? "lab" : "lesson");
   };
+  const recommendedModule = useMemo(() => getNextRecommendedModule(course.modules, completedModules), [completedModules]);
   const openLab = selectedModule.labId && IMPLEMENTED_LABS.has(selectedModule.labId);
 
   return <div className="app-shell">
@@ -66,7 +81,8 @@ export default function App() {
       <aside className="sidebar" aria-label="课程目录">
         <div className="sidebar-intro"><span className="eyebrow">LEARNING PATH</span><h2>课程目录</h2><p>从模型原理走向 AI 系统工程</p></div>
         <div className="course-progress"><div className="progress-copy"><span>已完成模块</span><strong>{completedModules.length} / {course.modules.length}</strong></div><div className="progress-track" role="progressbar" aria-label="课程模块完成进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercent}><span style={{ width: `${progressPercent}%` }} /></div><small>{progressPercent}% · 仅保存在当前浏览器</small></div>
-        <nav className="module-nav" aria-label="课程模块导航"><label className="module-search-label" htmlFor="module-search">搜索课程模块</label><input id="module-search" className="module-search" type="search" value={moduleQuery} onChange={(event) => setModuleQuery(event.target.value)} placeholder="输入模块名称、主题或目标" />{Object.entries(groupedModules).map(([level, modules]) => <section className="nav-group" key={level}>
+        <div className="recommendation-card"><span>下一步建议</span>{recommendedModule ? <><strong>{recommendedModule.id} · {recommendedModule.title}</strong><button type="button" onClick={() => selectModule(recommendedModule)}>继续学习</button></> : <strong>所有课程模块均已完成</strong>}</div>
+        <nav className="module-nav" aria-label="课程模块导航"><label className="module-search-label" htmlFor="module-search">搜索课程模块</label><input id="module-search" className="module-search" type="search" value={moduleQuery} onChange={(event) => setModuleQuery(event.target.value)} placeholder="输入模块名称、主题或目标" /><button className="bookmark-filter" type="button" aria-pressed={showBookmarksOnly} onClick={() => setShowBookmarksOnly((value) => !value)}>{showBookmarksOnly ? "显示全部模块" : `只看收藏 (${bookmarkedModuleIds.length})`}</button>{Object.entries(groupedModules).map(([level, modules]) => <section className="nav-group" key={level}>
           <h2><span>{level}</span>{LEVEL_LABELS[level as CourseModule["level"]]}</h2>
           {modules.map((module) => <button className={selectedModuleId === module.id ? "module-link active" : "module-link"} key={module.id} onClick={() => selectModule(module)} aria-current={selectedModuleId === module.id ? "page" : undefined} type="button">
             <span className="module-id">{module.id}</span><span>{module.title}</span>{completedModules.includes(module.id) && <span className="module-complete" aria-label="已完成">✓</span>}
@@ -77,7 +93,7 @@ export default function App() {
       </aside>
       <main className="main-content" id="main-content" tabIndex={-1}>
         <div className="breadcrumb">课程 / {LEVEL_LABELS[selectedModule.level]} / <strong>{selectedModule.id}</strong></div>
-        <section className="module-hero"><div><span className="eyebrow">{selectedModule.level} · {selectedModule.id}</span><h1>{selectedModule.title}</h1><p>{selectedModule.summary}</p></div><div className="module-count"><strong>{selectedModule.id}</strong><span>MODULE</span></div></section>
+        <section className="module-hero"><div><span className="eyebrow">{selectedModule.level} · {selectedModule.id}</span><h1>{selectedModule.title}</h1><p>{selectedModule.summary}</p></div><div className="module-hero-actions"><button className={bookmarkedModuleIds.includes(selectedModule.id) ? "bookmark-button active" : "bookmark-button"} type="button" aria-pressed={bookmarkedModuleIds.includes(selectedModule.id)} onClick={() => setBookmarkedModuleIds((current) => toggleBookmark(current, selectedModule.id))}>{bookmarkedModuleIds.includes(selectedModule.id) ? "★ 已收藏" : "☆ 收藏模块"}</button><div className="module-count"><strong>{selectedModule.id}</strong><span>MODULE</span></div></div></section>
         {validationErrors.length > 0 && <div className="validation-warning" role="alert">课程内容校验失败：{validationErrors.join("；")}</div>}
         <div className="content-tabs" role="group" aria-label="学习内容视图">
           <button className={activeView === "lesson" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lesson")} aria-pressed={activeView === "lesson"} type="button">课程内容</button>

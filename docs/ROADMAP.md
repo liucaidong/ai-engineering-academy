@@ -23,7 +23,7 @@
 - Content authoring workflow and schema migration
 - Server-synced assessment history and instructor feedback
 - [x] Course module search across title, summary, objectives and lesson content
-- Bookmarks and learning-path recommendations
+- [x] Browser-local module bookmarks and prerequisite-aware next-module recommendations
 - [x] Tool Calling, Agent Runtime, MCP, Multi-Agent and Evaluation local teaching labs
 
 ## P3 — Backend and execution platform

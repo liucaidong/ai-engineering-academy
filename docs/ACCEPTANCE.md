@@ -34,7 +34,7 @@ Acceptance evidence to retain:
 - [ ] Unknown lab references are rejected when a lab registry is supplied.
 - [ ] Source URLs pass Zod URL validation.
 
-## Learning workflow
+## Learning workflow\n\n- [ ] Bookmark and unbookmark a module, refresh, and confirm persistence.\n- [ ] Filter the curriculum to bookmarked modules.\n- [ ] Confirm the next-module recommendation respects prerequisite completion.
 
 - [ ] Select each module from the navigation.
 - [ ] Open prerequisites and confirm navigation to the referenced module.
