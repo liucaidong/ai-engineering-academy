@@ -135,11 +135,27 @@ test("keeps the layout within a narrow mobile viewport", async ({ page }) => {
 test("validates and resets browser-local course authoring drafts", async ({ page }) => {
   await page.getByRole("button", { name: "课程编辑" }).click();
   await expect(page.getByRole("heading", { name: "课程内容编辑器" })).toBeVisible();
-  const editor = page.getByLabel("课程 JSON（最大 2 MiB）");
+  const editor = page.getByLabel("课程 JSON（最大 2 MiB UTF-8）");
   await editor.fill("{");
   await expect(page.getByRole("alert")).toContainText("修复以下问题后才能导出");
   await expect(page.getByRole("button", { name: "导出已校验 JSON" })).toBeDisabled();
   await page.getByRole("button", { name: "恢复仓库课程" }).click();
   await expect(page.getByText("Schema 校验通过")).toBeVisible();
   await expect(page.getByRole("button", { name: "导出已校验 JSON" })).toBeEnabled();
+});
+
+test("persists course authoring drafts locally across reloads", async ({ page }) => {
+  await page.getByRole("button", { name: "课程编辑" }).click();
+  const editor = page.getByLabel("课程 JSON（最大 2 MiB UTF-8）");
+  const draft = await editor.inputValue();
+  await editor.fill(draft.replace('"title": "AI Engineering Academy"', '"title": "AI Engineering Academy Draft"'));
+  await page.reload();
+  await page.getByRole("button", { name: "课程编辑" }).click();
+  await expect(page.getByLabel("课程 JSON（最大 2 MiB UTF-8）")).toContainText("AI Engineering Academy Draft");
+});
+
+test("keeps the course authoring view accessible", async ({ page }) => {
+  await page.getByRole("button", { name: "课程编辑" }).click();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations).toEqual([]);
 });
