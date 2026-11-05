@@ -5,6 +5,21 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
+test("persists bookmarks and filters the module navigation", async ({ page }) => {
+  await page.getByRole("button", { name: "☆ 收藏模块" }).click();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "★ 已收藏" })).toBeVisible();
+  await page.getByRole("button", { name: /只看收藏/ }).click();
+  await expect(page.getByRole("button", { name: /M01/ })).toBeVisible();
+  await expect(page.getByText("没有匹配的课程模块。")).toHaveCount(0);
+});
+
+test("recommends the next module only after prerequisites are complete", async ({ page }) => {
+  await expect(page.locator(".recommendation-card")).toContainText("M01");
+  await page.getByRole("button", { name: "标记本模块为已完成" }).click();
+  await expect(page.locator(".recommendation-card")).toContainText("M02");
+});
+
 test("searches the curriculum and opens the matching module", async ({ page }) => {
   await page.getByRole("searchbox", { name: "搜索课程模块" }).fill("MCP");
   await page.getByRole("button", { name: /M12.*MCP 协议与集成/ }).click();
