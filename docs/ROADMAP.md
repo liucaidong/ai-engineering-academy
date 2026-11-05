@@ -29,12 +29,17 @@
 - [x] UTF-8 byte-limit helper tests for multibyte text
 
 ## P3 — Backend and execution platform
-- Server-side learner progress, assessment history and instructor feedback
-- API service and PostgreSQL persistence
-- Identity, learner profiles and progress events
-- Sandboxed code execution with quotas and isolation
-- Model gateway with explicit provider configuration
-- Evaluation datasets, trace capture and observability
+- [x] Accepted ADR for a FastAPI modular monolith; defer microservices and infrastructure without validated need
+- [x] FastAPI operational API skeleton with liveness and dependency-aware readiness endpoints
+- [x] Environment-backed settings and production fail-closed database configuration
+- [x] Async SQLAlchemy PostgreSQL connectivity probe
+- [x] Backend health/configuration tests authored (execution pending)
+- [ ] Add Alembic migration foundation and first versioned database schema
+- [ ] Define identity, tenant isolation, learner profiles and authorization model before learner-data APIs
+- [ ] Persist learner progress and assessment history with explicit transaction boundaries
+- [ ] Sandboxed code execution with quotas and isolation
+- [ ] Model gateway with explicit provider configuration
+- [ ] Evaluation datasets, trace capture and observability
 
 ## P4 — Production readiness
 - Threat modelling, privacy review and operational controls
