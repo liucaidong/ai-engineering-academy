@@ -5,6 +5,9 @@ import { getCourseValidationErrors, validateCourse } from "./validateCourse";
 describe("course content contract", () => {
   it("accepts the academy curriculum", () => {
     expect(validateCourse(course).modules).toHaveLength(20);
+    expect(course.modules.slice(0, 3).every((module) => module.lessons[0].content.length >= 4)).toBe(true);
+    expect(course.modules.slice(0, 3).every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
+    expect(course.modules.slice(0, 3).every((module) => module.lessons[0].assessments.length === 1)).toBe(true);
   });
 
   it("rejects modules without learning objectives", () => {
