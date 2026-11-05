@@ -14,6 +14,9 @@ import { flagshipM12Lessons } from "./flagshipM12";
 import { flagshipM13Lessons } from "./flagshipM13";
 import { flagshipM14Lessons } from "./flagshipM14";
 import { flagshipM15Lessons } from "./flagshipM15";
+import { flagshipM16Lessons } from "./flagshipM16";
+import { flagshipM17Lessons } from "./flagshipM17";
+import { flagshipM18Lessons } from "./flagshipM18";
 
 const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][number], "content" | "assessments" | "sources">> = {
   M01: {
@@ -373,9 +376,9 @@ const moduleRows = [
   ["M13","L4","Skills 与可复用能力","从能力契约、包结构、组合路由、安全供应链到目录治理，建设可复用 Agent Skill。",["M10","M12"],["区分 Skill、Tool、Prompt 和 Workflow","定义 Skill 输入输出、前置条件和完成标准","设计包结构、元数据和渐进式资源加载","治理依赖、权限、脚本执行和供应链风险","建立 Skill 测试、SemVer、发布和撤销流程"],""],
   ["M14","L4","Multi-Agent 系统","比较协作拓扑，设计任务路由、消息协议、共享状态、冲突仲裁和成本评测。",["M10","M11"],["判断多 Agent 相对单 Agent 的净收益","比较 Manager/Worker、Peer 和流水线拓扑","定义角色、Task/Result 协议和路由策略","处理共享状态竞态、死锁、冲突和证据仲裁","建立单 Agent baseline、成本模型和可靠性指标"],"multi-agent"],
   ["M15","L4","安全、权限与人工审批","覆盖 AI 威胁建模、数据隐私、工具授权、输出治理和安全事件响应。",["M07","M10"],["使用 STRIDE/攻击树识别模型、数据和工具风险","防护 Prompt Injection、数据泄露和跨租户越权","设计认证、授权、ABAC/RBAC、沙箱和高风险审批","治理输出偏差、高影响决策和人工监督","建立红队测试、安全指标、事件响应和风险接受流程"],""],
-  ["M16","L4","Workflow 与编排","区分确定性工作流和自主 Agent 的适用场景。",["M10","M15"],["设计可观测的工作流状态","定义重试、补偿和人工介入点"],""],
-  ["M17","L5","Evaluation 与 Observability","建立离线评测、线上观测和回归治理。",["M08","M10"],["设计数据集、评分器和指标","分析延迟、成本、质量和失败率"],"evaluation"],
-  ["M18","L5","AI 平台架构","理解模型网关、租户、队列和服务治理。",["M05","M17"],["设计模型路由和配额边界","分析可靠性、扩展性与成本"],""],
+  ["M16","L4","Workflow 与编排","从 Workflow/Agent 边界、事件编排、重试补偿、人工审批到版本化测试，掌握确定性流程工程。",["M10","M15"],["比较 Workflow、状态机和 Agent 的适用边界","设计顺序/并行/事件驱动 DAG 与 Saga","建立有界重试、超时、熔断和补偿策略","将审批、参数绑定和审计纳入状态机","通过状态覆盖、故障注入和回放验收流程"],""],
+  ["M17","L5","Evaluation 与 Observability","从评测指标、数据集、自动评分、Trace/Metrics/Logs 到线上 SLO，建立质量闭环。",["M08","M10"],["定义模型/组件/端到端评测层次和指标分母","设计无泄漏 benchmark、标注和统计区间","校准规则评分、LLM Judge 与人工评审","设计 GenAI trace、低基数 metrics 和隐私日志","监测线上漂移并建立质量 SLI/SLO 与回归闭环"],"evaluation"],
+  ["M18","L5","AI 平台架构","设计控制/数据平面、Model Gateway、租户配额、密钥策略和平台可靠性。",["M05","M17"],["划分控制平面、数据平面和应用责任","建立模型能力目录、路由和安全 fallback","设计多维配额、限流、计量与成本归因","构建租户隔离、secret broker 和 policy engine","定义平台故障域、弹性、RTO/RPO 和 SLO"],""],
   ["M19","L5","应用工程化与交付","将 AI 能力转化为可部署、可维护的产品。",["M15","M17","M18"],["设计测试、发布和运维流程","建立安全、数据和成本治理"],""],
   ["M20","L6","Capstone 综合项目","完成覆盖需求、架构、实现、评测和交付的综合项目。",["M01","M02","M03","M04","M05","M06","M07","M08","M09","M10","M11","M12","M13","M14","M15","M16","M17","M18","M19"],["交付端到端 AI 工程系统","提交测试、威胁模型和运行文档"],""]
 ] as const;
@@ -385,7 +388,7 @@ export const course: Course = {
   id: "ai-engineering-foundations",
   title: "AI Engineering Academy",
   description: "从大模型原理、AI 应用开发到 Agent 系统与平台工程的系统化学习路径。",
-  version: "0.10.0",
+  version: "0.11.0",
   language: "zh-CN",
   labs: [
     { id: "tokenizer", title: "Tokenizer Lab", executionMode: "browser-local", description: "使用玩具 BPE 词表观察子词合并。", safetyNotes: ["仅使用内置示例词表，不调用外部模型。"], inputs: [{ name: "text", description: "待切分文本" }], outputs: [{ name: "tokens", description: "示例 token 片段与合并过程" }], status: "implemented" },
@@ -399,7 +402,7 @@ export const course: Course = {
   ],
   modules: moduleRows.map(([id, level, title, summary, prerequisites, objectives, labId]) => ({
     id, level, title, summary, prerequisites: [...prerequisites], objectives: [...objectives],
-    lessons: id === "M01" ? flagshipM01Lessons : id === "M02" ? flagshipM02Lessons : id === "M03" ? flagshipM03Lessons : id === "M04" ? flagshipM04Lessons : id === "M05" ? flagshipM05Lessons : id === "M06" ? flagshipM06Lessons : id === "M07" ? flagshipM07Lessons : id === "M08" ? flagshipM08Lessons : id === "M09" ? flagshipM09Lessons : id === "M10" ? flagshipM10Lessons : id === "M11" ? flagshipM11Lessons : id === "M12" ? flagshipM12Lessons : id === "M13" ? flagshipM13Lessons : id === "M14" ? flagshipM14Lessons : id === "M15" ? flagshipM15Lessons : [lesson(id, title, summary, [...objectives])],
+    lessons: id === "M01" ? flagshipM01Lessons : id === "M02" ? flagshipM02Lessons : id === "M03" ? flagshipM03Lessons : id === "M04" ? flagshipM04Lessons : id === "M05" ? flagshipM05Lessons : id === "M06" ? flagshipM06Lessons : id === "M07" ? flagshipM07Lessons : id === "M08" ? flagshipM08Lessons : id === "M09" ? flagshipM09Lessons : id === "M10" ? flagshipM10Lessons : id === "M11" ? flagshipM11Lessons : id === "M12" ? flagshipM12Lessons : id === "M13" ? flagshipM13Lessons : id === "M14" ? flagshipM14Lessons : id === "M15" ? flagshipM15Lessons : id === "M16" ? flagshipM16Lessons : id === "M17" ? flagshipM17Lessons : id === "M18" ? flagshipM18Lessons : [lesson(id, title, summary, [...objectives])],
     ...(labId ? { labId } : {})
   }))
 };

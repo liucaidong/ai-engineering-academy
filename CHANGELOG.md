@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.0 — 2026-11-06
+
+### Course content
+- Rebuilt M16–M18 as five-lesson flagship modules with four substantive sections per lesson, five scored assessments and 15 references per module.
+- M16 covers Workflow/Agent boundaries, event orchestration, Saga, retries, circuit breakers, approvals, audit and replay testing.
+- M17 covers evaluation taxonomy, benchmark/statistical design, LLM Judge calibration, GenAI observability and online quality SLOs.
+- M18 covers platform planes, model gateway/routing, quotas/metering, tenant isolation, secret brokering, policy control and platform reliability.
+- No platform APIs, backend components, runtime, or CI workflow were added; all content is instructional.
+
 ## 0.10.0 — 2026-11-06
 
 ### Course content
