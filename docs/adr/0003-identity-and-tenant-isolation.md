@@ -76,6 +76,10 @@ The following must be completed before learner-data APIs are enabled:
 6. Define learner-data retention, export/deletion and audit controls.
 7. Complete privacy review for the intended learner age groups and deployment jurisdictions.
 
+## Current implementation status (2026-11-05)
+
+The repository now contains dormant persistence schemas and provider-neutral security primitives. The OIDC provider adapter implements HTTPS-only discovery, exact issuer matching, signing-key selection from cached JWKS, one-time JWKS refresh for an unknown kid, a strict asymmetric algorithm allowlist, and PyJWT verification of signature, issuer, audience, expiry, issued-at, subject, nonce and multi-audience azp. The adapter is not wired to FastAPI routes and does not exchange authorization codes. State/nonce hashes and PKCE S256 generation exist, but durable one-time login-transaction persistence, encrypted verifier storage, session lifecycle services, cookie delivery, CSRF/Origin middleware and application authorization remain pending. The PostgreSQL RLS acceptance is authored but must still be run against the actual non-owner runtime role.
+
 ## Consequences
 
 - The current backend remains catalog-only; this ADR does not add sign-in or learner-data endpoints.
