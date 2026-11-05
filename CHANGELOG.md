@@ -1,3 +1,12 @@
+## 0.15.0 — 2026-11-06
+
+### Course content
+- Deepened all 15 lessons in M10–M12 with a fifth practical section focused on Agent runtime, planning/memory and MCP integration.
+- M10 adds verifiable Agent contracts, bounded execution traces, checkpoint recovery, multi-tenant runtime isolation and fault-injection acceptance.
+- M11 adds task-DAG construction, memory write/read policy, retrieval/conflict handling, approval-state recovery and separate planning/memory benchmarks.
+- M12 adds JSON-RPC responsibility tracing, capability/version catalogs, transport lifecycle tests, third-party Server threat modeling and interoperability gates.
+- Updated curriculum version to 0.15.0. Existing Schema, prerequisites, lab registry and platform scope remain unchanged.
+
 ## 0.14.0 — 2026-11-06
 
 ### Course content
