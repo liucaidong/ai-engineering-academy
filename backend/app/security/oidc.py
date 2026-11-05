@@ -9,6 +9,7 @@ import base64
 import hashlib
 import hmac
 import secrets
+import string
 
 
 @dataclass(frozen=True)
@@ -82,10 +83,9 @@ def generate_pkce_verifier() -> str:
 def pkce_s256_challenge(code_verifier: str) -> str:
     if not isinstance(code_verifier, str) or not 43 <= len(code_verifier) <= 128:
         raise ValueError("PKCE verifier must contain 43 to 128 characters")
-    try:
-        code_verifier.encode("ascii")
-    except UnicodeEncodeError as error:
-        raise ValueError("PKCE verifier must be ASCII") from error
+    allowed = string.ascii_letters + string.digits + "-._~"
+    if any(character not in allowed for character in code_verifier):
+        raise ValueError("PKCE verifier contains characters outside RFC 7636 unreserved set")
     return _base64url(hashlib.sha256(code_verifier.encode("ascii")).digest())
 
 
@@ -110,12 +110,22 @@ def generate_oidc_login_parameters() -> OIDCLoginParameters:
 
 
 def verify_oidc_state(supplied_state: str, expected_state_hash: str) -> bool:
-    if not isinstance(supplied_state, str) or not isinstance(expected_state_hash, str):
+    if (
+        not isinstance(supplied_state, str)
+        or not 32 <= len(supplied_state) <= 512
+        or not isinstance(expected_state_hash, str)
+        or len(expected_state_hash) != 64
+    ):
         return False
     return hmac.compare_digest(sha256_hex(supplied_state), expected_state_hash)
 
 
 def verify_oidc_nonce(id_token_nonce: str, expected_nonce_hash: str) -> bool:
-    if not isinstance(id_token_nonce, str) or not isinstance(expected_nonce_hash, str):
+    if (
+        not isinstance(id_token_nonce, str)
+        or not 32 <= len(id_token_nonce) <= 512
+        or not isinstance(expected_nonce_hash, str)
+        or len(expected_nonce_hash) != 64
+    ):
         return False
     return hmac.compare_digest(sha256_hex(id_token_nonce), expected_nonce_hash)
