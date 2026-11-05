@@ -140,3 +140,33 @@ def test_assessment_results_have_tenant_scoped_learner_and_reviewer_keys() -> No
 
 def test_learning_and_assessment_tables_are_registered() -> None:
     assert {"learning_progress", "assessment_results"}.issubset(Base.metadata.tables)
+
+
+def test_learning_progress_completion_timestamp_is_consistent() -> None:
+    table = Base.metadata.tables["learning_progress"]
+    checks = {
+        str(constraint.sqltext)
+        for constraint in table.constraints
+        if isinstance(constraint, CheckConstraint)
+    }
+
+    assert "completion_status IN ('in_progress', 'completed')" in checks
+    assert (
+        "(completion_status = 'completed' AND completed_at IS NOT NULL) OR "
+        "(completion_status = 'in_progress' AND completed_at IS NULL)"
+        in checks
+    )
+
+
+def test_assessment_result_lifecycle_and_score_are_constrained() -> None:
+    table = Base.metadata.tables["assessment_results"]
+    checks = {
+        str(constraint.sqltext)
+        for constraint in table.constraints
+        if isinstance(constraint, CheckConstraint)
+    }
+
+    assert "attempt_number > 0" in checks
+    assert "status IN ('draft', 'submitted', 'graded')" in checks
+    assert "score IS NULL OR (score >= 0 AND score <= 100)" in checks
+    assert any("grading_fields_match_status" in (constraint.name or "") for constraint in table.constraints)
