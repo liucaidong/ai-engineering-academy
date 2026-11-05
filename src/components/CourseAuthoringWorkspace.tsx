@@ -38,7 +38,7 @@ export default function CourseAuthoringWorkspace({ initialCourse }: Props) {
   const [source, setSource] = useState(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      return saved && saved.length <= MAX_IMPORT_BYTES ? saved : initialSource;
+      return saved && isWithinUtf8ByteLimit(saved, MAX_IMPORT_BYTES) ? saved : initialSource;
     } catch {
       return initialSource;
     }
@@ -46,7 +46,7 @@ export default function CourseAuthoringWorkspace({ initialCourse }: Props) {
   const result = useMemo(() => validateSource(source), [source]);
 
   useEffect(() => {
-    if (utf8ByteLength(source) > MAX_IMPORT_BYTES) return;
+    if (!isWithinUtf8ByteLimit(source, MAX_IMPORT_BYTES)) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, source);
     } catch {
