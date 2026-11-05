@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 — 2026-11-06
+
+### Course content
+- Rebuilt M02 as a five-lesson flagship sequence covering scaled dot-product attention, multi-head attention, masks, positional mechanisms, Transformer blocks, complexity, KV Cache and FlashAttention.
+- Added worked matrix examples, tensor-shape derivations, practical exercises, five scored assessments and primary research/documentation references.
+- Connected M02 to the existing browser-local Transformer Attention Lab; no new lab runtime or platform capability was introduced.
+- Expanded M02 learning objectives and documented its teaching sequence in the curriculum guide.
+
 ## 0.4.0 — 2026-11-06
 
 ### Course content

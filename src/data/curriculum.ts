@@ -1,5 +1,6 @@
 import type { Course } from "../types/course";
 import { flagshipM01Lessons } from "./flagshipM01";
+import { flagshipM02Lessons } from "./flagshipM02";
 
 const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][number], "content" | "assessments" | "sources">> = {
   M01: {
@@ -345,7 +346,7 @@ const lesson = (moduleId: string, title: string, summary: string, objectives: st
 
 const moduleRows = [
   ["M01","L1","AI、机器学习与大语言模型","建立人工智能、机器学习、深度学习和 LLM 的概念地图。",[],["区分 AI、机器学习、深度学习、生成式 AI 与 LLM","解释机器学习训练数据、参数、损失和泛化","理解神经网络与自回归语言模型的基本机制","识别大模型的能力边界、失败模式和验证要求","完成一个具有数据流、权限边界和评测指标的 AI 系统设计"],""],
-  ["M02","L2","Transformer 与 Attention","理解 Transformer 的核心组件和信息交互机制。",["M01"],["解释 Attention 的输入、权重与输出","理解 Encoder、Decoder 与层堆叠"],"transformer"],
+  ["M02","L2","Transformer 与 Attention","理解 Transformer 的核心组件和信息交互机制。",["M01"],["从输入 token 表示推导 Q、K、V 的来源与张量形状","手工计算 scaled dot-product attention 的分数、权重与输出","解释 Multi-Head Attention 的投影、拼接和输出变换","区分 Encoder self-attention、Decoder causal self-attention 与 cross-attention","比较绝对位置编码、相对位置机制与 RoPE 的基本思想","解释残差连接、LayerNorm、FFN 与 Transformer Block 的职责","分析注意力的计算复杂度、KV Cache 与 FlashAttention 的优化目标","使用 Transformer Lab 验证 mask、权重和张量维度"],"transformer"],
   ["M03","L2","Token、Embedding 与 Context","理解文本如何转化为模型可处理的表示。",["M01"],["解释 Tokenization 与 Embedding 的区别","分析上下文窗口和 token 预算"],"tokenizer"],
   ["M04","L2","预训练、微调与对齐","理解模型训练阶段、数据和优化目标。",["M02"],["区分预训练、SFT 与偏好对齐","理解训练数据和评估集的作用"],""],
   ["M05","L2","推理、解码与部署","理解模型生成过程及推理服务的性能指标。",["M02","M03"],["解释采样、温度和 KV Cache","识别吞吐、延迟和显存瓶颈"],""],
@@ -371,7 +372,7 @@ export const course: Course = {
   id: "ai-engineering-foundations",
   title: "AI Engineering Academy",
   description: "从大模型原理、AI 应用开发到 Agent 系统与平台工程的系统化学习路径。",
-  version: "0.4.0",
+  version: "0.5.0",
   language: "zh-CN",
   labs: [
     { id: "tokenizer", title: "Tokenizer Lab", executionMode: "browser-local", description: "使用玩具 BPE 词表观察子词合并。", safetyNotes: ["仅使用内置示例词表，不调用外部模型。"], inputs: [{ name: "text", description: "待切分文本" }], outputs: [{ name: "tokens", description: "示例 token 片段与合并过程" }], status: "implemented" },
@@ -385,7 +386,7 @@ export const course: Course = {
   ],
   modules: moduleRows.map(([id, level, title, summary, prerequisites, objectives, labId]) => ({
     id, level, title, summary, prerequisites: [...prerequisites], objectives: [...objectives],
-    lessons: id === "M01" ? flagshipM01Lessons : [lesson(id, title, summary, [...objectives])],
+    lessons: id === "M01" ? flagshipM01Lessons : id === "M02" ? flagshipM02Lessons : [lesson(id, title, summary, [...objectives])],
     ...(labId ? { labId } : {})
   }))
 };
