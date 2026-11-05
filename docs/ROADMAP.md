@@ -21,7 +21,7 @@
 ## P2 — Learning experience
 - Content authoring workflow and schema migration
 - Server-synced assessment history and instructor feedback
-- Search, bookmarks and learning-path recommendations
+- [x] Course module search across title, summary, objectives and lesson content\n- Bookmarks and learning-path recommendations
 - More interactive labs: Tool Calling, Agent Runtime, MCP and Evaluation
 
 ## P3 — Backend and execution platform
