@@ -36,7 +36,8 @@
 - [x] Backend health and model tests authored (execution pending)
 - [x] Define OIDC identity, tenant membership, session and learner-data isolation baseline in ADR-0003
 - [x] Add dormant user, OIDC identity, session, tenant, membership, role, invitation and audit schemas with Alembic migration (no HTTP exposure)
-- [ ] Implement OIDC sign-in/session lifecycle and CSRF/origin protections
+- [x] Add provider-neutral opaque session hashing, CSRF HMAC, OIDC state/nonce and PKCE S256 primitives with RFC-vector tests
+- [ ] Implement OIDC discovery/JWKS/token validation, sign-in/session lifecycle and CSRF/Origin middleware
 - [x] Implement transaction-local user/tenant context helper and forced PostgreSQL RLS policies for identity/tenant tables
 - [x] Author optional PostgreSQL RLS integration acceptance using a separate non-owner runtime role (execution pending)
 - [ ] Execute RLS integration acceptance with provisioned admin/runtime database roles before learner-data APIs
