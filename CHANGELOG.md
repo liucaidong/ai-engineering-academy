@@ -1,3 +1,11 @@
+## 0.18.0 — 2026-11-06
+
+### Course content
+- Deepened all 10 lessons in M19–M20 with a fifth practical section, completing the practical-depth pass across M04–M20.
+- M19 adds falsifiable AI product hypotheses, trust-calibrated UX/HITL, unit-economics sensitivity analysis, A/B experiment design and full product lifecycle governance.
+- M20 adds a requirement-to-evidence traceability matrix, architecture/ADR review, vertical-slice acceptance, security/quality rehearsal and reproducible capstone defense.
+- Updated curriculum version to 0.18.0. Existing Schema, prerequisites, lab registry and platform scope remain unchanged.
+
 ## 0.17.0 — 2026-11-06
 
 ### Course content
