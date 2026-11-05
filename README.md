@@ -2,7 +2,7 @@
 
 面向 AI 工程学习者的系统化课程与交互实验平台。项目目标不是把概念做成静态百科，而是构建一条从大模型原理、AI 应用开发、Agent 系统，到平台工程与综合项目的可验证学习路径。
 
-> 当前阶段：M01–M20 前端课程平台与八个本地教学实验已建立；P3 后端模块化单体已具备 API、异步数据库访问和首个课程版本快照迁移基础。完整运行验收与生产后端能力仍在推进中。
+> 当前阶段：M01–M20 前端课程平台与八个本地教学实验已建立；P3 后端模块化单体已具备 API、异步数据库访问、课程版本快照、身份/租户基础表及初步 RLS 策略。完整运行验收与生产后端能力仍在推进中。
 
 ## 项目定位
 
@@ -37,7 +37,7 @@ AI Engineering Academy 将以工程能力为主线，覆盖 AI 基础认知、�
 ### Backend foundation
 - Python 3.11+、FastAPI、Pydantic Settings
 - SQLAlchemy Async + asyncpg + Alembic
-- PostgreSQL versioned course-release schema
+- PostgreSQL course-release, identity and tenant foundation schemas with RLS policies
 - Backend implementation notes: [backend/README.md](backend/README.md)
 
 ## 前端本地开发
@@ -79,7 +79,7 @@ alembic -c alembic.ini upgrade head
 - 浏览器本地课程编辑工作区：JSON 导入、严格 Schema 校验、UTF-8 字节限制、草稿自动保存与校验通过后导出；
 - Tokenizer、Transformer、RAG、Tool Calling、Agent Runtime、MCP、Multi-Agent 和 Evaluation 八个本地教学实验；
 - FastAPI 后端运行骨架、liveness/readiness、生产配置 fail-closed；
-- SQLAlchemy 异步 session/transaction 基础、Alembic 迁移环境和首个课程发布快照 schema。
+- SQLAlchemy 异步 session/transaction、Alembic 四阶段迁移、课程发布生命周期、身份/租户基础表和 transaction-local RLS context；登录与学习数据 API 尚未开放。
 
 上述实验均为教学级实现，不代表真实模型推理、生产向量检索或服务端沙箱。浏览器本地进度不等同于账户级云端同步。后端当前不提供学习者数据 API，也不执行任意用户代码。数据库迁移与测试代码尚未在受控运行环境执行。
 
