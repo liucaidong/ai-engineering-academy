@@ -1,3 +1,12 @@
+## 0.16.0 — 2026-11-06
+
+### Course content
+- Deepened all 15 lessons in M13–M15 with a fifth practical section focused on reusable Skills, Multi-Agent coordination and AI security governance.
+- M13 adds Skill contracts, package/path review, composition DAGs, third-party supply-chain audits and Registry release gates.
+- M14 adds single-Agent baselines, Task/Result protocols, shared-state concurrency, evidence-led arbitration and cost-per-success comparisons.
+- M15 adds STRIDE threat registers, indirect-injection attack tracing, RBAC/ABAC approval binding, high-impact human review and red-team incident exercises.
+- Updated curriculum version to 0.16.0. Existing Schema, prerequisites, lab registry and platform scope remain unchanged.
+
 ## 0.15.0 — 2026-11-06
 
 ### Course content
