@@ -53,6 +53,10 @@ Acceptance evidence to retain:
 
 ## Course authoring
 
+- [ ] Add unknown keys at course, module and lesson-section levels; confirm strict Schema validation rejects them instead of stripping them.
+- [ ] Confirm the 2 MiB limit is measured in UTF-8 bytes, including multibyte Chinese text.
+- [ ] Confirm validation errors show actionable JSON paths.
+
 - [ ] Open the course editor and confirm the current course payload loads.
 - [ ] Import a valid JSON course file and confirm Schema v1 validation succeeds.
 - [ ] Import malformed JSON and confirm export is disabled with a visible error.
