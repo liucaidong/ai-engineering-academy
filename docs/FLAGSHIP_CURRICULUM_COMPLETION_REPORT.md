@@ -2,7 +2,7 @@
 
 - Repository: liucaidong/ai-engineering-academy
 - Branch: main
-- Curriculum version: 0.18.0
+- Curriculum version: 0.19.0
 - Report date: 2026-11-06
 - Scope: instructional content, curriculum registration, course documentation and changelog only.
 
@@ -162,6 +162,16 @@ The static source scan counted 100 lessons, 100 assessments, 495 teaching sectio
 5. Review rendered Markdown in the frontend, especially math notation, tables and long-form sections.
 6. Confirm every lab is displayed with its actual declared execution mode and without implying production model execution.
 
-## 8. Final scope statement
+## 8. M04–M06 instructor material expansion (0.19.0)
+
+Added three standalone teaching guides under `docs/teaching-guides/`:
+
+- M04: pretraining objective and data governance, architecture/MoE accounting, SFT/loss masking/LoRA derivation, PPO/DPO, evaluation and release evidence.
+- M05: KV cache capacity derivation, sampling probability calculations, continuous batching and queue governance, quantization/speculative decoding, serving capacity and SLO review.
+- M06: prompt contracts, few-shot coverage, structured-output validation layers, prompt-injection threat modeling, evaluation calibration and release/rollback governance.
+
+Each guide includes pre-class preparation, a teaching path, formative checkpoints with instructor notes, post-class review, a worked reference solution for all five formal module assessments, rubric alignment and common-error analysis. These are authored teaching materials; they do not alter course runtime behavior.
+
+## 9. Final scope statement
 
 This delivery is a curriculum-content expansion and documentation update. It does not claim platform feature completion, backend implementation, production deployment, CI success, local test success or browser acceptance. Completed work is limited to content authoring, curriculum registration, documentation/changelog updates, GitHub commits and the editorial/static review described above.
