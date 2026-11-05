@@ -7,6 +7,10 @@ describe("RAG teaching primitives", () => {
     expect(chunks).toEqual(["abcdefgh", "ghijklmn", "mnop"]);
   });
 
+  it("normalizes repeated whitespace", () => {
+    expect(chunkText("alpha   beta\n\tgamma", 40, 0)).toEqual(["alpha beta gamma"]);
+  });
+
   it("rejects invalid chunk settings", () => {
     expect(() => chunkText("text", 4, 4)).toThrow("chunkSize > overlap");
   });

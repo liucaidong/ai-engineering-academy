@@ -3,7 +3,7 @@ export type SearchResult = DocumentChunk & { score: number; rerankScore: number 
 
 export function chunkText(text: string, chunkSize = 72, overlap = 12): string[] {
   if (!Number.isInteger(chunkSize) || chunkSize < 1 || !Number.isInteger(overlap) || overlap < 0 || overlap >= chunkSize) throw new Error("Require chunkSize > overlap >= 0");
-  const normalized = text.trim().replace(/\\s+/gu, " ");
+  const normalized = text.trim().replace(/\s+/gu, " ");
   if (!normalized) return [];
   const chunks: string[] = [];
   for (let start = 0; start < normalized.length; start += chunkSize - overlap) {
@@ -24,17 +24,18 @@ function toyEmbedding(text: string, dimensions = 12): number[] {
 }
 
 function cosineSimilarity(left: number[], right: number[]): number {
+  if (left.length !== right.length) throw new Error("Embedding dimensions must match");
   return left.reduce((sum, value, index) => sum + value * right[index], 0);
 }
 
 export function retrieveToy(query: string, documents: Array<{ id: string; text: string; source: string }>, topK = 3): SearchResult[] {
   if (!Number.isInteger(topK) || topK < 1) throw new Error("topK must be a positive integer");
   const queryVector = toyEmbedding(query);
+  const queryTerms = new Set(query.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean));
   return documents.map((document) => {
     const vector = toyEmbedding(document.text);
     const score = cosineSimilarity(queryVector, vector);
-    const queryTerms = new Set(query.toLowerCase().split(/[^\\p{L}\\p{N}]+/u).filter(Boolean));
-    const textTerms = new Set(document.text.toLowerCase().split(/[^\\p{L}\\p{N}]+/u).filter(Boolean));
+    const textTerms = new Set(document.text.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean));
     const overlap = [...queryTerms].filter((term) => textTerms.has(term)).length;
     return { ...document, vector, score, rerankScore: score + overlap * 0.08 };
   }).sort((a, b) => b.rerankScore - a.rerankScore).slice(0, topK);
