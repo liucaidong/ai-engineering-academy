@@ -36,6 +36,8 @@ npm install
 npm run dev
 npm test
 npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
 
 ## 当前已实现能力

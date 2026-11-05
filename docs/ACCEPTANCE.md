@@ -12,6 +12,8 @@ Run from a clean clone with Node.js >= 20.19:
 npm install
 npm test
 npm run build
+npx playwright install chromium
+npm run test:e2e
 npm run dev
 ```
 
@@ -25,6 +27,7 @@ Acceptance evidence to retain:
 ## Course contract
 
 - [ ] The 20 modules load without schema warnings.
+- [ ] `npm run test:e2e` passes all browser scenarios.
 - [ ] Every module has at least one lesson, three or more content sections, two source references and one rubric assessment.
 - [ ] Duplicate module, lesson, assessment and rubric criterion identifiers are rejected.
 - [ ] Unknown, repeated, self-referential and cyclic prerequisites are rejected.
