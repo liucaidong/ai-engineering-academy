@@ -23,7 +23,7 @@ AI Engineering Academy 将以工程能力为主线，覆盖 AI 基础认知、�
 - [课程内容编写与迁移规范](docs/CONTENT_AUTHORING.md)
 - [工程验收清单](docs/ACCEPTANCE.md)
 - [ADR-0001：独立平台决策](docs/adr/0001-independent-platform.md)
-- [ADR-0001：后端模块化单体决策](docs/adr/0001-backend-modular-monolith.md)
+- [ADR-0002：后端模块化单体决策](docs/adr/0002-backend-modular-monolith.md)
 
 ## 技术栈
 
