@@ -49,7 +49,7 @@ npm run test:e2e
 - Transformer：固定小矩阵的 scaled dot-product attention 与因果 Mask；
 - RAG：文本切分、确定性教学向量、Top-K 检索和教学重排；
 - Tool Calling、Agent Runtime、MCP、Multi-Agent 和 Evaluation 五个本地教学模拟实验；
-- 所有实验均标注执行模式和安全边界。
+- 所有八个实验均标注执行模式和安全边界；其中 Tool Calling、Agent、MCP、Multi-Agent 和 Evaluation 是确定性教学模拟，不连接真实模型或外部服务。
 
 上述实验均为教学级实现，不代表真实模型推理、生产向量检索或服务端沙箱。浏览器本地进度不等同于账户级云端同步。
 

@@ -83,7 +83,7 @@ Course（课程元数据与版本）、Module（模块及先修关系）、Lesso
 - React + TypeScript + Vite 应用壳、20 个模块课程导航和 Zod 运行时契约已实现；
 - M01–M20 均有章节化教材、来源引用和 Rubric 测评任务；
 - Markdown/GFM 使用安全默认配置，不启用原始 HTML；
-- Tokenizer、Transformer Attention 和 RAG 三个教学实验已实现；
+- Tokenizer、Transformer Attention、RAG、Tool Calling、Agent Runtime、MCP、Multi-Agent 和 Evaluation 八个教学实验已实现；
 - 模块完成状态、测评草稿和 Rubric 自评保存在浏览器 localStorage；
 - 当前进度和测评记录没有账号身份、服务端持久化或跨设备同步；
 - 尚未实现后端 API、真实模型调用、生产向量数据库和服务端隔离沙箱。
