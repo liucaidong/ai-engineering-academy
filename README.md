@@ -48,7 +48,7 @@ npm run test:e2e
 - M01–M20 均具备章节化教材、参考来源和 Rubric 测评；
 - 模块完成状态、收藏、测评草稿和 Rubric 自评保存在当前浏览器的 localStorage；
 - 根据先修模块完成情况推荐下一学习模块；
-- 浏览器本地课程编辑工作区：JSON 导入、Schema 校验、草稿自动保存与校验通过后导出；
+- 浏览器本地课程编辑工作区：JSON 导入、严格 Schema 校验、UTF-8 字节限制、草稿自动保存与校验通过后导出；
 - Tokenizer：玩具 BPE 词表演示；
 - Transformer：固定小矩阵的 scaled dot-product attention 与因果 Mask；
 - RAG：文本切分、确定性教学向量、Top-K 检索和教学重排；
