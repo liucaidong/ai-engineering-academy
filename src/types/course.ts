@@ -74,14 +74,14 @@ export const CourseSchema = z.object({
   labs: z.array(LabDefinitionSchema).default([])
 }).superRefine((course, ctx) => {
   const moduleIds = new Set<string>();
+  const globalLessonIds = new Set<string>();
+  const globalAssessmentIds = new Set<string>();
   course.modules.forEach((module, index) => {
     if (moduleIds.has(module.id)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["modules", index, "id"], message: `Duplicate module ID: ${module.id}` });
     }
     moduleIds.add(module.id);
-    const globalLessonIds = new Set<string>();
-  const globalAssessmentIds = new Set<string>();
-  const lessonIds = new Set<string>();
+    const lessonIds = new Set<string>();
     module.lessons.forEach((lesson, lessonIndex) => {
       if (lessonIds.has(lesson.id)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["modules", index, "lessons", lessonIndex, "id"], message: `Duplicate lesson ID: ${lesson.id}` });
