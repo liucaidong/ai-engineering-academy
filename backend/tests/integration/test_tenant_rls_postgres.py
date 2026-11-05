@@ -245,6 +245,29 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     ).scalars().all()
                     assert rows == []
 
+        async with admin_engine.begin() as connection:
+            await connection.execute(
+                text("UPDATE tenant_memberships SET status = 'suspended' WHERE id = :membership_id"),
+                {"membership_id": membership_a},
+            )
+
+        async with runtime_engine.connect() as connection:
+            async with connection.begin():
+                await connection.execute(
+                    text(
+                        "SELECT set_config('app.user_id', :user_id, true), "
+                        "set_config('app.tenant_id', :tenant_id, true)"
+                    ),
+                    {"user_id": str(user_a), "tenant_id": str(tenant_a)},
+                )
+                assert (await connection.execute(text("SELECT id FROM tenants"))).scalars().all() == []
+                assert (
+                    await connection.execute(text("SELECT id FROM learning_progress"))
+                ).scalars().all() == []
+                assert (
+                    await connection.execute(text("SELECT id FROM assessment_results"))
+                ).scalars().all() == []
+
     finally:
         if admin_can_bypass_rls:
             async with admin_engine.begin() as connection:
