@@ -23,6 +23,8 @@ def test_learner_has_only_self_scoped_learning_permissions() -> None:
     learner = principal("learner")
     require_permission(learner, "learning:read:self")
     require_permission(learner, "learning:write:self")
+    require_permission(learner, "assessment:read:self")
+    require_permission(learner, "assessment:write:self")
     with pytest.raises(AuthorizationDenied):
         require_permission(learner, "tenant:members:manage")
     with pytest.raises(AuthorizationDenied):
@@ -34,6 +36,8 @@ def test_instructor_does_not_receive_unscoped_learner_record_access() -> None:
     require_permission(instructor, "assessment:review:assigned")
     with pytest.raises(AuthorizationDenied):
         require_permission(instructor, "learning:read:self")
+    with pytest.raises(AuthorizationDenied):
+        require_permission(instructor, "assessment:read:self")
     with pytest.raises(AuthorizationDenied):
         require_permission(instructor, "learning:read:tenant")
 
