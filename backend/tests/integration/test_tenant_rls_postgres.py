@@ -22,11 +22,11 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
     admin_engine = create_async_engine(admin_url)
     runtime_engine = create_async_engine(runtime_url)
 
-    user_a, user_b = uuid4(), uuid4()
+    user_a, user_b, user_c = uuid4(), uuid4(), uuid4()
     tenant_a, tenant_b = uuid4(), uuid4()
-    membership_a, membership_b = uuid4(), uuid4()
-    progress_a, progress_b = uuid4(), uuid4()
-    result_a, result_b = uuid4(), uuid4()
+    membership_a, membership_b, membership_c = uuid4(), uuid4(), uuid4()
+    progress_a, progress_b, progress_c = uuid4(), uuid4(), uuid4()
+    result_a, result_b, result_c = uuid4(), uuid4(), uuid4()
     release_id = uuid4()
     admin_can_bypass_rls = False
 
@@ -46,9 +46,9 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
             await connection.execute(
                 text(
                     "INSERT INTO users (id, status) VALUES "
-                    "(:user_a, 'active'), (:user_b, 'active')"
+                    "(:user_a, 'active'), (:user_b, 'active'), (:user_c, 'active')"
                 ),
-                {"user_a": user_a, "user_b": user_b},
+                {"user_a": user_a, "user_b": user_b, "user_c": user_c},
             )
             await connection.execute(
                 text(
@@ -67,15 +67,18 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                 text(
                     "INSERT INTO tenant_memberships (id, tenant_id, user_id, status) VALUES "
                     "(:membership_a, :tenant_a, :user_a, 'active'), "
-                    "(:membership_b, :tenant_b, :user_b, 'active')"
+                    "(:membership_b, :tenant_b, :user_b, 'active'), "
+                    "(:membership_c, :tenant_a, :user_c, 'active')"
                 ),
                 {
                     "membership_a": membership_a,
                     "membership_b": membership_b,
+                    "membership_c": membership_c,
                     "tenant_a": tenant_a,
                     "tenant_b": tenant_b,
                     "user_a": user_a,
                     "user_b": user_b,
+                    "user_c": user_c,
                 },
             )
             await connection.execute(
@@ -83,13 +86,15 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     "INSERT INTO tenant_membership_roles "
                     "(tenant_id, membership_id, role) VALUES "
                     "(:tenant_a, :membership_a, 'learner'), "
-                    "(:tenant_b, :membership_b, 'learner')"
+                    "(:tenant_b, :membership_b, 'learner'), "
+                    "(:tenant_a, :membership_c, 'learner')"
                 ),
                 {
                     "tenant_a": tenant_a,
                     "tenant_b": tenant_b,
                     "membership_a": membership_a,
                     "membership_b": membership_b,
+                    "membership_c": membership_c,
                 },
             )
             await connection.execute(
@@ -106,15 +111,18 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     "INSERT INTO learning_progress "
                     "(id, tenant_id, user_id, course_release_id, module_key) VALUES "
                     "(:progress_a, :tenant_a, :user_a, :release_id, 'M01'), "
-                    "(:progress_b, :tenant_b, :user_b, :release_id, 'M01')"
+                    "(:progress_b, :tenant_b, :user_b, :release_id, 'M01'), "
+                    "(:progress_c, :tenant_a, :user_c, :release_id, 'M02')"
                 ),
                 {
                     "progress_a": progress_a,
                     "progress_b": progress_b,
+                    "progress_c": progress_c,
                     "tenant_a": tenant_a,
                     "tenant_b": tenant_b,
                     "user_a": user_a,
                     "user_b": user_b,
+                    "user_c": user_c,
                     "release_id": release_id,
                 },
             )
@@ -124,15 +132,18 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     "(id, tenant_id, user_id, course_release_id, assessment_key, "
                     "attempt_number, status, grading_mode) VALUES "
                     "(:result_a, :tenant_a, :user_a, :release_id, 'A01', 1, 'draft', 'self_review'), "
-                    "(:result_b, :tenant_b, :user_b, :release_id, 'A01', 1, 'draft', 'self_review')"
+                    "(:result_b, :tenant_b, :user_b, :release_id, 'A01', 1, 'draft', 'self_review'), "
+                    "(:result_c, :tenant_a, :user_c, :release_id, 'A01', 1, 'draft', 'self_review')"
                 ),
                 {
                     "result_a": result_a,
                     "result_b": result_b,
+                    "result_c": result_c,
                     "tenant_a": tenant_a,
                     "tenant_b": tenant_b,
                     "user_a": user_a,
                     "user_b": user_b,
+                    "user_c": user_c,
                     "release_id": release_id,
                 },
             )
@@ -226,8 +237,8 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     {"tenant_a": tenant_a, "tenant_b": tenant_b},
                 )
                 await connection.execute(
-                    text("DELETE FROM users WHERE id IN (:user_a, :user_b)"),
-                    {"user_a": user_a, "user_b": user_b},
+                    text("DELETE FROM users WHERE id IN (:user_a, :user_b, :user_c)"),
+                    {"user_a": user_a, "user_b": user_b, "user_c": user_c},
                 )
                 await connection.execute(
                     text("DELETE FROM course_releases WHERE id = :release_id"),
