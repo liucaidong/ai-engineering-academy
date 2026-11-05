@@ -48,10 +48,10 @@ export const LessonSchema = z.object({
     body: z.string().min(1),
     markdown: z.string().optional(),
     sources: z.array(SourceReferenceSchema).optional()
-  })).min(3),
+  }).strict()).min(3),
   assessments: z.array(AssessmentSchema).min(1),
   sources: z.array(SourceReferenceSchema).min(2)
-});
+}).strict();
 
 export const ModuleSchema = z.object({
   id: z.string().regex(/^M\d{2}$/),
