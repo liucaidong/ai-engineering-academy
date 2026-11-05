@@ -131,3 +131,15 @@ test("keeps the layout within a narrow mobile viewport", async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(overflow).toBe(false);
 });
+
+test("validates and resets browser-local course authoring drafts", async ({ page }) => {
+  await page.getByRole("button", { name: "课程编辑" }).click();
+  await expect(page.getByRole("heading", { name: "课程内容编辑器" })).toBeVisible();
+  const editor = page.getByLabel("课程 JSON（最大 2 MiB）");
+  await editor.fill("{");
+  await expect(page.getByRole("alert")).toContainText("修复以下问题后才能导出");
+  await expect(page.getByRole("button", { name: "导出已校验 JSON" })).toBeDisabled();
+  await page.getByRole("button", { name: "恢复仓库课程" }).click();
+  await expect(page.getByText("Schema 校验通过")).toBeVisible();
+  await expect(page.getByRole("button", { name: "导出已校验 JSON" })).toBeEnabled();
+});
