@@ -1,17 +1,21 @@
 """HTTP application entry point.
 
-This service deliberately exposes operational endpoints only. Learner data APIs
-must not be added until identity, authorization, ownership and audit contracts
-have been implemented.
+Operational health endpoints are always available. OIDC routes are mounted
+but return 503 until a complete provider/database/security configuration is
+explicitly supplied through environment settings.
 """
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.auth import router as auth_router
 from app.core.config import get_settings
 from app.core.database import Database
+from app.security.oidc_provider import OIDCVerifier
+from app.security.request_protection import CSRFSecurityMiddleware
 
 
 @asynccontextmanager
@@ -19,12 +23,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     database = Database(settings.sqlalchemy_database_url)
     app.state.database = database
+    verifier = OIDCVerifier(settings.oidc_provider_config) if settings.oidc_login_enabled else None
+    app.state.oidc_verifier = verifier
     try:
         yield
     finally:
+        if verifier is not None:
+            await verifier.aclose()
         await database.dispose()
 
 
+settings = get_settings()
 app = FastAPI(
     title="AI Engineering Academy API",
     version="0.1.0",
@@ -32,6 +41,21 @@ app = FastAPI(
     redoc_url=None,
     lifespan=lifespan,
 )
+app.include_router(auth_router)
+
+if settings.oidc_login_enabled:
+    app.add_middleware(
+        CSRFSecurityMiddleware,
+        allowed_origins=set(settings.oidc_allowed_origins),
+        csrf_secret=settings.csrf_secret_value,
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.oidc_allowed_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Content-Type", "X-CSRF-Token"],
+    )
 
 
 @app.get("/health/live", tags=["health"])
@@ -43,7 +67,6 @@ async def liveness() -> dict[str, str]:
 @app.get("/health/ready", tags=["health"])
 async def readiness(request: Request) -> JSONResponse:
     """Verify configured critical dependencies before accepting traffic."""
-    settings = get_settings()
     if not settings.database_required:
         return JSONResponse(
             status_code=200,
