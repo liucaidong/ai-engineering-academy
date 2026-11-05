@@ -45,7 +45,9 @@
 - [x] Implement authorization-code exchange (public-client PKCE and confidential client_secret_basic); return only the ID token
 - [x] Persist one-time OIDC login transactions with state/nonce hashes, Fernet-encrypted PKCE verifier, expiry and row-lock consume-once semantics under state-hash RLS
 - [x] Build Authorization Code + PKCE authorization URLs with server-generated state/nonce and S256 challenge
-- [ ] Implement callback/session HTTP routes, account provisioning and production provider/origin configuration
+- [x] Implement issuer+subject identity resolution and learner-only personal workspace provisioning with verified-email handling and security audit events
+- [x] Add exact issuer/subject RLS bootstrap and self-only personal-tenant/membership/learner-role insert policies
+- [ ] Implement callback/session HTTP routes and production provider/origin configuration
 - [x] Implement transaction-local user/tenant context helper and forced PostgreSQL RLS policies for identity/tenant tables
 - [x] Author optional PostgreSQL RLS integration acceptance using a separate non-owner runtime role (execution pending)
 - [ ] Execute RLS integration acceptance with provisioned admin/runtime database roles before learner-data APIs

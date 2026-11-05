@@ -110,3 +110,33 @@ def test_oidc_login_transaction_rls_is_state_hash_scoped(
     assert "USING (true)" not in source
     assert "FOR ALL" not in source
     assert "DROP POLICY IF EXISTS" in source
+
+
+def test_oidc_identity_bootstrap_and_personal_workspace_policies_are_scoped(
+    migration_sources: dict[str, str],
+) -> None:
+    source = migration_sources["0008_oidc_identity_provisioning.py"]
+
+    assert "issuer = NULLIF(current_setting('app.oidc_issuer', true), '')" in source
+    assert "subject = NULLIF(current_setting('app.oidc_subject', true), '')" in source
+    assert "tenants_personal_owner_insert" in source
+    assert "tenant_memberships_personal_self_insert" in source
+    assert "tenant_membership_roles_learner_self_insert" in source
+    assert "role = 'learner'" in source
+    assert "granted_by_user_id IS NULL" in source
+    assert "USING (true)" not in source
+    assert "FOR ALL" not in source
+    assert "DROP POLICY IF EXISTS" in source
+
+
+def test_personal_workspace_rls_never_allows_admin_role_self_grant(
+    migration_sources: dict[str, str],
+) -> None:
+    source = migration_sources["0008_oidc_identity_provisioning.py"]
+
+    assert "WITH CHECK" in source
+    assert "role = 'learner'" in source
+    assert "role = 'tenant_admin'" not in source
+    assert "role = 'instructor'" not in source
+    assert "personal_owner_user_id" in source
+    assert "user_id = NULLIF(current_setting('app.user_id', true), '')::uuid" in source

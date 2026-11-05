@@ -67,6 +67,8 @@ async def test_session_lookup_context_is_transaction_local_and_validated() -> No
     assert "set_config('app.user_id', '', true)" in statement
     assert "set_config('app.tenant_id', '', true)" in statement
     assert "set_config('app.session_token_hash', :token_hash, true)" in statement
+    assert "set_config('app.oidc_issuer', '', true)" in statement
+    assert "set_config('app.oidc_subject', '', true)" in statement
     assert session.execute.await_args.args[1] == {"token_hash": token_hash}
 
     with pytest.raises(ValueError, match="64 lowercase"):
@@ -86,4 +88,31 @@ async def test_oidc_state_context_clears_other_security_contexts() -> None:
     assert "set_config('app.tenant_id', '', true)" in statement
     assert "set_config('app.session_token_hash', '', true)" in statement
     assert "set_config('app.oidc_state_hash', :state_hash, true)" in statement
+    assert "set_config('app.oidc_issuer', '', true)" in statement
+    assert "set_config('app.oidc_subject', '', true)" in statement
+    assert "set_config('app.oidc_issuer', '', true)" in statement
+    assert "set_config('app.oidc_subject', '', true)" in statement
     assert session.execute.await_args.args[1] == {"state_hash": state_hash}
+
+
+
+@pytest.mark.asyncio
+async def test_oidc_identity_lookup_context_is_exact_and_clears_other_contexts() -> None:
+    from app.db.session import set_oidc_identity_lookup_context
+
+    session = FakeSession(active=True)
+    issuer = "https://identity.example.test"
+    subject = "subject-123"
+    await set_oidc_identity_lookup_context(session, issuer=issuer, subject=subject)
+    statement = str(session.execute.await_args.args[0])
+    assert "set_config('app.oidc_issuer', :issuer, true)" in statement
+    assert "set_config('app.oidc_subject', :subject, true)" in statement
+    assert "set_config('app.user_id', '', true)" in statement
+    assert session.execute.await_args.args[1] == {"issuer": issuer, "subject": subject}
+
+    with pytest.raises(ValueError, match="ASCII"):
+        await set_oidc_identity_lookup_context(
+            session,
+            issuer=issuer,
+            subject="用户",
+        )

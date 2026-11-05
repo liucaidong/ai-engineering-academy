@@ -162,12 +162,16 @@ class OIDCVerifier:
                 continue
             kid = item.get("kid")
             algorithm = item.get("alg")
+            key_ops = item.get("key_ops")
             if (
                 isinstance(kid, str)
                 and kid
                 and item.get("use", "sig") == "sig"
+                and (key_ops is None or (isinstance(key_ops, list) and "verify" in key_ops))
                 and (algorithm is None or algorithm in self.config.allowed_algorithms)
             ):
+                if kid in keys:
+                    raise OIDCProviderError("OIDC JWKS contains a duplicate signing key id")
                 keys[kid] = item
         if not keys:
             raise OIDCProviderError("OIDC JWKS contains no usable signing keys")
@@ -258,7 +262,13 @@ class OIDCVerifier:
 
         algorithm = header.get("alg")
         kid = header.get("kid")
-        if algorithm not in self.config.allowed_algorithms or not isinstance(kid, str) or not kid:
+        if (
+            algorithm not in self.config.allowed_algorithms
+            or not isinstance(kid, str)
+            or not kid
+            or header.get("crit")
+            or header.get("b64") is False
+        ):
             raise OIDCProviderError("ID token uses an unapproved algorithm or has no key id")
 
         keys = await self._load_jwks()
@@ -297,7 +307,7 @@ class OIDCVerifier:
         elif claims.get("azp") is not None and claims.get("azp") != self.config.client_id:
             raise OIDCProviderError("ID token azp does not match the configured client")
         subject = claims.get("sub")
-        if not isinstance(subject, str) or not subject or len(subject) > 255:
+        if not isinstance(subject, str) or not subject or len(subject) > 255 or not subject.isascii():
             raise OIDCProviderError("ID token subject is invalid")
 
         from app.security.oidc import verify_oidc_nonce
