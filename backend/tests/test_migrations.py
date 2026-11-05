@@ -11,11 +11,14 @@ def test_alembic_has_one_linear_revision_chain() -> None:
 
     scripts = ScriptDirectory.from_config(config)
 
-    assert scripts.get_heads() == ["0002_release_publication_state"]
+    assert scripts.get_heads() == ["0003_identity_tenancy"]
     initial = scripts.get_revision("0001_course_releases")
     lifecycle = scripts.get_revision("0002_release_publication_state")
+    identity = scripts.get_revision("0003_identity_tenancy")
 
     assert initial is not None
     assert initial.down_revision is None
     assert lifecycle is not None
     assert lifecycle.down_revision == initial.revision
+    assert identity is not None
+    assert identity.down_revision == lifecycle.revision
