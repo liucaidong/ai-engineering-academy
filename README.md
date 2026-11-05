@@ -40,7 +40,7 @@ npm run build
 
 ## 当前已实现能力
 
-- 20 个课程模块导航、先修依赖和课程 Schema 校验；
+- 20 个课程模块导航、全文搜索、先修依赖和课程 Schema 校验；
 - M01–M20 均具备章节化教材、参考来源和 Rubric 测评；
 - 模块完成状态、测评草稿和 Rubric 自评保存在当前浏览器的 localStorage；
 - Tokenizer：玩具 BPE 词表演示；

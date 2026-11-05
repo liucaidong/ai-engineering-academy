@@ -13,18 +13,20 @@
 - [x] Author substantive, sourced lessons and rubric assessments for M10–M20
 - [x] Browser-local module completion progress (localStorage; no account sync)
 - [x] Browser-local assessment drafts and rubric self-review (no server sync)
-- [ ] Server-side learner sync and assessment history
 - [x] Keyboard skip link, semantic navigation, focus-visible and reduced-motion support
 - [ ] Full accessibility audit and browser E2E acceptance
+- [ ] Generate and commit a dependency lockfile after resolving the final package set
 - [ ] Verified clean install, test and production build in a controlled runtime
 
 ## P2 — Learning experience
 - Content authoring workflow and schema migration
 - Server-synced assessment history and instructor feedback
-- [x] Course module search across title, summary, objectives and lesson content\n- Bookmarks and learning-path recommendations
+- [x] Course module search across title, summary, objectives and lesson content
+- Bookmarks and learning-path recommendations
 - More interactive labs: Tool Calling, Agent Runtime, MCP and Evaluation
 
 ## P3 — Backend and execution platform
+- Server-side learner progress and assessment history
 - API service and PostgreSQL persistence
 - Identity, learner profiles and progress events
 - Sandboxed code execution with quotas and isolation

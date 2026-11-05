@@ -55,6 +55,11 @@ describe("course content contract", () => {
     expect(getCourseValidationErrors(invalid).some((error) => error.includes("Duplicate lesson ID"))).toBe(true);
   });
 
+  it("rejects duplicate lesson identifiers across different modules", () => {
+    const duplicateLesson = { ...course, modules: course.modules.map((module, index) => index === 1 ? { ...module, lessons: [{ ...module.lessons[0], id: course.modules[0].lessons[0].id }] } : module) };
+    expect(getCourseValidationErrors(duplicateLesson).some((error) => error.includes("Duplicate course lesson ID"))).toBe(true);
+  });
+
   it("requires globally unique assessment identifiers and rubric criteria", () => {
     const duplicateAssessment = { ...course, modules: course.modules.map((module, index) => index === 1 ? { ...module, lessons: [{ ...module.lessons[0], assessments: [{ ...course.modules[0].lessons[0].assessments[0], id: "m01-system-boundary-review" }] }] } : module) };
     expect(getCourseValidationErrors(duplicateAssessment).some((error) => error.includes("Duplicate assessment ID"))).toBe(true);
