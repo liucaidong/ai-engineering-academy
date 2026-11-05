@@ -50,7 +50,13 @@ test("runs the RAG teaching lab with a query", async ({ page }) => {
 });
 
 test("has no automated WCAG A/AA violations on the lesson view", async ({ page }) => {
-  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations).toEqual([]);
+});
+
+test("has no automated WCAG A/AA violations in the Transformer lab", async ({ page }) => {
+  await page.getByRole("button", { name: /M02.*Transformer 与 Attention/ }).click();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
   expect(results.violations).toEqual([]);
 });
 

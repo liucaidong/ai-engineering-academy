@@ -62,7 +62,7 @@ Acceptance evidence to retain:
 - [ ] Matrix values and dynamic RAG results expose appropriate semantics.
 - [ ] Layout remains usable at 320px width and common tablet/desktop widths.
 - [ ] Reduced-motion preference is respected.
-- [ ] Resolve all axe WCAG A/AA violations.\n- [ ] Verify contrast and screen-reader output with manual accessibility checks.
+- [ ] Resolve all axe WCAG 2.0/2.1/2.2 A/AA violations.\n- [ ] Verify contrast and screen-reader output with manual accessibility checks.
 
 ## Security and privacy
 

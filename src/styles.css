@@ -37,7 +37,7 @@ a { color: inherit; text-decoration: none; }
 .progress-copy strong { color: var(--text); font: 11px ui-monospace, monospace; }
 .progress-track { height: 4px; background: #28394f; border-radius: 5px; margin: 10px 0 8px; overflow: hidden; }
 .progress-track span { display: block; height: 100%; background: var(--accent-strong); border-radius: 5px; }
-.course-progress small { color: #718198; font-size: 10px; }
+.course-progress small { color: #91a0b4; font-size: 10px; }
 .module-nav { flex: 1; overflow: auto; }
 .nav-group { margin-bottom: 22px; }
 .nav-group h2 { display: flex; align-items: center; gap: 8px; margin: 0 9px 8px; color: #8fa1b8; font-size: 11px; font-weight: 600; }
@@ -108,13 +108,13 @@ a { color: inherit; text-decoration: none; }
 .merge-list code { color: #aebfd3; font-size: 10px; }
 .merge-arrow { color: #6e91b5; }
 .merge-list .merged-token { color: #8ed8b8; }
-.rank-label { margin-left: auto; color: #71869f; font: 9px ui-monospace, monospace; }
+.rank-label { margin-left: auto; color: #9baec3; font: 9px ui-monospace, monospace; }
 .lab-notice { margin-top: 25px; padding: 14px; border: 1px solid #695638; border-radius: 7px; background: #2b2519; }
 .lab-notice strong { color: #e6c58a; font-size: 11px; }
 .lab-notice p { margin: 6px 0 0; color: #bcae91; font-size: 10px; line-height: 1.8; }
 .muted { color: #7e90a7; font-size: 11px; }
-.page-footer { margin-top: 35px; padding-top: 17px; border-top: 1px solid var(--line); color: #63758d; font-size: 10px; }
-.page-footer span { padding: 0 5px; color: #40556e; }
+.page-footer { margin-top: 35px; padding-top: 17px; border-top: 1px solid var(--line); color: #91a0b4; font-size: 10px; }
+.page-footer span { padding: 0 5px; color: #718198; }
 @media (max-width: 900px) {
   .workspace { grid-template-columns: 245px minmax(0, 1fr); }
   .lesson-layout { grid-template-columns: 1fr; }
@@ -216,7 +216,7 @@ a { color: inherit; text-decoration: none; }
 .rubric-item span { display: grid; gap: 4px; }
 .rubric-item strong { color: #b9cde3; font-size: 10px; }
 .rubric-item small { color: #859ab3; font-size: 10px; line-height: 1.6; }
-.assessment-storage-note { margin: 9px 0 0; color: #72859d; font-size: 9px; line-height: 1.6; }
+.assessment-storage-note { margin: 9px 0 0; color: #91a0b4; font-size: 9px; line-height: 1.6; }
 
 
 .skip-link { position: absolute; top: 8px; left: 8px; z-index: 20; padding: 9px 12px; transform: translateY(-160%); border-radius: 5px; background: #e7f2ff; color: #102238; font-size: 12px; font-weight: 700; }
@@ -233,3 +233,4 @@ a { color: inherit; text-decoration: none; }
 .module-search { width: calc(100% - 16px); margin: 0 8px 18px; padding: 9px 10px; border: 1px solid #34475e; border-radius: 6px; outline: none; color: #e6effb; background: #0e1927; font: 11px system-ui, sans-serif; }
 .module-search:focus { border-color: #5d9ddc; box-shadow: 0 0 0 3px #3b8bd322; }
 .module-search-empty { margin: 8px; color: #8fa1b8; font-size: 11px; line-height: 1.7; }
+\ninput::placeholder, textarea::placeholder { color: #91a0b4; opacity: 1; }\n
