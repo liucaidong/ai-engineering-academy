@@ -52,6 +52,6 @@ Run migration commands from the `backend/` directory. The URL is read from envir
 
 ## Security boundary
 
-Identity and tenant tables now exist as dormant persistence foundations: users, OIDC external identities, hashed opaque-session tokens, tenants, memberships, tenant-scoped role grants, invitations and audit events. They are not wired to HTTP routes. OIDC callback validation, cookie issuance, CSRF protection, authorization services and PostgreSQL RLS are not implemented; learner-data and tenant-management APIs must remain disabled until the ADR 0003 implementation gates are satisfied. Course release snapshots are catalog data, not learner-owned data. Arbitrary code execution is also absent.
+Identity and tenant tables now exist as dormant persistence foundations: users, OIDC external identities, hashed opaque-session tokens, tenants, memberships, tenant-scoped role grants, invitations and audit events. They are not wired to HTTP routes. OIDC callback validation, cookie issuance, CSRF protection, authorization services, transaction-local tenant context and PostgreSQL RLS are not implemented. Cross-tenant denial tests using a non-owner runtime database role are also pending; learner-data and tenant-management APIs must remain disabled until the ADR 0003 implementation gates are satisfied. Course release snapshots are catalog data, not learner-owned data. Arbitrary code execution is also absent.
 
 See [ADR 0002](../docs/adr/0002-backend-modular-monolith.md) and [ADR 0003](../docs/adr/0003-identity-and-tenant-isolation.md).
