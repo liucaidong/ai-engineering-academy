@@ -175,3 +175,16 @@ test("imports a valid course file and downloads a validated export", async ({ pa
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe("course-export.json");
 });
+
+test("keeps the lesson layout within a 320px viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(overflow).toBe(false);
+});
+
+test("keeps the course authoring workspace within a 320px viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await page.getByRole("button", { name: "课程编辑" }).click();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(overflow).toBe(false);
+});
