@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import base64
 import time
+from urllib.parse import parse_qs
+
 
 import httpx
 import jwt
 import pytest
+from pydantic import SecretStr
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from app.security.oidc import generate_oidc_login_parameters
@@ -126,3 +130,88 @@ def test_provider_configuration_is_fail_closed() -> None:
             client_id=CLIENT_ID,
             allowed_algorithms=("none",),  # type: ignore[arg-type]
         )
+
+
+
+@pytest.mark.asyncio
+async def test_public_client_code_exchange_sends_client_id_and_pkce() -> None:
+    parameters = generate_oidc_login_parameters()
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            return httpx.Response(
+                200,
+                json={
+                    "issuer": ISSUER,
+                    "authorization_endpoint": ISSUER + "/authorize",
+                    "token_endpoint": ISSUER + "/token",
+                    "jwks_uri": ISSUER + "/jwks",
+                },
+            )
+        captured["form"] = parse_qs(request.content.decode("ascii"))
+        return httpx.Response(200, json={"id_token": "signed-id-token"})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    verifier = OIDCVerifier(
+        OIDCProviderConfig(issuer=ISSUER, client_id=CLIENT_ID),
+        http_client=client,
+    )
+    try:
+        result = await verifier.exchange_authorization_code(
+            code="one-time-code",
+            redirect_uri="https://academy.example.test/auth/callback",
+            code_verifier=parameters.code_verifier,
+        )
+    finally:
+        await client.aclose()
+
+    assert result == "signed-id-token"
+    assert captured["form"]["grant_type"] == ["authorization_code"]
+    assert captured["form"]["client_id"] == [CLIENT_ID]
+    assert captured["form"]["code_verifier"] == [parameters.code_verifier]
+
+
+@pytest.mark.asyncio
+async def test_confidential_client_code_exchange_uses_encoded_basic_auth() -> None:
+    parameters = generate_oidc_login_parameters()
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            return httpx.Response(
+                200,
+                json={
+                    "issuer": ISSUER,
+                    "authorization_endpoint": ISSUER + "/authorize",
+                    "token_endpoint": ISSUER + "/token",
+                    "jwks_uri": ISSUER + "/jwks",
+                },
+            )
+        captured["authorization"] = request.headers.get("authorization", "")
+        captured["form"] = parse_qs(request.content.decode("ascii"))
+        return httpx.Response(200, json={"id_token": "signed-id-token"})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    verifier = OIDCVerifier(
+        OIDCProviderConfig(
+            issuer=ISSUER,
+            client_id=CLIENT_ID,
+            client_secret=SecretStr("p@ss:word"),
+        ),
+        http_client=client,
+    )
+    try:
+        result = await verifier.exchange_authorization_code(
+            code="one-time-code",
+            redirect_uri="https://academy.example.test/auth/callback",
+            code_verifier=parameters.code_verifier,
+        )
+    finally:
+        await client.aclose()
+
+    decoded = base64.b64decode(captured["authorization"].removeprefix("Basic ")).decode("utf-8")
+    assert result == "signed-id-token"
+    assert decoded == "academy-web:p%40ss%3Aword"
+    assert "client_id" not in captured["form"]
+    assert captured["form"]["code_verifier"] == [parameters.code_verifier]

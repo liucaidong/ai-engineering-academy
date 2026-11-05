@@ -46,7 +46,8 @@ async def set_security_context(
             "SELECT "
             "set_config('app.user_id', :user_id, true), "
             "set_config('app.tenant_id', :tenant_id, true), "
-            "set_config('app.session_token_hash', '', true)"
+            "set_config('app.session_token_hash', '', true), "
+            "set_config('app.oidc_state_hash', '', true)"
         ),
         {
             "user_id": str(user_id),
@@ -84,7 +85,8 @@ async def set_session_lookup_context(session: AsyncSession, token_hash: str) -> 
             "SELECT "
             "set_config('app.user_id', '', true), "
             "set_config('app.tenant_id', '', true), "
-            "set_config('app.session_token_hash', :token_hash, true)"
+            "set_config('app.session_token_hash', :token_hash, true), "
+            "set_config('app.oidc_state_hash', '', true)"
         ),
         {"token_hash": token_hash},
     )
@@ -96,4 +98,36 @@ async def clear_session_lookup_context(session: AsyncSession) -> None:
         raise RuntimeError("Session lookup context must be cleared inside an active transaction")
     await session.execute(
         text("SELECT set_config('app.session_token_hash', '', true)")
+    )
+
+
+
+async def set_oidc_state_context(session: AsyncSession, state_hash: str) -> None:
+    """Set a pre-authentication RLS context scoped to one OIDC state hash."""
+    if not session.in_transaction():
+        raise RuntimeError("OIDC state context must be set inside an active transaction")
+    if (
+        not isinstance(state_hash, str)
+        or len(state_hash) != 64
+        or any(character not in "0123456789abcdef" for character in state_hash)
+    ):
+        raise ValueError("OIDC state hash must be 64 lowercase hexadecimal characters")
+    await session.execute(
+        text(
+            "SELECT "
+            "set_config('app.user_id', '', true), "
+            "set_config('app.tenant_id', '', true), "
+            "set_config('app.session_token_hash', '', true), "
+            "set_config('app.oidc_state_hash', :state_hash, true)"
+        ),
+        {"state_hash": state_hash},
+    )
+
+
+async def clear_oidc_state_context(session: AsyncSession) -> None:
+    """Clear the one-time OIDC state lookup context."""
+    if not session.in_transaction():
+        raise RuntimeError("OIDC state context must be cleared inside an active transaction")
+    await session.execute(
+        text("SELECT set_config('app.oidc_state_hash', '', true)")
     )

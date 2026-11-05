@@ -2,15 +2,18 @@
 
 This module is deliberately provider-neutral. It validates a configured issuer,
 uses HTTPS-only discovery/JWKS endpoints, caches signing keys, refreshes once on
-an unknown key id, and delegates JWT cryptography to PyJWT. It does not perform
-authorization-code exchange or expose HTTP authentication routes.
+an unknown key id, exchanges authorization codes with PKCE and delegates JWT
+cryptography to PyJWT. It does not expose HTTP authentication routes.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+import base64
 import time
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import quote_plus, urlparse
+
+from pydantic import SecretStr
 
 import httpx
 import jwt
@@ -24,6 +27,7 @@ class OIDCProviderError(ValueError):
 class OIDCProviderConfig:
     issuer: str
     client_id: str
+    client_secret: SecretStr | None = None
     allowed_algorithms: tuple[str, ...] = ("RS256", "ES256", "PS256")
     cache_ttl_seconds: int = 300
     request_timeout_seconds: float = 5.0
@@ -104,7 +108,7 @@ class OIDCVerifier:
         if not isinstance(value, str):
             raise OIDCProviderError(f"OIDC metadata is missing {name}")
         parsed = urlparse(value)
-        if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password or parsed.fragment:
+        if parsed.scheme != "https" or not parsed.netloc or parsed.username is not None or parsed.password is not None or parsed.fragment:
             raise OIDCProviderError(f"OIDC {name} must be an HTTPS URL")
         return value
 
@@ -170,6 +174,73 @@ class OIDCVerifier:
         self._jwks = keys
         self._jwks_expires_at = now + self.config.cache_ttl_seconds
         return keys
+
+
+    async def exchange_authorization_code(
+        self,
+        *,
+        code: str,
+        redirect_uri: str,
+        code_verifier: str,
+    ) -> str:
+        """Exchange one authorization code and return only its ID token.
+
+        Confidential clients use client_secret_basic with RFC 6749 form-encoded
+        credentials. Public clients send client_id in the form body and rely on
+        PKCE. The access token is deliberately not retained or returned.
+        """
+        from app.security.oidc import pkce_s256_challenge
+
+        if not isinstance(code, str) or not code or len(code) > 4096:
+            raise OIDCProviderError("authorization code is missing or invalid")
+        parsed_redirect = urlparse(redirect_uri)
+        if (
+            parsed_redirect.scheme != "https"
+            or not parsed_redirect.netloc
+            or parsed_redirect.username is not None
+            or parsed_redirect.password is not None
+            or parsed_redirect.fragment
+        ):
+            raise OIDCProviderError("OIDC redirect URI must be an HTTPS callback URL")
+        try:
+            pkce_s256_challenge(code_verifier)
+        except ValueError as error:
+            raise OIDCProviderError("PKCE verifier is invalid") from error
+
+        discovery = await self.discover()
+        form = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": redirect_uri,
+            "code_verifier": code_verifier,
+        }
+        headers: dict[str, str] = {}
+        if self.config.client_secret is not None:
+            secret = self.config.client_secret.get_secret_value()
+            if not secret:
+                raise OIDCProviderError("configured OIDC client secret is empty")
+            credentials = f"{quote_plus(self.config.client_id)}:{quote_plus(secret)}"
+            headers["Authorization"] = (
+                "Basic " + base64.b64encode(credentials.encode("utf-8")).decode("ascii")
+            )
+        else:
+            form["client_id"] = self.config.client_id
+
+        try:
+            response = await (await self._client()).post(
+                discovery.token_endpoint,
+                data=form,
+                headers=headers,
+            )
+            response.raise_for_status()
+            payload = response.json()
+        except (httpx.HTTPError, ValueError) as error:
+            raise OIDCProviderError("OIDC authorization-code exchange failed") from error
+
+        id_token = payload.get("id_token") if isinstance(payload, dict) else None
+        if not isinstance(id_token, str) or not id_token or len(id_token) > 16384:
+            raise OIDCProviderError("OIDC token response does not contain a valid ID token")
+        return id_token
 
     async def verify_id_token(
         self,

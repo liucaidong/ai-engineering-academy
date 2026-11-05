@@ -42,7 +42,10 @@
 - [x] Implement opt-in CSRF/Origin middleware with explicit origin allowlist and session-bound double-submit HMAC (not yet installed)
 - [x] Implement active tenant-membership resolution and default-deny role permission checks; tenant admins cannot grant tenant_admin
 - [x] Add narrow transaction-local token-hash RLS bootstrap for session lookup before user identity resolution
-- [ ] Implement authorization-code exchange, durable one-time login transaction storage, callback/session HTTP routes and production provider/origin configuration
+- [x] Implement authorization-code exchange (public-client PKCE and confidential client_secret_basic); return only the ID token
+- [x] Persist one-time OIDC login transactions with state/nonce hashes, Fernet-encrypted PKCE verifier, expiry and row-lock consume-once semantics under state-hash RLS
+- [x] Build Authorization Code + PKCE authorization URLs with server-generated state/nonce and S256 challenge
+- [ ] Implement callback/session HTTP routes, account provisioning and production provider/origin configuration
 - [x] Implement transaction-local user/tenant context helper and forced PostgreSQL RLS policies for identity/tenant tables
 - [x] Author optional PostgreSQL RLS integration acceptance using a separate non-owner runtime role (execution pending)
 - [ ] Execute RLS integration acceptance with provisioned admin/runtime database roles before learner-data APIs

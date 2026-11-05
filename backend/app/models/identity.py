@@ -227,3 +227,27 @@ class AuditEvent(Base):
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+class OIDCLoginTransaction(Base):
+    """Short-lived, one-time pre-authentication OIDC transaction."""
+
+    __tablename__ = "oidc_login_transactions"
+    __table_args__ = (
+        UniqueConstraint("state_hash", name="uq_oidc_login_transactions_state_hash"),
+        CheckConstraint("state_hash ~ '^[0-9a-f]{64}$'", name="state_hash_hex"),
+        CheckConstraint("nonce_hash ~ '^[0-9a-f]{64}$'", name="nonce_hash_hex"),
+        CheckConstraint("expires_at > created_at", name="expiry_after_creation"),
+        Index("ix_oidc_login_transactions_expires_at", "expires_at"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    state_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    nonce_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    code_verifier_ciphertext: Mapped[str] = mapped_column(String(1024), nullable=False)
+    redirect_uri: Mapped[str] = mapped_column(String(2048), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

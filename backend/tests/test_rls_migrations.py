@@ -94,3 +94,19 @@ def test_session_lookup_rls_is_limited_to_exact_transaction_token_hash(
     assert "USING (true)" not in source
     assert "FOR ALL" not in source
     assert "DROP POLICY IF EXISTS auth_sessions_token_hash_bootstrap_select" in source
+
+
+def test_oidc_login_transaction_rls_is_state_hash_scoped(
+    migration_sources: dict[str, str],
+) -> None:
+    source = migration_sources["0007_oidc_login_transactions.py"]
+
+    assert "ENABLE ROW LEVEL SECURITY" in source
+    assert "FORCE ROW LEVEL SECURITY" in source
+    assert "current_setting('app.oidc_state_hash', true)" in source
+    assert "oidc_login_state_select" in source
+    assert "oidc_login_state_insert" in source
+    assert "oidc_login_state_update" in source
+    assert "USING (true)" not in source
+    assert "FOR ALL" not in source
+    assert "DROP POLICY IF EXISTS" in source
