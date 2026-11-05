@@ -1,3 +1,14 @@
+## 0.19.0 — 2026-11-06
+
+### Teaching materials
+- Added instructor teaching guides for M04–M06.
+- Each guide includes pre-class preparation, lesson flow, worked mathematical derivations where relevant, formative checkpoints with instructor notes, post-class review, a worked reference solution for each formal assessment, rubric alignment and common-error analysis.
+- M04 covers NLL/pretraining compute, MoE parameter accounting, SFT/loss masking/LoRA, PPO/DPO and release evidence.
+- M05 covers KV cache capacity, temperature/top-k/top-p, continuous batching, quantization/speculative decoding and serving capacity/SLOs.
+- M06 covers prompt contracts, few-shot coverage, JSON/schema/business/authorization validation, prompt-injection defense and prompt evaluation/release governance.
+- Added a teaching-guide index. No course Schema, lesson IDs, assessment IDs, prerequisites, lab registry or platform features were changed.
+- Updated curriculum version to 0.19.0.
+
 ## 0.18.0 — 2026-11-06
 
 ### Course content
