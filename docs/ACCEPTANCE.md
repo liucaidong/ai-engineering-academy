@@ -36,7 +36,11 @@ Acceptance evidence to retain:
 - [ ] Source URLs pass Zod URL validation.
 - [ ] Legacy payloads migrate to schemaVersion 1 and unsupported versions are rejected.
 
-## Learning workflow\n\n- [ ] Bookmark and unbookmark a module, refresh, and confirm persistence.\n- [ ] Filter the curriculum to bookmarked modules.\n- [ ] Confirm the next-module recommendation respects prerequisite completion.
+## Learning workflow
+
+- [ ] Bookmark and unbookmark a module, refresh, and confirm persistence.
+- [ ] Filter the curriculum to bookmarked modules.
+- [ ] Confirm the next-module recommendation respects prerequisite completion.
 
 - [ ] Select each module from the navigation.
 - [ ] Open prerequisites and confirm navigation to the referenced module.
@@ -46,6 +50,15 @@ Acceptance evidence to retain:
 - [ ] Refresh and confirm assessment draft and self-review persist.
 - [ ] Confirm stale or malformed localStorage data does not prevent the app from loading.
 - [ ] Confirm private browsing or blocked localStorage degrades gracefully.
+
+## Course authoring
+
+- [ ] Open the course editor and confirm the current course payload loads.
+- [ ] Import a valid JSON course file and confirm Schema v1 validation succeeds.
+- [ ] Import malformed JSON and confirm export is disabled with a visible error.
+- [ ] Confirm the draft persists after refresh in the same browser.
+- [ ] Export a valid course and re-import it without losing modules, labs or assessments.
+- [ ] Confirm the editor discloses that drafts are browser-local and are not published.
 
 ## Labs
 
