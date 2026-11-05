@@ -49,28 +49,29 @@ export default function App() {
   const openLab = selectedModule.labId && IMPLEMENTED_LABS.has(selectedModule.labId);
 
   return <div className="app-shell">
+    <a className="skip-link" href="#main-content">跳至主要內容</a>
     <header className="topbar">
       <a className="brand" href="#" aria-label="AI Engineering Academy 首页"><span className="brand-mark">A</span><span>AI Engineering <b>Academy</b></span></a>
       <div className="topbar-meta"><span className="version-pill">CURRICULUM v{course.version}</span><span className="status-dot" /> 学习环境</div>
     </header>
     <div className="workspace">
       <aside className="sidebar" aria-label="课程目录">
-        <div className="sidebar-intro"><span className="eyebrow">LEARNING PATH</span><h1>课程目录</h1><p>从模型原理走向 AI 系统工程</p></div>
+        <div className="sidebar-intro"><span className="eyebrow">LEARNING PATH</span><h2>课程目录</h2><p>从模型原理走向 AI 系统工程</p></div>
         <div className="course-progress"><div className="progress-copy"><span>已完成模块</span><strong>{completedModules.length} / {course.modules.length}</strong></div><div className="progress-track" role="progressbar" aria-label="课程模块完成进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercent}><span style={{ width: `${progressPercent}%` }} /></div><small>{progressPercent}% · 仅保存在当前浏览器</small></div>
-        <nav className="module-nav">{Object.entries(groupedModules).map(([level, modules]) => <section className="nav-group" key={level}>
+        <nav className="module-nav" aria-label="课程模块导航">{Object.entries(groupedModules).map(([level, modules]) => <section className="nav-group" key={level}>
           <h2><span>{level}</span>{LEVEL_LABELS[level as CourseModule["level"]]}</h2>
           {modules.map((module) => <button className={selectedModuleId === module.id ? "module-link active" : "module-link"} key={module.id} onClick={() => selectModule(module)} aria-current={selectedModuleId === module.id ? "page" : undefined} type="button">
             <span className="module-id">{module.id}</span><span>{module.title}</span>{completedModules.includes(module.id) && <span className="module-complete" aria-label="已完成">✓</span>}
             {module.labId && <span className={IMPLEMENTED_LABS.has(module.labId) ? "lab-indicator implemented" : "lab-indicator"} title={IMPLEMENTED_LABS.has(module.labId) ? "交互实验已实现" : "实验规划中"} aria-label={IMPLEMENTED_LABS.has(module.labId) ? "交互实验已实现" : "实验规划中"}>◈</span>}
           </button>)}
         </section>)}</nav>
-        <div className="sidebar-footer">学习路径 · 版本 0.1.0</div>
+        <div className="sidebar-footer">学习路径 · 课程版本 {course.version}</div>
       </aside>
-      <main className="main-content">
+      <main className="main-content" id="main-content" tabIndex={-1}>
         <div className="breadcrumb">课程 / {LEVEL_LABELS[selectedModule.level]} / <strong>{selectedModule.id}</strong></div>
         <section className="module-hero"><div><span className="eyebrow">{selectedModule.level} · {selectedModule.id}</span><h1>{selectedModule.title}</h1><p>{selectedModule.summary}</p></div><div className="module-count"><strong>{selectedModule.id}</strong><span>MODULE</span></div></section>
         {validationErrors.length > 0 && <div className="validation-warning" role="alert">课程内容校验失败：{validationErrors.join("；")}</div>}
-        <div className="content-tabs" aria-label="学习内容视图">
+        <div className="content-tabs" role="group" aria-label="学习内容视图">
           <button className={activeView === "lesson" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lesson")} aria-pressed={activeView === "lesson"} type="button">课程内容</button>
           {openLab && <button className={activeView === "lab" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lab")} aria-pressed={activeView === "lab"} type="button">交互实验</button>}
         </div>

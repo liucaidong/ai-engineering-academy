@@ -79,12 +79,31 @@ export const CourseSchema = z.object({
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["modules", index, "id"], message: `Duplicate module ID: ${module.id}` });
     }
     moduleIds.add(module.id);
-    const lessonIds = new Set<string>();
+    const globalLessonIds = new Set<string>();
+  const globalAssessmentIds = new Set<string>();
+  const lessonIds = new Set<string>();
     module.lessons.forEach((lesson, lessonIndex) => {
       if (lessonIds.has(lesson.id)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["modules", index, "lessons", lessonIndex, "id"], message: `Duplicate lesson ID: ${lesson.id}` });
       }
       lessonIds.add(lesson.id);
+      if (globalLessonIds.has(lesson.id)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["modules", index, "lessons", lessonIndex, "id"], message: `Duplicate course lesson ID: ${lesson.id}` });
+      }
+      globalLessonIds.add(lesson.id);
+      lesson.assessments.forEach((assessment, assessmentIndex) => {
+        if (globalAssessmentIds.has(assessment.id)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["modules", index, "lessons", lessonIndex, "assessments", assessmentIndex, "id"], message: `Duplicate assessment ID: ${assessment.id}` });
+        }
+        globalAssessmentIds.add(assessment.id);
+        const criteria = new Set<string>();
+        assessment.rubric.forEach((criterion, criterionIndex) => {
+          if (criteria.has(criterion.criterion)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["modules", index, "lessons", lessonIndex, "assessments", assessmentIndex, "rubric", criterionIndex, "criterion"], message: `Duplicate rubric criterion: ${criterion.criterion}` });
+          }
+          criteria.add(criterion.criterion);
+        });
+      });
     });
     const prerequisites = new Set<string>();
     module.prerequisites.forEach((prerequisite, prerequisiteIndex) => {

@@ -13,7 +13,7 @@
 - [x] Author substantive, sourced lessons and rubric assessments for M10–M20
 - [x] Browser-local module completion progress (localStorage; no account sync)
 - [x] Browser-local assessment drafts and rubric self-review (no server sync)\n- [ ] Server-side learner sync and assessment history
-- [ ] Accessibility and browser E2E acceptance
+- [x] Keyboard skip link, semantic navigation, focus-visible and reduced-motion support\n- [ ] Full accessibility audit and browser E2E acceptance
 - [ ] Verified clean install, test and production build in a controlled runtime
 
 ## P2 — Learning experience

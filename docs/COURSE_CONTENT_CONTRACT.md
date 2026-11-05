@@ -22,7 +22,7 @@ The UI must never infer an execution mode from the lab name. The registry is aut
 
 ## Validation invariants
 - Module IDs follow MNN and are unique within a course.
-- Lesson IDs are unique within each module.
+- Lesson IDs are unique across the entire course.\n- Assessment IDs are unique across the entire course; rubric criterion names are unique within each assessment.
 - Prerequisite IDs must exist, cannot repeat, cannot self-reference and must form a directed acyclic graph.
 - Lab IDs are unique. When a lab registry is present, each module lab reference must resolve.
 - Learning objectives and lesson sections are non-empty.

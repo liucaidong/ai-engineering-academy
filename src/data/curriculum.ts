@@ -226,7 +226,7 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
     assessments: [{ id: "m12-mcp-threat-model", type: "design-review", prompt: "為一個遠端 MCP Server 設計工具發現與呼叫流程，列出 Host、Client、Server 職責及信任邊界。", rubric: [{ criterion: "協議角色", description: "正確區分 Host、Client、Server", points: 3 }, { criterion: "能力語義", description: "區分 Tools、Resources 和 Prompts", points: 3 }, { criterion: "安全控制", description: "定義身份、授權、傳輸和審計控制", points: 4 }] }],
     sources: [
       { title: "Architecture overview", url: "https://modelcontextprotocol.io/docs/learn/architecture", publisher: "Model Context Protocol", note: "MCP 架構與核心角色" },
-      { title: "MCP Specification", url: "https://modelcontextprotocol.io/specification/2025-11-25", publisher: "Model Context Protocol", note: "協議規範與能力定義" }
+      { title: "MCP Specification", url: "https://modelcontextprotocol.io/specification/2026-07-28", publisher: "Model Context Protocol", note: "協議規範與能力定義" }
     ]
   },
   M13: {
@@ -371,7 +371,7 @@ export const course: Course = {
   id: "ai-engineering-foundations",
   title: "AI Engineering Academy",
   description: "从大模型原理、AI 应用开发到 Agent 系统与平台工程的系统化学习路径。",
-  version: "0.2.0",
+  version: "0.3.0",
   language: "zh-CN",
   labs: [
     { id: "tokenizer", title: "Tokenizer Lab", executionMode: "browser-local", description: "使用玩具 BPE 词表观察子词合并。", safetyNotes: ["仅使用内置示例词表，不调用外部模型。"], inputs: [{ name: "text", description: "待切分文本" }], outputs: [{ name: "tokens", description: "示例 token 片段与合并过程" }], status: "implemented" },
