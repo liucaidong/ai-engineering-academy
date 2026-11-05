@@ -5,11 +5,18 @@ import { validateCourse } from "../lib/validateCourse";
 const STORAGE_KEY = "ai-engineering-academy:authoring-draft:v1";
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
 
+function utf8ByteLength(value: string): number {
+  return new TextEncoder().encode(value).byteLength;
+}
+
 type ValidationResult =
   | { valid: true; course: Course; errors: [] }
   | { valid: false; course: null; errors: string[] };
 
 function validateSource(source: string): ValidationResult {
+  if (utf8ByteLength(source) > MAX_IMPORT_BYTES) {
+    return { valid: false, course: null, errors: ["课程 JSON 超过 2 MiB 字节限制。"] };
+  }
   try {
     const parsed: unknown = JSON.parse(source);
     return { valid: true, course: validateCourse(parsed), errors: [] };
@@ -34,7 +41,7 @@ export default function CourseAuthoringWorkspace({ initialCourse }: Props) {
   const result = useMemo(() => validateSource(source), [source]);
 
   useEffect(() => {
-    if (source.length > MAX_IMPORT_BYTES) return;
+    if (utf8ByteLength(source) > MAX_IMPORT_BYTES) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, source);
     } catch {
@@ -63,9 +70,11 @@ export default function CourseAuthoringWorkspace({ initialCourse }: Props) {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${result.course.id}-course.json`;
+    anchor.download = "course-export.json";
+    document.body.appendChild(anchor);
     anchor.click();
-    URL.revokeObjectURL(url);
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   return (
@@ -94,13 +103,12 @@ export default function CourseAuthoringWorkspace({ initialCourse }: Props) {
           <ul>{result.errors.map((error, index) => <li key={index}>{error}</li>)}</ul>
         </div>
       )}
-      <label className="field-label" htmlFor="course-json-editor">课程 JSON（最大 2 MiB）</label>
+      <label className="field-label" htmlFor="course-json-editor">课程 JSON（最大 2 MiB UTF-8）</label>
       <textarea
         id="course-json-editor"
         className="authoring-editor"
         spellCheck={false}
         value={source}
-        maxLength={MAX_IMPORT_BYTES}
         onChange={(event) => setSource(event.target.value)}
         aria-describedby="authoring-storage-note"
       />
