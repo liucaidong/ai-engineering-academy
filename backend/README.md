@@ -41,7 +41,7 @@ alembic -c alembic.ini current
 alembic -c alembic.ini history
 ```
 
-Run migration commands from the `backend/` directory. The URL is read from environment settings; the placeholder URL in `alembic.ini` is not a credential source.
+Run migration commands from the `backend/` directory. The URL is read from environment settings; the placeholder URL in `alembic.ini` is not a credential source. Run migrations with a schema-owner/migrator role; the API must connect with a separate non-owner role that is neither superuser nor `BYPASSRLS` and has only the required table privileges.
 
 ## Session and transaction rules
 
@@ -52,6 +52,24 @@ Run migration commands from the `backend/` directory. The URL is read from envir
 
 ## Security boundary
 
-Identity and tenant tables now exist as dormant persistence foundations: users, OIDC external identities, hashed opaque-session tokens, tenants, memberships, tenant-scoped role grants, invitations and audit events. They are not wired to HTTP routes. OIDC callback validation, cookie issuance, CSRF protection, authorization services, transaction-local tenant context and PostgreSQL RLS are not implemented. Cross-tenant denial tests using a non-owner runtime database role are also pending; learner-data and tenant-management APIs must remain disabled until the ADR 0003 implementation gates are satisfied. Course release snapshots are catalog data, not learner-owned data. Arbitrary code execution is also absent.
+Identity and tenant tables now exist as dormant persistence foundations: users, OIDC external identities, hashed opaque-session tokens, tenants, memberships, tenant-scoped role grants, invitations and audit events. They are not wired to HTTP routes. OIDC callback validation, cookie issuance, CSRF protection and authorization services are not implemented. Migration `0004_tenant_rls` enables and forces RLS on identity/tenant tables; each database transaction must call `set_security_context(session, user_id=..., tenant_id=...)` before scoped queries. This helper sets transaction-local PostgreSQL settings so pooled connections cannot retain a previous request's context. RLS integration acceptance with a non-owner runtime role is authored but has not been executed; learner-data and tenant-management APIs must remain disabled until the ADR 0003 implementation gates are satisfied. Course release snapshots are catalog data, not learner-owned data. Arbitrary code execution is also absent.
 
 See [ADR 0002](../docs/adr/0002-backend-modular-monolith.md) and [ADR 0003](../docs/adr/0003-identity-and-tenant-isolation.md).
+
+
+## RLS integration acceptance
+
+The optional integration test uses two separately provisioned PostgreSQL connections:
+
+- `ACADEMY_TEST_ADMIN_DATABASE_URL`: test-only superuser or `BYPASSRLS` role used only to seed and clean fixtures;
+- `ACADEMY_TEST_RUNTIME_DATABASE_URL`: the actual application-style non-owner role, with required table grants but without superuser or `BYPASSRLS`.
+
+After applying all migrations, run from `backend/`:
+
+```bash
+ACADEMY_TEST_ADMIN_DATABASE_URL='postgresql+asyncpg://...' \
+ACADEMY_TEST_RUNTIME_DATABASE_URL='postgresql+asyncpg://...' \
+pytest -q tests/integration/test_tenant_rls_postgres.py
+```
+
+The test verifies that a non-owner runtime role sees only the current user's membership in the selected tenant, receives no rows when the user/tenant context is mismatched, and receives no tenant rows when context is absent. It skips when the two test-only URLs are not configured. Never use production credentials for this test.
