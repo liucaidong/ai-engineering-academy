@@ -2,19 +2,19 @@
 
 - Repository: liucaidong/ai-engineering-academy
 - Branch: main
-- Curriculum version: 0.14.0
+- Curriculum version: 0.15.0
 - Report date: 2026-11-06
 - Scope: instructional content, curriculum registration, course documentation and changelog only.
 
 ## 1. Executive summary
 
-M01–M20 are registered as a 20-module curriculum. M01–M03 retain their existing flagship content and were not overwritten. M04–M20 are five-lesson flagship modules. M04–M09 now contain five substantive sections per lesson, including reproducible practical exercises; M10–M20 retain four substantive sections per lesson. Each lesson has a scored assessment and three topic-matched source references.
+M01–M20 are registered as a 20-module curriculum. M01–M03 retain their existing flagship content and were not overwritten. M04–M20 are five-lesson flagship modules. M04–M12 now contain five substantive sections per lesson, including reproducible practical exercises; M13–M20 retain four substantive sections per lesson. Each lesson has a scored assessment and three topic-matched source references.
 
 | Metric | M01–M03 | M04–M20 | Total |
 |---|---:|---:|---:|
 | Modules | 3 | 17 | 20 |
 | Lessons | 15 | 85 | 100 |
-| Teaching sections | 70 | 370 | 440 |
+| Teaching sections | 70 | 385 | 455 |
 | Scored assessments | 15 | 85 | 100 |
 | Source references | 51 | 255 | 306 |
 
@@ -33,9 +33,9 @@ These are authored-source counts. They do not imply all references were live-lin
 | M07 | Flagship built + practical depth | 5 | 25 | 5 | 15 | Tool-call protocol, schema validation, discovery/routing, idempotency and safety evaluation |
 | M08 | Flagship built + practical depth | 5 | 25 | 5 | 15 | RAG pipeline, chunking, embeddings/ANN, hybrid retrieval/reranking and production evaluation |
 | M09 | Flagship built + practical depth | 5 | 25 | 5 | 15 | Multimodal fusion, ViT, diffusion, audio tokenization/ASR/TTS and system engineering |
-| M10 | Flagship built | 5 | 20 | 5 | 15 | Agent boundaries, execution loop, runtime state machine, context/tool security and reliability |
-| M11 | Flagship built | 5 | 20 | 5 | 15 | Planning DAGs, memory types, retrieval/consolidation, human approval and evaluation |
-| M12 | Flagship built | 5 | 20 | 5 | 15 | MCP architecture, capabilities, transports, authentication/authorization and operations |
+| M10 | Flagship built + practical depth | 5 | 25 | 5 | 15 | Agent boundaries, execution loop, runtime state machine, context/tool security and reliability |
+| M11 | Flagship built + practical depth | 5 | 25 | 5 | 15 | Planning DAGs, memory types, retrieval/consolidation, human approval and evaluation |
+| M12 | Flagship built + practical depth | 5 | 25 | 5 | 15 | MCP architecture, capabilities, transports, authentication/authorization and operations |
 | M13 | Flagship built | 5 | 20 | 5 | 15 | Skill contracts, packaging, composition, supply-chain security and registry governance |
 | M14 | Flagship built | 5 | 20 | 5 | 15 | Multi-Agent topologies, task protocols, shared state, evidence arbitration and cost evaluation |
 | M15 | Flagship built | 5 | 20 | 5 | 15 | Threat modeling, privacy, tool authorization, output governance and incident response |
@@ -75,7 +75,7 @@ Labs are referenced only as declared by the existing registry. Simulations are n
 
 ## 5. Editorial and static review
 
-- M04–M09 each contain five lessons with five substantive sections per lesson; M10–M20 each contain five lessons with four substantive sections per lesson. All have measurable objectives and one scored assessment with a rubric.
+- M04–M12 each contain five lessons with five substantive sections per lesson; M13–M20 each contain five lessons with four substantive sections per lesson. All have measurable objectives and one scored assessment with a rubric.
 - Each new module contains 15 lesson-level source references.
 - Mathematical and engineering examples include training FLOPs, LoRA parameter counts, KV Cache capacity, sampling probabilities, chunk counts, similarity/RRF, ViT token counts, audio data size, retry backoff and unit economics.
 - Design trade-offs, failure modes, security boundaries and evaluation methods are included.
@@ -102,6 +102,14 @@ A source-preserving syntax normalization was applied to M01–M06 flagship files
 - Lesson, assessment and reference counts are unchanged.
 - Schema, prerequisites and existing labs are unchanged.
 
+### M10–M12 practical-depth revision (0.15.0)
+
+- Added 15 practical teaching sections: five per lesson across M10–M12.
+- Added Agent contract/trace/recovery/isolation exercises, memory provenance and approval exercises, and MCP protocol/security/interoperability exercises.
+- M10–M12 teaching-section count increased from 60 to 75; course-wide section count increased from 440 to 455.
+- Lesson, assessment and reference counts are unchanged.
+- Schema, prerequisites and existing labs are unchanged.
+
 ## 6. Validation status
 
 | Check | Status | Qualification |
@@ -119,7 +127,7 @@ A source-preserving syntax normalization was applied to M01–M06 flagship files
 | E2E/browser acceptance | Not executed | npm run test:e2e intentionally not run |
 | GitHub Actions / CI | Not executed | No workflow added or intentionally triggered |
 
-The static source scan counted 100 lessons, 100 assessments, 440 teaching sections and 306 source references across M01–M20. M04–M09 each have five lessons, 25 sections, five assessments and 15 HTTPS source references; M10–M20 each have five lessons, 20 sections, five assessments and 15 HTTPS source references. The scan also found no duplicate lesson IDs, assessment IDs or rubric criterion names. This is a source-level consistency check, not execution of the Zod validator or TypeScript compiler.
+The static source scan counted 100 lessons, 100 assessments, 455 teaching sections and 306 source references across M01–M20. M04–M12 each have five lessons, 25 sections, five assessments and 15 HTTPS source references; M13–M20 each have five lessons, 20 sections, five assessments and 15 HTTPS source references. The scan also found no duplicate lesson IDs, assessment IDs or rubric criterion names. This is a source-level consistency check, not execution of the Zod validator or TypeScript compiler.
 
 ## 7. Unresolved verification items
 
