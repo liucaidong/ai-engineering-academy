@@ -45,7 +45,9 @@ The product serves individual learners and may later support schools, training p
 - Domain services enforce both tenant membership and resource ownership; possession of a UUID is never authorization.
 - Foreign keys between tenant-owned records must include tenant scope where necessary, preventing cross-tenant references at the database boundary.
 - PostgreSQL Row-Level Security (RLS) is required as defense in depth for learner/tenant tables before production learner-data writes are enabled.
-- The application sets user and tenant context with transaction-local database settings inside every transaction. The runtime database role must not own protected tables and must not have `BYPASSRLS`; RLS must be forced where appropriate.
+- The application sets user and tenant context with transaction-local database settings inside every transaction. User identity must come from the validated server-side session; tenant identity must come from an active membership lookup, never directly from untrusted request fields.
+- The runtime database role must not own protected tables and must not have `BYPASSRLS`; RLS must be forced where appropriate.
+- Custom PostgreSQL settings are trusted application context, not protection against a compromised database credential or arbitrary SQL execution. RLS is defense in depth against missing tenant filters; parameterized queries and strict application authorization remain mandatory.
 - No tenant context may be kept in pooled connection session state outside the current transaction. Missing context must deny access, not fall back to an unscoped query.
 
 ### 5. Learner data
