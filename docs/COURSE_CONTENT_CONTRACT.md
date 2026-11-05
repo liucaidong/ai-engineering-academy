@@ -35,6 +35,7 @@ The UI must never infer an execution mode from the lab name. The registry is aut
 - Learning objectives and lesson sections are non-empty.
 - Assessment rubric points are positive.
 - Source URLs must be valid absolute URLs.
+- All course, module, lesson, content-section, assessment, rubric, source and lab objects reject unknown keys. Import/export must not silently strip unrecognized data.
 
 ## Markdown safety
 Lesson Markdown is rendered with `react-markdown` and `remark-gfm`. Raw HTML is not enabled; no `rehype-raw` plugin is installed. Content authors must use Markdown rather than embedded HTML.
