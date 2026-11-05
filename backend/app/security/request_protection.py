@@ -73,10 +73,17 @@ class CSRFSecurityMiddleware(BaseHTTPMiddleware):
             session_token = request.cookies.get(SESSION_COOKIE_NAME, "")
             csrf_cookie = request.cookies.get(CSRF_COOKIE_NAME, "")
             csrf_header = request.headers.get("x-csrf-token", "")
+            try:
+                double_submit_matches = hmac.compare_digest(
+                    csrf_cookie.encode("utf-8"),
+                    csrf_header.encode("utf-8"),
+                )
+            except UnicodeError:
+                double_submit_matches = False
             if (
                 not csrf_cookie
                 or not csrf_header
-                or not hmac.compare_digest(csrf_cookie, csrf_header)
+                or not double_submit_matches
                 or not verify_csrf_token(session_token, csrf_header, self.csrf_secret)
             ):
                 return JSONResponse({"detail": "CSRF validation failed"}, status_code=403)

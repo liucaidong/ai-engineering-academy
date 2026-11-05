@@ -76,6 +76,8 @@ async def readiness(request: Request) -> JSONResponse:
     database: Database = request.app.state.database
     try:
         await database.check()
+        if settings.oidc_login_enabled:
+            await database.check_schema_revision("0008_oidc_identity_provisioning")
     except Exception:
         return JSONResponse(
             status_code=503,

@@ -39,10 +39,17 @@ def _settings() -> Settings:
     return settings
 
 
-def _database(request: Request):
+async def _database(request: Request):
     database = getattr(request.app.state, "database", None)
     if database is None:
         raise HTTPException(status_code=503, detail="Database is unavailable")
+    try:
+        await database.check_schema_revision("0008_oidc_identity_provisioning")
+    except Exception as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Database migrations are not at the required revision",
+        ) from error
     return database
 
 
@@ -57,7 +64,7 @@ def _verifier(request: Request) -> OIDCVerifier:
 async def login(request: Request) -> RedirectResponse:
     settings = _settings()
     verifier = _verifier(request)
-    database = _database(request)
+    database = await _database(request)
     try:
         discovery = await verifier.discover()
         async with transaction_scope(database) as db:
@@ -91,7 +98,7 @@ async def callback(
 ) -> RedirectResponse:
     settings = _settings()
     verifier = _verifier(request)
-    database = _database(request)
+    database = await _database(request)
     if not state:
         raise HTTPException(status_code=400, detail="Invalid sign-in response")
 
@@ -164,7 +171,7 @@ async def callback(
 @router.get("/me")
 async def current_session(request: Request) -> JSONResponse:
     _settings()
-    database = _database(request)
+    database = await _database(request)
     raw_token = request.cookies.get(SESSION_COOKIE_NAME)
     if not raw_token:
         raise HTTPException(status_code=401, detail="Authentication required")
@@ -186,7 +193,7 @@ async def current_session(request: Request) -> JSONResponse:
 async def csrf_token(request: Request) -> JSONResponse:
     """Return a session-bound CSRF token to an allowlisted credentialed frontend."""
     settings = _settings()
-    database = _database(request)
+    database = await _database(request)
     raw_token = request.cookies.get(SESSION_COOKIE_NAME)
     if not raw_token:
         raise HTTPException(status_code=401, detail="Authentication required")
@@ -204,7 +211,7 @@ async def csrf_token(request: Request) -> JSONResponse:
 @router.post("/logout", status_code=204)
 async def logout(request: Request) -> Response:
     settings = _settings()
-    database = _database(request)
+    database = await _database(request)
     raw_token = request.cookies.get(SESSION_COOKIE_NAME)
     if raw_token:
         async with transaction_scope(database) as db:

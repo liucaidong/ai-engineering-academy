@@ -76,3 +76,31 @@ async def test_unsafe_request_without_session_cookie_is_not_cookie_csrf_gated() 
     ) as client:
         response = await client.post("/write")
     assert response.status_code == 200
+
+
+
+@pytest.mark.asyncio
+async def test_non_ascii_csrf_header_is_rejected_without_server_error() -> None:
+    app = FastAPI()
+    app.add_middleware(
+        CSRFSecurityMiddleware,
+        allowed_origins={ORIGIN},
+        csrf_secret=SECRET,
+    )
+
+    @app.post("/write")
+    async def write():
+        return {"ok": True}
+
+    token = generate_session_token().raw_token
+    csrf = derive_csrf_token(token, SECRET)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url=ORIGIN,
+    ) as client:
+        response = await client.post(
+            "/write",
+            headers={"Origin": ORIGIN, "X-CSRF-Token": "ÿ"},
+            cookies={SESSION_COOKIE_NAME: token, CSRF_COOKIE_NAME: csrf},
+        )
+    assert response.status_code == 403
