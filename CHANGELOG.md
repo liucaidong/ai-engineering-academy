@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0 — 2026-11-06
+
+### Course content
+- Rebuilt M10–M12 as five-lesson flagship modules, each with four substantive sections, five scored assessments and 15 source references.
+- M10 covers Agent boundaries, Plan/Act/Observe loops, runtime state machines, checkpoint recovery, context/tool isolation and reliability.
+- M11 covers task DAGs, dynamic replanning, memory types, retrieval/consolidation, human approval, deletion and evaluation.
+- M12 covers MCP roles and JSON-RPC, capability discovery, transports/session lifecycle, authentication/authorization and interoperability operations.
+- Reused existing Agent and MCP labs; no platform, backend, runtime, or CI changes.
+
 ## 0.8.0 — 2026-11-06
 
 ### Course content
