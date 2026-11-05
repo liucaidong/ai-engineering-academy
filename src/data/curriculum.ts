@@ -1,4 +1,5 @@
 import type { Course } from "../types/course";
+import { flagshipM01Lessons } from "./flagshipM01";
 
 const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][number], "content" | "assessments" | "sources">> = {
   M01: {
@@ -384,7 +385,7 @@ export const course: Course = {
   ],
   modules: moduleRows.map(([id, level, title, summary, prerequisites, objectives, labId]) => ({
     id, level, title, summary, prerequisites: [...prerequisites], objectives: [...objectives],
-    lessons: [lesson(id, title, summary, [...objectives])],
+    lessons: id === "M01" ? flagshipM01Lessons : [lesson(id, title, summary, [...objectives])],
     ...(labId ? { labId } : {})
   }))
 };
