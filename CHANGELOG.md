@@ -1,3 +1,12 @@
+## 0.13.0 — 2026-11-06
+
+### Course content
+- Deepened all 15 lessons in M04–M06 with a fifth practical section focused on reproducible engineering exercises, worked calculations, expected evidence and common failure modes.
+- M04 adds auditable training-compute calculations, MoE parameter accounting, SFT loss-mask walkthroughs, PPO/DPO comparison and model-release evidence chains.
+- M05 adds KV capacity calculations, sampling walkthroughs, continuous-batching timelines, fair quantization comparisons and serving-capacity reviews.
+- M06 adds prompt-contract acceptance cases, few-shot coverage/ordering experiments, layered JSON validation, indirect-injection threat tracing and prompt-release regression gates.
+- Updated the curriculum version to 0.13.0. Existing Schema, prerequisites, lab registry and platform scope remain unchanged.
+
 # Changelog
 
 ## 0.12.0 — 2026-11-06
