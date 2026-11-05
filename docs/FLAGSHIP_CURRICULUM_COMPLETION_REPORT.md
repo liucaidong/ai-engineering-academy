@@ -175,3 +175,15 @@ Each guide includes pre-class preparation, a teaching path, formative checkpoint
 ## 9. Final scope statement
 
 This delivery is a curriculum-content expansion and documentation update. It does not claim platform feature completion, backend implementation, production deployment, CI success, local test success or browser acceptance. Completed work is limited to content authoring, curriculum registration, documentation/changelog updates, GitHub commits and the editorial/static review described above.
+
+
+## 10. M07–M20 instructor material completion (0.20.0)
+
+Added 14 standalone teaching guides for M07–M20, completing the teacher-guide series across M04–M20.
+
+- Coverage: 14 modules, 70 lessons and 70 formal assessment reference solutions.
+- Each guide includes prerequisite preparation, a five-lesson teaching path, technical explanation, formative checkpoints, post-class review, worked answers, original Rubric criteria/points, common errors and a grading summary.
+- Reference answers were authored against the module assessment prompts and source Rubrics; they are exemplars, not exclusive accepted solutions.
+- The guide index now lists M04–M20 (17 guides total). M01–M03 content remains retained and unchanged.
+- Curriculum version updated to 0.20.0. Course Schema, lesson/assessment IDs, prerequisites, lab registry and platform scope were not changed.
+- This is documentation authoring and source review only. No CI, build, E2E, local runtime or live provider integration tests were run.

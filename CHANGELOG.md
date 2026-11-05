@@ -1,3 +1,13 @@
+## 0.20.0 — 2026-11-06
+
+### Teaching materials
+- Completed instructor teaching guides for M07–M20 in one curriculum documentation pass.
+- Added 14 guides covering 70 lessons and 70 formal assessment reference solutions, each aligned to the source module's original prompts and rubric point allocations.
+- Guides include prerequisite preparation, lesson flow, technical explanations, formative checkpoints, review tasks, worked solutions, rubric alignment, common-error analysis and grading summaries.
+- Expanded the guide index to cover M04–M20 (17 guides total); M01–M03 flagship content remains unchanged.
+- Updated curriculum version to 0.20.0. No course Schema, lesson IDs, assessment IDs, prerequisites, lab registry, platform features or runtime behavior were changed.
+- No CI, build, E2E or local runtime tests were run as part of this documentation-only change.
+
 ## 0.19.0 — 2026-11-06
 
 ### Teaching materials

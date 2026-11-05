@@ -450,14 +450,12 @@ M20 是课程体系的综合交付阶段，不以 Demo 演示作为唯一完成�
 - 本轮仅建设教材内容，不新增 Capstone 平台功能或执行运行时。
 
 
-## 教师教学指南与作业参考解答
 
-M04–M06 第一批教师级材料已建立，作为正式教材的配套教学资源，不替代课程内的原始讲义与评分 Rubric。
+## 教师教学指南与作业参考解答（0.20.0 完整版）
 
-- [M04：预训练、模型架构、微调与对齐](./teaching-guides/M04-teaching-guide.md)
-- [M05：推理、解码与服务工程](./teaching-guides/M05-teaching-guide.md)
-- [M06：Prompt Engineering、结构化输出与安全](./teaching-guides/M06-teaching-guide.md)
+教师级配套材料已覆盖 M04–M20 全部 17 个旗舰模块，共 85 讲、85 项正式作业参考解答。每份指南包含先修与课前准备、五讲教学路径、学习检查点、课后复习、逐项 Rubric 对照、常见错误和批改总表。
 
-每份指南包含课前准备、教学路径、公式/数值推导、学习检查点、课后复习、正式作业参考解答、Rubric 对照和常见错误。参考解答是教学解释基准，不限制其他有证据且满足 Rubric 的解法。
+- [教师指南总索引](./teaching-guides/README.md)
+- [M07–M20 全部教师指南](./teaching-guides/)
 
-本轮不新增课程运行时或平台功能。
+M07–M20 指南的参考解答按各模块原始题目和 Rubric 编写；课程 lesson/assessment IDs、Schema、先修关系、Lab registry 均保持不变。本次只增加 Markdown 教师材料并更新课程版本，不新增平台功能、运行时或 CI 工作流。
