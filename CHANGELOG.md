@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 — 2026-11-06
+
+### Course content
+- Rebuilt M13–M15 as five-lesson flagship modules with four substantive sections per lesson, five scored assessments and 15 references per module.
+- M13 covers Skill contracts, package structure, progressive resource loading, composition, supply-chain security and registry governance.
+- M14 covers collaboration topology, task/message protocols, shared-state consistency, evidence-based arbitration and single-Agent baselines/cost evaluation.
+- M15 covers AI threat modeling, prompt/data security, identity and authorization, high-impact output governance, red teaming and incident response.
+- No platform, backend, execution runtime, or CI workflow was added.
+
 ## 0.9.0 — 2026-11-06
 
 ### Course content

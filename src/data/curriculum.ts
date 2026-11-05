@@ -11,6 +11,9 @@ import { flagshipM09Lessons } from "./flagshipM09";
 import { flagshipM10Lessons } from "./flagshipM10";
 import { flagshipM11Lessons } from "./flagshipM11";
 import { flagshipM12Lessons } from "./flagshipM12";
+import { flagshipM13Lessons } from "./flagshipM13";
+import { flagshipM14Lessons } from "./flagshipM14";
+import { flagshipM15Lessons } from "./flagshipM15";
 
 const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][number], "content" | "assessments" | "sources">> = {
   M01: {
@@ -367,9 +370,9 @@ const moduleRows = [
   ["M10","L4","Agent 基础与 Runtime","从 Agent 基本模型、决策循环、状态机、工具上下文到可靠性验收，建立受控 Agent Runtime 设计方法。",["M07","M08"],["区分 Agent、普通 LLM 应用和确定性 workflow","设计 Plan/Act/Observe 循环和可验证终止条件","构建状态机、并行调度、checkpoint 与恢复","管理上下文、工具生命周期、租户和执行隔离","通过轨迹、故障注入和人工接管验证可靠性"],"agent"],
   ["M11","L4","Planning、Memory 与状态","深化任务 DAG、动态重规划、记忆分层、检索巩固、人类反馈和生命周期治理。",["M10"],["把目标拆分为可执行子任务和依赖 DAG","比较上下文、状态、短期记忆和知识库","设计记忆写入、检索、TTL、冲突和删除策略","将审批和用户更正纳入持久化状态机","评测计划质量、记忆准确性、过期率和恢复能力"],""],
   ["M12","L4","MCP 协议与集成","从 MCP 架构、能力协商、传输会话、安全授权到互操作运维，掌握协议工程。",["M07","M10"],["区分 Host、Client、Server 和 JSON-RPC 消息语义","比较 Tools、Resources、Prompts 和能力协商","设计 stdio/HTTP transport、会话和断连恢复","建立 Server 身份、scope、工具投毒防护和审计","构建协议一致性、互操作和生产运维验收"],"mcp"],
-  ["M13","L4","Skills 与可复用能力","设计可发现、可组合、可维护的 Agent 能力单元。",["M10","M12"],["定义 Skill 的输入输出契约","设计版本、依赖和权限边界"],""],
-  ["M14","L4","Multi-Agent 系统","分析多 Agent 分工、协作、协调和成本。",["M10","M11"],["比较常见协作拓扑","设计消息、终止和冲突处理"],"multi-agent"],
-  ["M15","L4","安全、权限与人工审批","建立 Agent 工具执行的安全控制体系。",["M07","M10"],["识别 Prompt Injection 与越权风险","设计最小权限和人工审批"],""],
+  ["M13","L4","Skills 与可复用能力","从能力契约、包结构、组合路由、安全供应链到目录治理，建设可复用 Agent Skill。",["M10","M12"],["区分 Skill、Tool、Prompt 和 Workflow","定义 Skill 输入输出、前置条件和完成标准","设计包结构、元数据和渐进式资源加载","治理依赖、权限、脚本执行和供应链风险","建立 Skill 测试、SemVer、发布和撤销流程"],""],
+  ["M14","L4","Multi-Agent 系统","比较协作拓扑，设计任务路由、消息协议、共享状态、冲突仲裁和成本评测。",["M10","M11"],["判断多 Agent 相对单 Agent 的净收益","比较 Manager/Worker、Peer 和流水线拓扑","定义角色、Task/Result 协议和路由策略","处理共享状态竞态、死锁、冲突和证据仲裁","建立单 Agent baseline、成本模型和可靠性指标"],"multi-agent"],
+  ["M15","L4","安全、权限与人工审批","覆盖 AI 威胁建模、数据隐私、工具授权、输出治理和安全事件响应。",["M07","M10"],["使用 STRIDE/攻击树识别模型、数据和工具风险","防护 Prompt Injection、数据泄露和跨租户越权","设计认证、授权、ABAC/RBAC、沙箱和高风险审批","治理输出偏差、高影响决策和人工监督","建立红队测试、安全指标、事件响应和风险接受流程"],""],
   ["M16","L4","Workflow 与编排","区分确定性工作流和自主 Agent 的适用场景。",["M10","M15"],["设计可观测的工作流状态","定义重试、补偿和人工介入点"],""],
   ["M17","L5","Evaluation 与 Observability","建立离线评测、线上观测和回归治理。",["M08","M10"],["设计数据集、评分器和指标","分析延迟、成本、质量和失败率"],"evaluation"],
   ["M18","L5","AI 平台架构","理解模型网关、租户、队列和服务治理。",["M05","M17"],["设计模型路由和配额边界","分析可靠性、扩展性与成本"],""],
@@ -382,7 +385,7 @@ export const course: Course = {
   id: "ai-engineering-foundations",
   title: "AI Engineering Academy",
   description: "从大模型原理、AI 应用开发到 Agent 系统与平台工程的系统化学习路径。",
-  version: "0.9.0",
+  version: "0.10.0",
   language: "zh-CN",
   labs: [
     { id: "tokenizer", title: "Tokenizer Lab", executionMode: "browser-local", description: "使用玩具 BPE 词表观察子词合并。", safetyNotes: ["仅使用内置示例词表，不调用外部模型。"], inputs: [{ name: "text", description: "待切分文本" }], outputs: [{ name: "tokens", description: "示例 token 片段与合并过程" }], status: "implemented" },
@@ -396,7 +399,7 @@ export const course: Course = {
   ],
   modules: moduleRows.map(([id, level, title, summary, prerequisites, objectives, labId]) => ({
     id, level, title, summary, prerequisites: [...prerequisites], objectives: [...objectives],
-    lessons: id === "M01" ? flagshipM01Lessons : id === "M02" ? flagshipM02Lessons : id === "M03" ? flagshipM03Lessons : id === "M04" ? flagshipM04Lessons : id === "M05" ? flagshipM05Lessons : id === "M06" ? flagshipM06Lessons : id === "M07" ? flagshipM07Lessons : id === "M08" ? flagshipM08Lessons : id === "M09" ? flagshipM09Lessons : id === "M10" ? flagshipM10Lessons : id === "M11" ? flagshipM11Lessons : id === "M12" ? flagshipM12Lessons : [lesson(id, title, summary, [...objectives])],
+    lessons: id === "M01" ? flagshipM01Lessons : id === "M02" ? flagshipM02Lessons : id === "M03" ? flagshipM03Lessons : id === "M04" ? flagshipM04Lessons : id === "M05" ? flagshipM05Lessons : id === "M06" ? flagshipM06Lessons : id === "M07" ? flagshipM07Lessons : id === "M08" ? flagshipM08Lessons : id === "M09" ? flagshipM09Lessons : id === "M10" ? flagshipM10Lessons : id === "M11" ? flagshipM11Lessons : id === "M12" ? flagshipM12Lessons : id === "M13" ? flagshipM13Lessons : id === "M14" ? flagshipM14Lessons : id === "M15" ? flagshipM15Lessons : [lesson(id, title, summary, [...objectives])],
     ...(labId ? { labId } : {})
   }))
 };
