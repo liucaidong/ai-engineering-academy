@@ -174,18 +174,23 @@ def upgrade() -> None:
         op.execute(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY")
 
     for table in ("learning_progress", "assessment_results"):
+        scope = (
+            f"tenant_id = {_TENANT} AND user_id = {_USER} AND EXISTS ("
+            f"SELECT 1 FROM tenant_memberships m "
+            f"WHERE m.tenant_id = {table}.tenant_id "
+            f"AND m.user_id = {table}.user_id AND m.status = 'active')"
+        )
         op.execute(
             f"CREATE POLICY {table}_self_select ON {table} "
-            f"FOR SELECT USING (tenant_id = {_TENANT} AND user_id = {_USER})"
+            f"FOR SELECT USING ({scope})"
         )
         op.execute(
             f"CREATE POLICY {table}_self_insert ON {table} "
-            f"FOR INSERT WITH CHECK (tenant_id = {_TENANT} AND user_id = {_USER})"
+            f"FOR INSERT WITH CHECK ({scope})"
         )
         op.execute(
             f"CREATE POLICY {table}_self_update ON {table} "
-            f"FOR UPDATE USING (tenant_id = {_TENANT} AND user_id = {_USER}) "
-            f"WITH CHECK (tenant_id = {_TENANT} AND user_id = {_USER})"
+            f"FOR UPDATE USING ({scope}) WITH CHECK ({scope})"
         )
 
 
