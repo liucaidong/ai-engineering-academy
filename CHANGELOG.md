@@ -1,3 +1,11 @@
+## 0.22.0 — 2026-11-06
+
+### Assessment clarity correction
+- Made the M02 first Attention assessment fully reproducible by adding explicit 2×2 Q/K/V matrices to the learner-facing prompt.
+- Synchronized the M02 instructor reference solution with the exact learner prompt; lesson and assessment IDs and rubric weights remain unchanged.
+- Updated curriculum content version to 0.22.0. No schema, prerequisite, lab registry, platform feature or runtime change.
+- Documentation/source-only correction; no CI, build, unit test, E2E or browser execution.
+
 ## 0.21.0 — 2026-11-06
 
 ### Curriculum completion and teaching resources

@@ -203,3 +203,8 @@ Added instructor guides for M01–M03, completing teacher-guide coverage across 
 ## 12. Remaining verification boundary
 
 Curriculum authoring and course-level instructional documentation are complete. Remaining operational verification tasks are local Zod/course validation, TypeScript build, unit tests, browser rendering/accessibility/E2E, live HTTP checks for all 204 unique reference URLs, and real-browser verification of lab-mode labels. They remain unclaimed because this documentation-only cloud pass did not run a local browser/build environment or CI.
+
+
+## 13. Assessment input completeness correction (0.22.0)
+
+The M02 first Attention assessment previously referred to “given matrices” without embedding numeric matrix values in the learner-facing prompt. The prompt now explicitly supplies Q=K=[[1,0],[0,1]] and V=[[1,0],[0,2]], matching the worked Softmax and weighted-output calculation in the instructor guide. Assessment ID and Rubric remain unchanged. Curriculum version is 0.22.0.
