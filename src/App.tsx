@@ -52,9 +52,9 @@ export default function App() {
   const openLab = selectedModule.labId && IMPLEMENTED_LABS.has(selectedModule.labId);
 
   return <div className="app-shell">
-    <a className="skip-link" href="#main-content">跳至主要內容</a>
     <header className="topbar">
-      <a className="brand" href="#" aria-label="AI Engineering Academy 首页"><span className="brand-mark">A</span><span>AI Engineering <b>Academy</b></span></a>
+      <a className="skip-link" href="#main-content">跳至主要內容</a>
+      <a className="brand" href="#main-content" aria-label="AI Engineering Academy 首页"><span className="brand-mark">A</span><span>AI Engineering <b>Academy</b></span></a>
       <div className="topbar-meta"><span className="version-pill">CURRICULUM v{course.version}</span><span className="status-dot" /> 学习环境</div>
     </header>
     <div className="workspace">
