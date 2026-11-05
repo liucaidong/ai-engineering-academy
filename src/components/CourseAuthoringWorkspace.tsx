@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import type { Course } from "../types/course";
-import { validateCourse } from "../lib/validateCourse";
+import { getCourseValidationErrors, validateCourse } from "../lib/validateCourse";
 
 const STORAGE_KEY = "ai-engineering-academy:authoring-draft:v1";
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
@@ -17,12 +17,20 @@ function validateSource(source: string): ValidationResult {
   if (utf8ByteLength(source) > MAX_IMPORT_BYTES) {
     return { valid: false, course: null, errors: ["课程 JSON 超过 2 MiB 字节限制。"] };
   }
+  let parsed: unknown;
   try {
-    const parsed: unknown = JSON.parse(source);
+    parsed = JSON.parse(source);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "JSON 语法错误";
+    return { valid: false, course: null, errors: [message] };
+  }
+  const errors = getCourseValidationErrors(parsed);
+  if (errors.length > 0) return { valid: false, course: null, errors: errors.slice(0, 30) };
+  try {
     return { valid: true, course: validateCourse(parsed), errors: [] };
   } catch (error) {
     const message = error instanceof Error ? error.message : "未知校验错误";
-    return { valid: false, course: null, errors: message.split("\n").slice(0, 30) };
+    return { valid: false, course: null, errors: [message] };
   }
 }
 
