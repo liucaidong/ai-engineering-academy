@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 — 2026-11-06
+
+### Course content
+- Rebuilt M04–M06 as five-lesson flagship modules with four substantive sections per lesson and one scored assessment per lesson (15 assessments total).
+- M04 covers autoregressive pretraining objectives, data governance, architecture families and MoE, SFT/LoRA, RLHF/PPO/DPO, and model release evaluation.
+- M05 covers Prefill/Decode, KV Cache capacity, decoding distributions, continuous batching, speculative decoding, quantization, parallel serving and reliability.
+- M06 covers task specifications, few-shot selection, structured output validation, prompt injection threat modeling, and prompt regression/version governance.
+- Added 45 paper/official-document references across the three modules and updated module objectives and curriculum version.
+- Reused existing curriculum schema and labs; no platform, backend, runtime, or CI changes.
+
 ## 0.6.0 — 2026-11-06
 
 ### Course content
