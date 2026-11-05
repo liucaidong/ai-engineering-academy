@@ -1,6 +1,6 @@
 # Backend foundation
 
-FastAPI modular-monolith foundation. The current slice provides operational endpoints, PostgreSQL connectivity, async session/transaction primitives, nine Alembic migrations, versioned course releases, identity/tenant schemas, OIDC sign-in/session routes (disabled until configured), owner-scoped learner records, forced RLS policies and domain lifecycle services. General account-management and tenant-management routes are not exposed. Learner progress and assessment routes are mounted but return HTTP 503 by default; explicit activation requires completed PostgreSQL RLS acceptance and privacy review. The backend does not execute user code.
+FastAPI modular-monolith foundation. The current slice provides operational endpoints, PostgreSQL connectivity, async session/transaction primitives, ten Alembic migrations, versioned course releases, identity/tenant schemas, OIDC sign-in/session routes (disabled until configured), owner-scoped learner records, forced RLS policies and domain lifecycle services. General account-management and tenant-management routes are not exposed. Learner progress and assessment routes are mounted but return HTTP 503 by default; explicit activation requires completed PostgreSQL RLS acceptance and privacy review. The backend does not execute user code.
 
 ## Local development
 
