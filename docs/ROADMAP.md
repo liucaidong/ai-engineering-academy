@@ -41,6 +41,7 @@
 - [x] Author optional PostgreSQL RLS integration acceptance using a separate non-owner runtime role (execution pending)
 - [ ] Execute RLS integration acceptance with provisioned admin/runtime database roles before learner-data APIs
 - [x] Add tenant/user/course-release-scoped learning progress and assessment result schemas with lifecycle constraints
+- [x] Add pure progress/assessment lifecycle services with JSON payload and timestamp validation
 - [x] Apply forced RLS to learner records and author non-owner cross-tenant integration acceptance (execution pending)
 - [x] Add static migration-policy tests and same-tenant cross-user read/update isolation assertions to PostgreSQL acceptance (execution pending)
 - [ ] Execute PostgreSQL RLS acceptance with provisioned runtime role before learner-data APIs
