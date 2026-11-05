@@ -60,6 +60,7 @@
 - [ ] Execute PostgreSQL RLS acceptance with provisioned runtime role before learner-data APIs
 - [x] Implement self-scoped learner progress and assessment-attempt routes with session, membership, role and owner filters (disabled by default)
 - [x] Add database trigger preventing learner self-grading and assessment identity mutation
+- [x] Add self-only active-membership discovery so clients can select an authorized tenant context
 - [ ] Execute non-owner PostgreSQL RLS acceptance and privacy review before enabling learner APIs
 - [ ] Add resource-scoped instructor authorization and instructor grading APIs
 - [ ] Sandboxed code execution with quotas and isolation

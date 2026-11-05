@@ -21,6 +21,7 @@ def test_alembic_has_one_linear_revision_chain() -> None:
         "0007_oidc_login_transactions",
         "0008_oidc_identity_provisioning",
         "0009_assessment_self_grading_guard",
+        "0010_tenant_membership_discovery",
     ]
     assert scripts.get_heads() == [revision_ids[-1]]
 

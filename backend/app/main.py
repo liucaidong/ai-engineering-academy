@@ -81,7 +81,7 @@ async def readiness(request: Request) -> JSONResponse:
     try:
         await database.check()
         if settings.oidc_login_enabled:
-            await database.check_schema_revision("0009_assessment_self_grading_guard")
+            await database.check_schema_revision("0010_tenant_membership_discovery")
     except Exception:
         return JSONResponse(
             status_code=503,

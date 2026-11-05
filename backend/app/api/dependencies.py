@@ -27,7 +27,7 @@ async def learner_transaction(
     if database is None:
         raise HTTPException(status_code=503, detail="Database is unavailable")
     try:
-        await database.check_schema_revision("0009_assessment_self_grading_guard")
+        await database.check_schema_revision("0010_tenant_membership_discovery")
     except Exception as error:
         raise HTTPException(status_code=503, detail="Database migrations are not at the required revision") from error
     raw_token = request.cookies.get(SESSION_COOKIE_NAME)

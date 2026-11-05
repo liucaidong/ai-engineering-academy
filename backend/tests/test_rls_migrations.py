@@ -155,3 +155,14 @@ def test_assessment_self_grading_guard_is_installed_and_reversible(
     assert "CREATE TRIGGER trg_guard_learner_assessment_fields" in source
     assert "DROP TRIGGER IF EXISTS" in source
     assert "DROP FUNCTION IF EXISTS" in source
+
+
+def test_tenant_membership_discovery_policy_exposes_only_active_self_rows(
+    migration_sources: dict[str, str],
+) -> None:
+    source = migration_sources["0010_tenant_membership_discovery.py"]
+    assert "tenant_memberships_self_discovery" in source
+    assert "FOR SELECT USING" in source
+    assert "user_id = NULLIF(current_setting('app.user_id', true), '')::uuid" in source
+    assert "status = 'active'" in source
+    assert "DROP POLICY IF EXISTS tenant_memberships_self_discovery" in source
