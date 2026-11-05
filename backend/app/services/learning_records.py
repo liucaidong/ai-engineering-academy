@@ -101,6 +101,7 @@ def create_assessment_attempt(
     attempt_number: int,
     grading_mode: str,
     response: Mapping[str, Any] | None = None,
+    rubric_self_review: Mapping[str, Any] | None = None,
 ) -> AssessmentResult:
     key = assessment_key.strip()
     if not key or len(key) > 120:
@@ -109,6 +110,8 @@ def create_assessment_attempt(
         raise ValueError("attempt_number must be positive")
     if grading_mode not in VALID_GRADING_MODES:
         raise ValueError("unsupported grading_mode")
+    if rubric_self_review is not None and grading_mode != "self_review":
+        raise ValueError("rubric_self_review is only valid for self_review attempts")
     return AssessmentResult(
         tenant_id=tenant_id,
         user_id=user_id,
@@ -118,6 +121,11 @@ def create_assessment_attempt(
         status="draft",
         grading_mode=grading_mode,
         response=_json_object(response),
+        rubric_self_review=(
+            _json_object(rubric_self_review)
+            if rubric_self_review is not None
+            else None
+        ),
     )
 
 
