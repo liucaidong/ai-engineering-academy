@@ -17,7 +17,7 @@ from app.core.database import Database
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
-    database = Database(settings.database_url)
+    database = Database(settings.sqlalchemy_database_url)
     app.state.database = database
     try:
         yield
