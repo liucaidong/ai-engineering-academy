@@ -11,6 +11,7 @@ Run from a clean clone with Node.js >= 20.19:
 ```bash
 npm install
 npm test
+npm run validate:course
 npm run build
 npx playwright install chromium
 npm run test:e2e
@@ -33,6 +34,7 @@ Acceptance evidence to retain:
 - [ ] Unknown, repeated, self-referential and cyclic prerequisites are rejected.
 - [ ] Unknown lab references are rejected when a lab registry is supplied.
 - [ ] Source URLs pass Zod URL validation.
+- [ ] Legacy payloads migrate to schemaVersion 1 and unsupported versions are rejected.
 
 ## Learning workflow\n\n- [ ] Bookmark and unbookmark a module, refresh, and confirm persistence.\n- [ ] Filter the curriculum to bookmarked modules.\n- [ ] Confirm the next-module recommendation respects prerequisite completion.
 

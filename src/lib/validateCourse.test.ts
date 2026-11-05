@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { course } from "../data/curriculum";
 import { getCourseValidationErrors, validateCourse } from "./validateCourse";
 import { parseCoursePayload } from "./courseMigration";
+import { parseCoursePayload } from "./courseMigration";
 
 describe("course content contract", () => {
   it("accepts the academy curriculum", () => {
