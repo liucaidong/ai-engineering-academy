@@ -41,7 +41,7 @@ alembic -c alembic.ini current
 alembic -c alembic.ini history
 ```
 
-Run migration commands from the `backend/` directory. The URL is read from environment settings; the placeholder URL in `alembic.ini` is not a credential source. Run migrations with a schema-owner/migrator role; the API must connect with a separate non-owner role that is neither superuser nor `BYPASSRLS` and has only the required table privileges. When OIDC is enabled, grant that role `SELECT` on `alembic_version` so the API can fail closed unless the database head matches the enabled feature set: `0008_oidc_identity_provisioning` for OIDC-only operation or `0009_assessment_self_grading_guard` when learner APIs are explicitly enabled.
+Run migration commands from the `backend/` directory. The URL is read from environment settings; the placeholder URL in `alembic.ini` is not a credential source. Run migrations with a schema-owner/migrator role; the API must connect with a separate non-owner role that is neither superuser nor `BYPASSRLS` and has only the required table privileges. When OIDC is enabled, grant that role `SELECT` on `alembic_version` so the API can fail closed unless the database head is `0009_assessment_self_grading_guard`, the current schema revision required by both OIDC and learner API code.
 
 ## Session and transaction rules
 
