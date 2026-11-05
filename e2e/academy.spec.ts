@@ -159,3 +159,19 @@ test("keeps the course authoring view accessible", async ({ page }) => {
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
   expect(results.violations).toEqual([]);
 });
+
+test("imports a valid course file and downloads a validated export", async ({ page }) => {
+  await page.getByRole("button", { name: "课程编辑" }).click();
+  const editor = page.getByLabel("课程 JSON（最大 2 MiB UTF-8）");
+  const validJson = await editor.inputValue();
+  await page.getByLabel("导入课程 JSON 文件").setInputFiles({
+    name: "academy-course.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(validJson, "utf-8")
+  });
+  await expect(page.getByText("Schema 校验通过")).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "导出已校验 JSON" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("course-export.json");
+});
