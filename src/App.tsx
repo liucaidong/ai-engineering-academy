@@ -10,11 +10,16 @@ import { loadProgress, serializeProgress, toggleModuleProgress } from "./lib/pro
 import AssessmentWorkspace from "./components/AssessmentWorkspace";
 import { loadAssessmentProgress, serializeAssessmentProgress, type AssessmentResponse } from "./lib/assessmentProgress";
 import { searchModules } from "./lib/searchModules";
+import ToolCallingLab from "./components/ToolCallingLab";
+import AgentRuntimeLab from "./components/AgentRuntimeLab";
+import McpLab from "./components/McpLab";
+import MultiAgentLab from "./components/MultiAgentLab";
+import EvaluationLab from "./components/EvaluationLab";
 
 const LEVEL_LABELS: Record<CourseModule["level"], string> = {
   L1: "基础认知", L2: "模型原理", L3: "应用工程", L4: "Agent 工程", L5: "平台工程", L6: "综合实践"
 };
-const IMPLEMENTED_LABS = new Set(["tokenizer", "transformer", "rag"]);
+const IMPLEMENTED_LABS = new Set(["tokenizer", "transformer", "rag", "tool-calling", "agent", "mcp", "multi-agent", "evaluation"]);
 
 export default function App() {
   const [selectedModuleId, setSelectedModuleId] = useState("M01");
@@ -81,6 +86,11 @@ export default function App() {
         {activeView === "lab" && selectedModule.labId === "tokenizer" ? <TokenizerLab /> :
          activeView === "lab" && selectedModule.labId === "transformer" ? <TransformerLab /> :
          activeView === "lab" && selectedModule.labId === "rag" ? <RagLab /> :
+         activeView === "lab" && selectedModule.labId === "tool-calling" ? <ToolCallingLab /> :
+         activeView === "lab" && selectedModule.labId === "agent" ? <AgentRuntimeLab /> :
+         activeView === "lab" && selectedModule.labId === "mcp" ? <McpLab /> :
+         activeView === "lab" && selectedModule.labId === "multi-agent" ? <MultiAgentLab /> :
+         activeView === "lab" && selectedModule.labId === "evaluation" ? <EvaluationLab /> :
          <div className="lesson-layout">
           <article className="lesson-card">
             <span className="eyebrow">LESSON 01 · {selectedLesson.estimatedMinutes} MIN</span><h2>{selectedLesson.title}</h2><p className="lesson-summary">{selectedLesson.summary}</p>

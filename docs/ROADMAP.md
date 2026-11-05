@@ -24,7 +24,7 @@
 - Server-synced assessment history and instructor feedback
 - [x] Course module search across title, summary, objectives and lesson content
 - Bookmarks and learning-path recommendations
-- More interactive labs: Tool Calling, Agent Runtime, MCP and Evaluation
+- [x] Tool Calling, Agent Runtime, MCP, Multi-Agent and Evaluation local teaching labs
 
 ## P3 — Backend and execution platform
 - Server-side learner progress and assessment history

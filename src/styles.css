@@ -234,3 +234,52 @@ a { color: inherit; text-decoration: none; }
 .module-search:focus { border-color: #5d9ddc; box-shadow: 0 0 0 3px #3b8bd322; }
 .module-search-empty { margin: 8px; color: #8fa1b8; font-size: 11px; line-height: 1.7; }
 \ninput::placeholder, textarea::placeholder { color: #91a0b4; opacity: 1; }\n
+
+.tool-flow, .mcp-roles { display: flex; align-items: center; justify-content: space-between; gap: 7px; overflow-x: auto; padding: 13px; border: 1px solid #304761; border-radius: 7px; background: #132337; color: #a8c7e7; font-size: 10px; white-space: nowrap; }
+.tool-flow b, .mcp-roles > b { color: #9baec3; }
+.tool-args-label { margin-top: 17px; }
+.lab-json { overflow: auto; max-height: 320px; padding: 13px; border: 1px solid var(--line); border-radius: 7px; background: #0e1927; color: #b9d9f8; font: 10px/1.7 ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.agent-goal, .agent-state { display: grid; gap: 7px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 7px; background: #111d2b; }
+.agent-goal span, .agent-state span { color: #91a0b4; font-size: 10px; }
+.agent-goal strong { color: #d5e2f1; font-size: 12px; }
+.agent-state strong { color: #9ed0ff; font-size: 14px; }
+.agent-state small { color: #91a0b4; font: 10px ui-monospace, monospace; }
+.agent-controls { display: flex; flex-wrap: wrap; gap: 9px; }
+.secondary-button { margin-top: 22px; padding: 9px 13px; border: 1px solid #526a84; border-radius: 6px; color: #c5d3e4; background: #1a2b40; font-size: 11px; }
+.agent-trace { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.agent-trace li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 11px; border-radius: 6px; background: #172437; color: #b4c3d5; font-size: 11px; line-height: 1.6; }
+.agent-trace li span { color: #9baec3; font: 10px ui-monospace, monospace; }
+.mcp-roles article { display: grid; gap: 5px; min-width: 100px; padding: 10px; border: 1px solid #38516d; border-radius: 6px; background: #1a2b40; }
+.mcp-roles strong { color: #b9d9f8; font-size: 12px; }
+.mcp-roles span { color: #a8b9cd; font-size: 9px; white-space: normal; }
+.mcp-capabilities { display: grid; gap: 12px; margin-top: 17px; }
+.mcp-capabilities section, .multi-agent-findings article, .eval-dataset article, .eval-results article { padding: 12px; border: 1px solid var(--line); border-radius: 7px; background: #111d2b; }
+.mcp-capabilities h3 { margin: 0 0 8px; color: #d5e2f1; font-size: 11px; }
+.mcp-capabilities p { margin: 6px 0; color: #a8b9cd; font-size: 10px; line-height: 1.6; }
+.mcp-capabilities p strong { color: #b9d9f8; }
+.multi-agent-findings { display: grid; gap: 8px; margin-top: 16px; }
+.multi-agent-findings article > div { display: flex; justify-content: space-between; gap: 10px; }
+.multi-agent-findings article > div strong, .multi-agent-synthesis > strong { color: #b9d9f8; font-size: 11px; }
+.multi-agent-findings article > div span { color: #9baec3; font-size: 9px; }
+.multi-agent-findings h3 { margin: 9px 0 5px; color: #d5e2f1; font-size: 11px; }
+.multi-agent-findings p, .multi-agent-findings li { color: #a8b9cd; font-size: 10px; line-height: 1.7; }
+.multi-agent-findings p { margin: 5px 0 0; }
+.multi-agent-findings ul { margin: 5px 0; padding-left: 19px; }
+.multi-agent-synthesis { border-color: #3d5f50 !important; background: #142a29 !important; }
+.eval-dataset, .eval-results { display: grid; gap: 7px; margin: 12px 0; }
+.eval-dataset article { display: grid; gap: 6px; }
+.eval-dataset small { color: #9baec3; font: 9px ui-monospace, monospace; }
+.eval-dataset strong { color: #d5e2f1; font-size: 11px; }
+.eval-dataset span, .eval-results p { color: #a8b9cd; font-size: 10px; }
+.eval-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.eval-summary div { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 7px; background: #172437; }
+.eval-summary span { color: #9baec3; font-size: 9px; }
+.eval-summary strong { color: #b9d9f8; font: 18px ui-monospace, monospace; }
+.eval-results article strong { font-size: 10px; }
+.eval-results article p { margin: 6px 0 0; }
+.eval-pass { border-left: 3px solid #70d6ad !important; }
+.eval-fail { border-left: 3px solid #d58c72 !important; }
+@media (max-width: 640px) {
+  .tool-flow, .mcp-roles { justify-content: flex-start; }
+  .eval-summary { grid-template-columns: 1fr; }
+}

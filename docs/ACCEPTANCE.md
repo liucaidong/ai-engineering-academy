@@ -49,7 +49,7 @@ Acceptance evidence to retain:
 
 - [ ] Tokenizer accepts bounded text input and shows the toy BPE merge steps.
 - [ ] Transformer toggles causal masking and updates score/weight/output matrices.
-- [ ] RAG query changes update ranked teaching examples.
+- [ ] RAG query changes update ranked teaching examples.\n- [ ] Tool Calling rejects malformed, unauthorized and unknown tool requests.\n- [ ] Agent Runtime blocks execution until approval and terminates on rejection.\n- [ ] MCP lab discovers local capabilities without opening a network connection.\n- [ ] Multi-Agent lab shows role findings and bounded synthesis.\n- [ ] Evaluation lab reports exact-match metrics and failure cases.
 - [ ] Each lab visibly states whether it is browser-local or simulation.
 - [ ] No lab implies a real model call, production embedding, external network access or server sandbox.
 
