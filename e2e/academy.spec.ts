@@ -34,6 +34,13 @@ test("runs the Transformer attention lab and toggles causal masking", async ({ p
   await expect(page.getByRole("table", { name: "Softmax Weights" })).toBeVisible();
 });
 
+test("runs the Tokenizer teaching lab", async ({ page }) => {
+  await page.getByRole("button", { name: /M03.*Token、Embedding 与 Context/ }).click();
+  await expect(page.getByRole("heading", { name: "Tokenizer Lab" })).toBeVisible();
+  await page.getByLabel("输入文本").fill("the model is learning");
+  await expect(page.locator(".token-list .token").first()).toBeVisible();
+});
+
 test("runs the RAG teaching lab with a query", async ({ page }) => {
   await page.getByRole("button", { name: /M08.*检索增强生成 RAG/ }).click();
   await expect(page.getByRole("heading", { name: "RAG Pipeline Lab" })).toBeVisible();
