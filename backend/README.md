@@ -1,6 +1,6 @@
 # Backend foundation
 
-FastAPI modular-monolith foundation. This slice intentionally provides only operational endpoints; it does not expose learner data or execute user code.
+FastAPI modular-monolith foundation. The current slice provides operational endpoints, PostgreSQL connectivity, async session/transaction primitives and the first versioned course-catalog schema. It does not expose learner data or execute user code.
 
 ## Local development
 
@@ -11,6 +11,7 @@ cd backend
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
+cp .env.example .env
 uvicorn app.main:app --reload
 ```
 
@@ -25,10 +26,32 @@ export ACADEMY_DATABASE_REQUIRED=true
 export ACADEMY_DATABASE_URL='postgresql+asyncpg://academy:change-me@127.0.0.1:5432/academy'
 ```
 
-The readiness endpoint then executes `SELECT 1` and returns HTTP 503 if the database is missing or unavailable. Never commit credentials or a populated `.env` file.
+The readiness endpoint then executes `SELECT 1` and returns HTTP 503 if the database is missing or unavailable. Never commit credentials or a populated `.env` file. Production settings require both `ACADEMY_DATABASE_REQUIRED=true` and a database URL.
+
+## Database migrations
+
+The initial migration creates `course_releases`, a versioned course-content snapshot table. Each course key/version pair is unique; schema versions must be positive; release status is constrained to `draft`, `published` or `retired`. JSONB stores the validated content snapshot, while SHA-256 records its content digest.
+
+```bash
+# With ACADEMY_DATABASE_URL set and PostgreSQL reachable:
+alembic -c alembic.ini upgrade head
+
+# Inspect migration state:
+alembic -c alembic.ini current
+alembic -c alembic.ini history
+```
+
+Run migration commands from the `backend/` directory. The URL is read from environment settings; the placeholder URL in `alembic.ini` is not a credential source.
+
+## Session and transaction rules
+
+- Use `session_scope(database)` for a session where the caller explicitly controls commit/rollback.
+- Use `transaction_scope(database)` for a single atomic transaction that commits on successful exit and rolls back on exception.
+- Do not share an `AsyncSession` across concurrent tasks.
+- Keep database sessions short; do not hold a transaction open across network calls or user interaction.
 
 ## Security boundary
 
-No learner progress, assessment-result, tenant, account, model-provider or arbitrary-code-execution endpoints are present. Do not add them before the corresponding identity, authorization, audit and isolation contracts are implemented.
+No learner progress, assessment-result, tenant, account, model-provider or arbitrary-code-execution endpoints are present. Course release snapshots are catalog data, not learner-owned data. Do not add learner-data endpoints before identity, authorization, ownership, audit and retention contracts are implemented.
 
-See [ADR 0001](../docs/adr/0001-backend-modular-monolith.md).
+See [ADR 0002](../docs/adr/0002-backend-modular-monolith.md).
