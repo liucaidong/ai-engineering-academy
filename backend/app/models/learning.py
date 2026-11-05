@@ -42,6 +42,7 @@ class LearningProgress(Base):
             "module_key",
             name="uq_learning_progress_learner_release_module",
         ),
+        CheckConstraint("length(trim(module_key)) > 0", name="module_key_non_empty"),
         CheckConstraint(
             "completion_status IN ('in_progress', 'completed')",
             name="completion_status_valid",
@@ -88,6 +89,7 @@ class AssessmentResult(Base):
         ForeignKeyConstraint(
             ["tenant_id", "user_id"],
             ["tenant_memberships.tenant_id", "tenant_memberships.user_id"],
+            name="fk_assessment_results_learner_membership",
             ondelete="CASCADE",
         ),
         ForeignKeyConstraint(
@@ -98,6 +100,7 @@ class AssessmentResult(Base):
         ForeignKeyConstraint(
             ["tenant_id", "graded_by_user_id"],
             ["tenant_memberships.tenant_id", "tenant_memberships.user_id"],
+            name="fk_assessment_results_grader_membership",
             ondelete="RESTRICT",
         ),
         UniqueConstraint(
@@ -108,15 +111,13 @@ class AssessmentResult(Base):
             "attempt_number",
             name="uq_assessment_results_learner_attempt",
         ),
+        CheckConstraint("length(trim(assessment_key)) > 0", name="assessment_key_non_empty"),
         CheckConstraint("attempt_number > 0", name="attempt_number_positive"),
         CheckConstraint(
             "grading_mode IN ('self_review', 'automated', 'instructor')",
             name="grading_mode_valid",
         ),
-        CheckConstraint(
-            "status IN ('draft', 'submitted', 'graded')",
-            name="status_valid",
-        ),
+        CheckConstraint("status IN ('draft', 'submitted', 'graded')", name="status_valid"),
         CheckConstraint(
             "score IS NULL OR (score >= 0 AND score <= 100)",
             name="score_in_range",
