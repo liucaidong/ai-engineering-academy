@@ -150,6 +150,30 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
             await connection.rollback()
 
             async with connection.begin():
+                for table in (
+                    "users",
+                    "external_identities",
+                    "auth_sessions",
+                    "tenants",
+                    "tenant_memberships",
+                    "tenant_membership_roles",
+                    "tenant_invitations",
+                    "audit_events",
+                    "learning_progress",
+                    "assessment_results",
+                ):
+                    flags = (
+                        await connection.execute(
+                            text(
+                                "SELECT relrowsecurity, relforcerowsecurity "
+                                "FROM pg_class WHERE oid = to_regclass(:table_name)"
+                            ),
+                            {"table_name": table},
+                        )
+                    ).one()
+                    assert flags == (True, True), f"RLS must be enabled and forced for {table}"
+
+            async with connection.begin():
                 await connection.execute(
                     text(
                         "SELECT set_config('app.user_id', :user_id, true), "
