@@ -89,4 +89,22 @@ describe("course content contract", () => {
     const duplicateCriterion = { ...course, modules: [{ ...first, lessons: [{ ...first.lessons[0], assessments: [{ ...first.lessons[0].assessments[0], rubric: [first.lessons[0].assessments[0].rubric[0], first.lessons[0].assessments[0].rubric[0]] }] }] }, ...course.modules.slice(1)] };
     expect(getCourseValidationErrors(duplicateCriterion).some((error) => error.includes("Duplicate rubric criterion"))).toBe(true);
   });
+  it("rejects unknown fields instead of silently stripping imported data", () => {
+    const invalid = { ...course, unexpected: "must-not-be-discarded" };
+    expect(getCourseValidationErrors(invalid).some((error) => error.includes("Unrecognized key(s)"))).toBe(true);
+  });
+
+  it("rejects unknown fields inside modules and lesson sections", () => {
+    const moduleExtra = { ...course, modules: [{ ...course.modules[0], unexpected: true }] };
+    expect(getCourseValidationErrors(moduleExtra).some((error) => error.includes("modules.0"))).toBe(true);
+
+    const sectionExtra = {
+      ...course,
+      modules: course.modules.map((module, index) => index === 0
+        ? { ...module, lessons: [{ ...module.lessons[0], content: [{ ...module.lessons[0].content[0], unexpected: true }, ...module.lessons[0].content.slice(1)] }] }
+        : module)
+    };
+    expect(getCourseValidationErrors(sectionExtra).some((error) => error.includes("unexpected"))).toBe(true);
+  });
+
 });
