@@ -8,6 +8,7 @@ describe("course content contract", () => {
     expect(course.modules.slice(0, 3).every((module) => module.lessons[0].content.length >= 4)).toBe(true);
     expect(course.modules.slice(0, 3).every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].content.length >= 3)).toBe(true);
+    expect(course.modules.every((module) => module.lessons[0].content.every((section) => section.body.trim().length > 0))).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].sources.length >= 2)).toBe(true);
     expect(course.modules.every((module) => module.lessons[0].assessments.length === 1)).toBe(true);
   });

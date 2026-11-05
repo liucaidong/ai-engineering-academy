@@ -339,7 +339,7 @@ const lesson = (moduleId: string, title: string, summary: string, objectives: st
     sources: authored?.sources ?? [],
     content: authored?.content ?? [
       { heading: "本节要解决的问题", body: summary, sources: [] },
-      { heading: "学习方法", sources: [], markdown: "先建立概念模型，再观察数据流和边界条件，最后通过实验或工程任务验证理解。\n\n- 识别核心对象\n- 跟踪关键数据流\n- 明确系统边界" }
+      { heading: "学习方法", body: "本节通过概念模型、数据流分析和边界条件检查巩固核心知识。", sources: [], markdown: "先建立概念模型，再观察数据流和边界条件，最后通过实验或工程任务验证理解。\n\n- 识别核心对象\n- 跟踪关键数据流\n- 明确系统边界" }
     ]
   };
 };
