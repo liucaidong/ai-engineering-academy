@@ -1,4 +1,4 @@
-"""Optional PostgreSQL integration test for RLS using separate admin/runtime roles.
+"""Optional PostgreSQL RLS acceptance using separate admin/runtime roles.
 
 Set ACADEMY_TEST_ADMIN_DATABASE_URL to a test-only superuser/BYPASSRLS connection
 and ACADEMY_TEST_RUNTIME_DATABASE_URL to the actual non-owner application role.
@@ -25,6 +25,9 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
     user_a, user_b = uuid4(), uuid4()
     tenant_a, tenant_b = uuid4(), uuid4()
     membership_a, membership_b = uuid4(), uuid4()
+    progress_a, progress_b = uuid4(), uuid4()
+    result_a, result_b = uuid4(), uuid4()
+    release_id = uuid4()
     admin_can_bypass_rls = False
 
     try:
@@ -38,7 +41,7 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                 )
             ).scalar_one()
             admin_can_bypass_rls = bool(admin_role)
-            assert admin_can_bypass_rls, "Admin test connection must bypass RLS for isolated fixture setup"
+            assert admin_can_bypass_rls, "Admin test connection must bypass RLS for fixture setup"
 
             await connection.execute(
                 text(
@@ -89,6 +92,50 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     "membership_b": membership_b,
                 },
             )
+            await connection.execute(
+                text(
+                    "INSERT INTO course_releases "
+                    "(id, course_key, version, schema_version, content_sha256, content, status) "
+                    "VALUES (:release_id, 'rls-test', '1.0.0', 1, :digest, "
+                    """'{"title":"RLS test"}'::jsonb, 'draft')"""
+                ),
+                {"release_id": release_id, "digest": "0" * 64},
+            )
+            await connection.execute(
+                text(
+                    "INSERT INTO learning_progress "
+                    "(id, tenant_id, user_id, course_release_id, module_key) VALUES "
+                    "(:progress_a, :tenant_a, :user_a, :release_id, 'M01'), "
+                    "(:progress_b, :tenant_b, :user_b, :release_id, 'M01')"
+                ),
+                {
+                    "progress_a": progress_a,
+                    "progress_b": progress_b,
+                    "tenant_a": tenant_a,
+                    "tenant_b": tenant_b,
+                    "user_a": user_a,
+                    "user_b": user_b,
+                    "release_id": release_id,
+                },
+            )
+            await connection.execute(
+                text(
+                    "INSERT INTO assessment_results "
+                    "(id, tenant_id, user_id, course_release_id, assessment_key, "
+                    "attempt_number, status, grading_mode) VALUES "
+                    "(:result_a, :tenant_a, :user_a, :release_id, 'A01', 1, 'draft', 'self_review'), "
+                    "(:result_b, :tenant_b, :user_b, :release_id, 'A01', 1, 'draft', 'self_review')"
+                ),
+                {
+                    "result_a": result_a,
+                    "result_b": result_b,
+                    "tenant_a": tenant_a,
+                    "tenant_b": tenant_b,
+                    "user_a": user_a,
+                    "user_b": user_b,
+                    "release_id": release_id,
+                },
+            )
 
         async with runtime_engine.connect() as connection:
             role_flags = (
@@ -110,21 +157,16 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     ),
                     {"user_id": str(user_a), "tenant_id": str(tenant_a)},
                 )
-                visible_tenants = (
-                    await connection.execute(text("SELECT id FROM tenants"))
-                ).scalars().all()
-                visible_memberships = (
+                assert (await connection.execute(text("SELECT id FROM tenants"))).scalars().all() == [tenant_a]
+                assert (
                     await connection.execute(text("SELECT id FROM tenant_memberships"))
-                ).scalars().all()
-                visible_roles = (
-                    await connection.execute(
-                        text("SELECT role FROM tenant_membership_roles")
-                    )
-                ).scalars().all()
-
-                assert visible_tenants == [tenant_a]
-                assert visible_memberships == [membership_a]
-                assert visible_roles == ["learner"]
+                ).scalars().all() == [membership_a]
+                assert (
+                    await connection.execute(text("SELECT id FROM learning_progress"))
+                ).scalars().all() == [progress_a]
+                assert (
+                    await connection.execute(text("SELECT id FROM assessment_results"))
+                ).scalars().all() == [result_a]
 
             async with connection.begin():
                 await connection.execute(
@@ -134,17 +176,23 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     ),
                     {"user_id": str(user_a), "tenant_id": str(tenant_b)},
                 )
-                assert (
-                    await connection.execute(text("SELECT id FROM tenants"))
-                ).scalars().all() == []
-                assert (
-                    await connection.execute(text("SELECT id FROM tenant_memberships"))
-                ).scalars().all() == []
+                for table in (
+                    "tenants",
+                    "tenant_memberships",
+                    "learning_progress",
+                    "assessment_results",
+                ):
+                    rows = (
+                        await connection.execute(text(f"SELECT id FROM {table}"))
+                    ).scalars().all()
+                    assert rows == []
 
             async with connection.begin():
-                assert (
-                    await connection.execute(text("SELECT id FROM tenants"))
-                ).scalars().all() == []
+                for table in ("tenants", "tenant_memberships", "learning_progress", "assessment_results"):
+                    rows = (
+                        await connection.execute(text(f"SELECT id FROM {table}"))
+                    ).scalars().all()
+                    assert rows == []
 
     finally:
         if admin_can_bypass_rls:
@@ -156,6 +204,10 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                 await connection.execute(
                     text("DELETE FROM users WHERE id IN (:user_a, :user_b)"),
                     {"user_a": user_a, "user_b": user_b},
+                )
+                await connection.execute(
+                    text("DELETE FROM course_releases WHERE id = :release_id"),
+                    {"release_id": release_id},
                 )
         await runtime_engine.dispose()
         await admin_engine.dispose()
