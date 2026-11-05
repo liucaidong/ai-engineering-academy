@@ -137,6 +137,7 @@ Acceptance checklist:
 - [ ] Missing user/tenant transaction context returns no tenant rows.
 - [ ] Mismatched user/tenant context returns no cross-tenant rows for tenants, memberships, learning progress and assessment results.
 - [ ] A learner cannot read or update another learner's progress or assessment attempt within the same tenant.
+- [ ] A suspended tenant membership loses access to tenant-scoped progress and assessment records.
 - [ ] Instructor access remains denied until a separately tested instructor-role policy is implemented.
 - [ ] The runtime database role is distinct from the schema owner and has only required grants.
 - [ ] No learner-data or tenant-management HTTP routes are exposed before OIDC, CSRF, authorization, RLS and privacy gates are accepted.
