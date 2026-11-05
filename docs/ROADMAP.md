@@ -42,6 +42,7 @@
 - [ ] Execute RLS integration acceptance with provisioned admin/runtime database roles before learner-data APIs
 - [x] Add tenant/user/course-release-scoped learning progress and assessment result schemas with lifecycle constraints
 - [x] Apply forced RLS to learner records and author non-owner cross-tenant integration acceptance (execution pending)
+- [x] Add static migration-policy tests and same-tenant cross-user read/update isolation assertions to PostgreSQL acceptance (execution pending)
 - [ ] Execute PostgreSQL RLS acceptance with provisioned runtime role before learner-data APIs
 - [ ] Implement OIDC authentication, instructor authorization and learner-data application services
 - [ ] Sandboxed code execution with quotas and isolation
