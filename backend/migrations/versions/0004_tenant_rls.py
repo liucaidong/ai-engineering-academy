@@ -97,11 +97,17 @@ def upgrade() -> None:
     )
     op.execute(
         f"CREATE POLICY tenant_invitations_creator_select ON tenant_invitations "
-        f"FOR SELECT USING (tenant_id = {_TENANT} AND created_by_user_id = {_USER})"
+        f"FOR SELECT USING (tenant_id = {_TENANT} AND created_by_user_id = {_USER} "
+        f"AND EXISTS (SELECT 1 FROM tenant_memberships m "
+        f"WHERE m.tenant_id = tenant_invitations.tenant_id "
+        f"AND m.user_id = {_USER} AND m.status = 'active'))"
     )
     op.execute(
         f"CREATE POLICY audit_events_actor_select ON audit_events FOR SELECT USING ("
-        f"actor_user_id = {_USER} AND (tenant_id IS NULL OR tenant_id = {_TENANT})"
+        f"actor_user_id = {_USER} AND (tenant_id IS NULL OR (tenant_id = {_TENANT} "
+        f"AND EXISTS (SELECT 1 FROM tenant_memberships m "
+        f"WHERE m.tenant_id = audit_events.tenant_id "
+        f"AND m.user_id = {_USER} AND m.status = 'active')))"
         f")"
     )
     op.execute(
