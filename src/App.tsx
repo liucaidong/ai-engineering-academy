@@ -17,6 +17,7 @@ import AgentRuntimeLab from "./components/AgentRuntimeLab";
 import McpLab from "./components/McpLab";
 import MultiAgentLab from "./components/MultiAgentLab";
 import EvaluationLab from "./components/EvaluationLab";
+import CourseAuthoringWorkspace from "./components/CourseAuthoringWorkspace";
 
 const LEVEL_LABELS: Record<CourseModule["level"], string> = {
   L1: "基础认知", L2: "模型原理", L3: "应用工程", L4: "Agent 工程", L5: "平台工程", L6: "综合实践"
@@ -25,7 +26,7 @@ const IMPLEMENTED_LABS = new Set(course.labs.filter((lab) => lab.status === "imp
 
 export default function App() {
   const [selectedModuleId, setSelectedModuleId] = useState("M01");
-  const [activeView, setActiveView] = useState<"lesson" | "lab">("lesson");
+  const [activeView, setActiveView] = useState<"lesson" | "lab" | "authoring">("lesson");
   const [moduleQuery, setModuleQuery] = useState("");
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [bookmarkedModuleIds, setBookmarkedModuleIds] = useState<string[]>(() => {
@@ -97,9 +98,11 @@ export default function App() {
         {validationErrors.length > 0 && <div className="validation-warning" role="alert">课程内容校验失败：{validationErrors.join("；")}</div>}
         <div className="content-tabs" role="group" aria-label="学习内容视图">
           <button className={activeView === "lesson" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lesson")} aria-pressed={activeView === "lesson"} type="button">课程内容</button>
+          <button className={activeView === "authoring" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("authoring")} aria-pressed={activeView === "authoring"} type="button">课程编辑</button>
           {openLab && <button className={activeView === "lab" ? "content-tab active" : "content-tab"} onClick={() => setActiveView("lab")} aria-pressed={activeView === "lab"} type="button">交互实验</button>}
         </div>
-        {activeView === "lab" && selectedModule.labId === "tokenizer" ? <TokenizerLab /> :
+        {activeView === "authoring" ? <CourseAuthoringWorkspace initialCourse={course} /> :
+         activeView === "lab" && selectedModule.labId === "tokenizer" ? <TokenizerLab /> :
          activeView === "lab" && selectedModule.labId === "transformer" ? <TransformerLab /> :
          activeView === "lab" && selectedModule.labId === "rag" ? <RagLab /> :
          activeView === "lab" && selectedModule.labId === "tool-calling" ? <ToolCallingLab /> :
