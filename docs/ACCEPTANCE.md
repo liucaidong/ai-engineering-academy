@@ -132,10 +132,12 @@ Acceptance checklist:
 - [ ] Course-release digest, unique course/version, status and publication-timestamp constraints reject invalid rows.
 - [ ] Identity uniqueness is `issuer + subject`; email is not used as an account identity key.
 - [ ] Tenant membership roles carry tenant scope and use a composite foreign key to their membership.
-- [ ] RLS is enabled and forced on identity/tenant tables.
+- [ ] RLS is enabled and forced on identity/tenant tables and learner progress/assessment tables.
 - [ ] The optional RLS integration test passes using a non-owner, non-superuser, non-`BYPASSRLS` runtime role.
 - [ ] Missing user/tenant transaction context returns no tenant rows.
-- [ ] Mismatched user/tenant context returns no cross-tenant rows.
+- [ ] Mismatched user/tenant context returns no cross-tenant rows for tenants, memberships, learning progress and assessment results.
+- [ ] A learner cannot read or update another learner's progress or assessment attempt within the same tenant.
+- [ ] Instructor access remains denied until a separately tested instructor-role policy is implemented.
 - [ ] The runtime database role is distinct from the schema owner and has only required grants.
 - [ ] No learner-data or tenant-management HTTP routes are exposed before OIDC, CSRF, authorization, RLS and privacy gates are accepted.
 
