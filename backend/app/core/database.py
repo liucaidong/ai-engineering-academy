@@ -1,6 +1,6 @@
 """Async SQLAlchemy engine lifecycle and dependency probe."""
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
 
 class Database:
@@ -8,6 +8,11 @@ class Database:
         self._engine: AsyncEngine | None = (
             create_async_engine(database_url, pool_pre_ping=True)
             if database_url
+            else None
+        )
+        self.session_factory = (
+            async_sessionmaker(self._engine, expire_on_commit=False, autoflush=False)
+            if self._engine is not None
             else None
         )
 
