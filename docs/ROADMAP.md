@@ -9,7 +9,8 @@
 - [x] Safe Markdown rendering without raw HTML
 - [x] Tokenizer, Transformer Attention and RAG teaching labs
 - [ ] Complete authoritative lesson content and source review for all 20 modules
-- [x] Browser-local module completion progress (localStorage; no account sync)\n- [ ] Assessment result persistence and server-side learner sync
+- [x] Browser-local module completion progress (localStorage; no account sync)
+- [ ] Assessment result persistence and server-side learner sync
 - [ ] Accessibility and browser E2E acceptance
 - [ ] Verified clean install, test and production build in a controlled runtime
 
