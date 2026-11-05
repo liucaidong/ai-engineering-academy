@@ -125,7 +125,7 @@ alembic -c alembic.ini history
 
 Acceptance checklist:
 
-- [ ] Alembic has one linear head at `0004_tenant_rls`.
+- [ ] Alembic has one linear head at `0005_learner_records`.
 - [ ] Fresh database migrates from base to head without errors.
 - [ ] Downgrade/upgrade of the identity and RLS revisions succeeds on a disposable database.
 - [ ] ORM metadata and migration schema agree; no unexplained autogenerate diff remains.
