@@ -10,7 +10,7 @@
 - [x] Tokenizer, Transformer Attention and RAG teaching labs
 - [x] Author substantive, sourced lessons and rubric assessments for M01–M03
 - [x] Author substantive, sourced lessons and rubric assessments for M04–M09
-- [ ] Complete authoritative lesson content and source review for M10–M20
+- [x] Author substantive, sourced lessons and rubric assessments for M10–M20
 - [x] Browser-local module completion progress (localStorage; no account sync)
 - [ ] Assessment result persistence and server-side learner sync
 - [ ] Accessibility and browser E2E acceptance

@@ -192,6 +192,138 @@ const authoredLessons: Record<string, Pick<Course["modules"][number]["lessons"][
       { title: "Learning Transferable Visual Models From Natural Language Supervision", url: "https://arxiv.org/abs/2103.00020", publisher: "Radford et al., ICML 2021", note: "CLIP 圖文對齊研究" },
       { title: "Robust Speech Recognition via Large-Scale Weak Supervision", url: "https://arxiv.org/abs/2212.04356", publisher: "Radford et al.", note: "Whisper 大規模弱監督語音辨識" }
     ]
+  },
+  M10: {
+    content: [
+      { heading: "Agent 與普通 LLM 應用的區別", body: "Agent 在模型推理之外還具有狀態、工具使用和多步驟控制循環，能根據中間結果決定下一步行動。", markdown: "普通 LLM 呼叫通常是輸入一次、輸出一次；Agent Runtime 則管理一個循環：接收目標和上下文、讓模型提出下一步、執行被授權的工具、觀察結果、更新狀態，直到完成或觸發停止條件。\n\nAgent 不等於“模型自主執行一切”。模型負責提出決策，Runtime 負責控制步驟、權限、超時、預算和狀態。" },
+      { heading: "Agent Loop 與狀態機", body: "可恢復的 Agent 需要明確的狀態、事件、轉移條件和終止條件。", markdown: "典型狀態包括 Ready、Planning、ToolRequested、ToolRunning、WaitingForApproval、Completed 和 Failed。每次轉移都應由可觀測事件驅動。\n\n設定最大步數、總時間、token 預算和工具呼叫預算，並為取消、超時、重試和人工接管設計明確路徑。不要只依賴模型說“我已完成”作為完成判斷。" },
+      { heading: "Runtime 的責任邊界", body: "Runtime 管理工具註冊、參數驗證、權限檢查、執行隔離、日誌和錯誤恢復。", markdown: "Runtime 應把模型輸出視為不可信的控制請求。工具名稱必須在白名單中，參數需符合 Schema，授權應根據可信使用者上下文判斷。對文件、Shell、網路和資料庫等能力使用最小權限。\n\n外部副作用需要審批、冪等鍵和審計。Agent 需要在限定時間和資源內運行，並能被取消。" }
+    ],
+    assessments: [{ id: "m10-agent-runtime-design", type: "design-review", prompt: "設計一個只讀知識檢索 Agent 的狀態機，標出模型決策、工具執行、停止條件和錯誤恢復。", rubric: [{ criterion: "狀態與轉移", description: "定義可驗證的狀態、事件和終止條件", points: 4 }, { criterion: "工具控制", description: "模型提出請求、Runtime 驗證和執行的責任分離", points: 3 }, { criterion: "資源與恢復", description: "包含預算、超時、取消和失敗處理", points: 3 }] }],
+    sources: [
+      { title: "Agents SDK", url: "https://developers.openai.com/api/docs/guides/agents/sdk", publisher: "OpenAI", note: "Agent loop、tools、handoffs 與 runtime" },
+      { title: "Tracing", url: "https://developers.openai.com/api/docs/guides/agents-api/tracing", publisher: "OpenAI", note: "Agent session、turn 和 span" }
+    ]
+  },
+  M11: {
+    content: [
+      { heading: "Planning：把目標轉為可檢查步驟", body: "Planning 將模糊目標分解為有前置條件、輸入輸出和完成判定的任務。", markdown: "計畫可以是線性步驟、依賴 DAG 或動態更新的任務清單。每個子任務都應有完成條件、所需工具、預期副作用和失敗處理。\n\n計畫不是執行事實。工具結果可能讓計畫失效，因此 Runtime 應允許重新規劃，同時限制重規劃次數和總預算。" },
+      { heading: "短期狀態與長期記憶", body: "短期狀態支援當前任務恢復；長期記憶保存跨任務可重用資訊，兩者需要不同生命週期和權限。", markdown: "Thread 或 session state 通常保存當前對話、任務進度和中間結果；長期 store 則保存經過選擇、驗證和治理的偏好或知識。\n\n不要把整段對話無差別寫入長期記憶。應定義資料來源、用途、租戶隔離、保留期限、刪除策略和敏感資訊規則。讀取記憶時也要檢查時效性與可信度。" },
+      { heading: "Checkpoint、恢復與記憶治理", body: "Checkpoint 讓任務能在中斷後恢復；記憶治理決定哪些內容可以被保存、更新、過期或刪除。", markdown: "Checkpoint 應保存足以重建執行狀態的資料，例如當前節點、已完成步驟、工具結果引用和待審批操作。敏感憑證不應直接放入 checkpoint。\n\n恢復時要防止重複執行外部副作用。對工具操作使用冪等鍵或先查詢執行狀態。記憶應支援來源追溯、版本、過期和使用者控制。" }
+    ],
+    assessments: [{ id: "m11-memory-policy", type: "design-review", prompt: "為個人助理設計短期狀態與長期記憶方案，包含寫入規則、來源、過期、刪除和恢復語義。", rubric: [{ criterion: "記憶分層", description: "區分 thread state、checkpoint 和跨任務長期記憶", points: 3 }, { criterion: "資料治理", description: "定義敏感資料、來源、保留和刪除規則", points: 4 }, { criterion: "恢復安全", description: "處理重複副作用和中斷恢復", points: 3 }] }],
+    sources: [
+      { title: "Persistence", url: "https://docs.langchain.com/oss/python/langgraph/persistence", publisher: "LangGraph", note: "Checkpoint 與 long-term store 概念" },
+      { title: "Agents SDK", url: "https://developers.openai.com/api/docs/guides/agents/sdk", publisher: "OpenAI", note: "Agent state 和執行模式" }
+    ]
+  },
+  M12: {
+    content: [
+      { heading: "MCP 的角色與協議邊界", body: "Model Context Protocol 定義 AI Host 與外部 Server 之間發現和使用上下文能力的標準化協議。", markdown: "MCP 通常涉及 Host、Client 和 Server：Host 是承載 AI 應用的環境；Client 管理與 Server 的協議連線；Server 暴露工具、資源或提示模板等能力。\n\nMCP 解決互通協議問題，不會自動替應用完成身份授權、租戶隔離或業務審批。協議連線建立後，Host 仍需決定哪些能力可見、哪些呼叫可執行。" },
+      { heading: "Tools、Resources 與 Prompts", body: "Tools 表達可呼叫操作，Resources 提供可讀取上下文，Prompts 提供可重用的提示模板。", markdown: "Tool 呼叫可能產生外部副作用，必須經過權限和風險檢查。Resource 讓 Client 取得資料或內容，但仍要遵循資料存取控制。Prompt 是可重用模板，不等於授權策略。\n\n能力發現只表示 Server 宣告了能力，不表示所有使用者都應該獲得該能力。" },
+      { heading: "Transport、生命週期與安全", body: "傳輸方式、連線生命週期和信任邊界會影響 MCP Server 的部署與安全設計。", markdown: "常見傳輸包含本地程序的 stdio 和遠端的 Streamable HTTP。遠端連線需要考慮身份驗證、授權、TLS、來源驗證、請求大小限制和速率限制。\n\n對本地 Server，應審核啟動命令、執行檔路徑、環境變數和檔案/網路權限。對遠端 Server，應驗證來源和授權範圍，並將工具呼叫記錄到可追蹤的審計事件。" }
+    ],
+    assessments: [{ id: "m12-mcp-threat-model", type: "design-review", prompt: "為一個遠端 MCP Server 設計工具發現與呼叫流程，列出 Host、Client、Server 職責及信任邊界。", rubric: [{ criterion: "協議角色", description: "正確區分 Host、Client、Server", points: 3 }, { criterion: "能力語義", description: "區分 Tools、Resources 和 Prompts", points: 3 }, { criterion: "安全控制", description: "定義身份、授權、傳輸和審計控制", points: 4 }] }],
+    sources: [
+      { title: "Architecture overview", url: "https://modelcontextprotocol.io/docs/learn/architecture", publisher: "Model Context Protocol", note: "MCP 架構與核心角色" },
+      { title: "MCP Specification", url: "https://modelcontextprotocol.io/specification/2025-11-25", publisher: "Model Context Protocol", note: "協議規範與能力定義" }
+    ]
+  },
+  M13: {
+    content: [
+      { heading: "Skill 是可發現的程序化能力單元", body: "Skill 把任務方法、操作規則和可選資源封裝成可按需載入的目錄，而不是把所有知識塞進每次提示。", markdown: "一個 Skill 通常以資料夾為單位，包含 SKILL.md 和可選的 scripts、references、assets。元資料至少描述名稱和適用情境，正文則提供具體工作流程、邊界和示例。\n\nSkill 的價值在於可發現、可組合和漸進式揭露：系統先載入簡短描述，任務匹配時才載入完整指令與資源。" },
+      { heading: "設計輸入、輸出與依賴契約", body: "可維護 Skill 應明確定義觸發條件、前置條件、輸入、輸出、依賴和失敗處理。", markdown: "避免只寫“你是一位專家”這類模糊指令。應描述何時使用、何時不要使用、需要哪些輸入、步驟順序、產物格式和驗收標準。\n\n若包含腳本，需說明執行環境、依賴、權限和輸出副作用。參考資料應拆分為可按需讀取的檔案，避免主指令過長。" },
+      { heading: "版本、組合與供應鏈治理", body: "Skill 需要版本、審查、來源和依賴治理；Skill 內容和附帶腳本都應視為可執行或可影響行為的供應鏈輸入。", markdown: "為 Skill 設定維護者、版本、變更紀錄和相容性約束。第三方 Skill 不應因為名稱可信就自動執行；應檢查指令是否要求讀取秘密、上傳資料或執行未審核程式。\n\n將 Skill 分成純指令、讀取資源和可執行腳本等風險級別，並為每類設定不同權限和審批要求。" }
+    ],
+    assessments: [{ id: "m13-skill-package", type: "code-task", prompt: "建立一個文件審查 Skill 的目錄規格，包含 SKILL.md、觸發條件、參考文件、可選腳本和權限聲明。", rubric: [{ criterion: "元資料與觸發", description: "名稱和描述準確界定使用範圍", points: 3 }, { criterion: "程序契約", description: "定義輸入、步驟、輸出和驗收條件", points: 4 }, { criterion: "安全與版本", description: "說明腳本權限、依賴和版本治理", points: 3 }] }],
+    sources: [
+      { title: "Agent Skills", url: "https://learn.microsoft.com/en-us/agent-framework/agents/skills", publisher: "Microsoft Learn", note: "Skill 結構與漸進式揭露" },
+      { title: "Agent Skills overview", url: "https://github.com/microsoft/skills/blob/main/.github/docs/skills.md", publisher: "Microsoft", note: "SKILL.md 和目錄規範概覽" }
+    ]
+  },
+  M14: {
+    content: [
+      { heading: "何時需要 Multi-Agent", body: "多 Agent 適合需要不同專業上下文、並行探索或明確責任分工的任務；它不是所有任務的預設架構。", markdown: "先建立單 Agent 基線，再判斷是否存在可獨立分解的子任務、上下文隔離需求或專業角色差異。若任務共享狀態多、耦合高或需要大量協調，Multi-Agent 可能增加延遲、成本和故障面。\n\nAgent 數量增加不等於品質提升。應用任務成功率、總成本、延遲和可診斷性來判斷架構是否值得。" },
+      { heading: "協作拓撲與交接", body: "常見模式包括 Manager/Worker、Handoff、Pipeline 和並行專家匯總。", markdown: "Manager/Worker 由管理者分配子任務並彙總；Handoff 將控制權交給專家 Agent；Pipeline 依序處理階段；並行專家可以同時探索，再由仲裁者整合。\n\n每次交接應有明確任務、上下文範圍、輸出 Schema、完成條件和錯誤回傳。共享狀態需要版本和衝突策略，避免多個 Agent 無序寫入。" },
+      { heading: "協調成本與故障模式", body: "多 Agent 需要控制循環、重複工作、死鎖、相互矛盾和上下文膨脹。", markdown: "設置最大交接次數、最大並行度、總 token/成本預算和截止時間。對每個子任務記錄 owner、狀態、輸入引用和輸出摘要。\n\n匯總階段需要檢查證據一致性和重複內容。對高風險決策，不應讓多個模型投票替代權限控制或人工審批。" }
+    ],
+    assessments: [{ id: "m14-orchestration-topology", type: "design-review", prompt: "為一個市場研究任務比較單 Agent、Manager/Worker 和並行專家三種方案，選擇一種並給出成本和失敗控制。", rubric: [{ criterion: "架構選擇", description: "根據任務分解和上下文隔離選擇拓撲", points: 3 }, { criterion: "交接契約", description: "定義子任務輸入輸出和 owner", points: 3 }, { criterion: "協調治理", description: "限制並行度、成本、循環和衝突", points: 4 }] }],
+    sources: [
+      { title: "Agents SDK", url: "https://developers.openai.com/api/docs/guides/agents/sdk", publisher: "OpenAI", note: "Agent orchestration 和 handoffs" },
+      { title: "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation", url: "https://arxiv.org/abs/2308.08155", publisher: "Wu et al.", note: "多 Agent 對話式協作框架研究" }
+    ]
+  },
+  M15: {
+    content: [
+      { heading: "威脅模型：模型不是安全邊界", body: "Agent 安全必須建立在應用和基礎設施控制上，不能把提示詞或模型拒答當成唯一防線。", markdown: "威脅面包括直接/間接 Prompt Injection、敏感資訊洩露、不安全輸出處理、工具權限過大、供應鏈風險和資源耗盡。\n\n攻擊內容可能來自使用者訊息，也可能藏在網頁、文件、郵件、檢索結果和工具輸出中。所有外部內容都應視為不可信資料。" },
+      { heading: "最小權限與隔離", body: "工具權限應按任務和資源範圍授予，並由服務端強制執行租戶、身份和資源授權。", markdown: "優先使用唯讀工具；將讀取、寫入、刪除、支付和對外發送等操作分級。使用者身份和租戶範圍應從可信認證上下文取得，不接受模型自行指定的權限主體。\n\n檔案、Shell、網路和程式碼執行應使用隔離環境、配額、網路出口控制和檔案系統限制。秘密不應暴露在模型上下文或工具輸出中。" },
+      { heading: "人工審批與可審計副作用", body: "高風險操作需要明確確認、不可抵賴的審計記錄和可恢復的執行流程。", markdown: "將“模型建議操作”和“系統執行操作”分開。審批介面應展示操作對象、範圍、影響和不可逆風險；批准後仍由服務端再次校驗權限。\n\n記錄請求者、審批者、工具名稱、參數摘要、資源 ID、結果和關聯追蹤 ID。對可重試操作使用冪等鍵；對可補償操作定義回滾或人工處置。" }
+    ],
+    assessments: [{ id: "m15-agent-threat-model", type: "design-review", prompt: "對可修改雲端文件的 Agent 完成威脅模型，至少覆蓋 Prompt Injection、越權、資料洩露和破壞性操作。", rubric: [{ criterion: "威脅識別", description: "識別直接/間接注入和資料風險", points: 3 }, { criterion: "控制措施", description: "落實最小權限、租戶隔離和輸出驗證", points: 4 }, { criterion: "審批與審計", description: "設計人工確認、審計和恢復流程", points: 3 }] }],
+    sources: [
+      { title: "Top 10 for LLM and GenAI", url: "https://genai.owasp.org/initiatives/top-10-for-llm-and-genai/", publisher: "OWASP GenAI Security Project", note: "2025 LLM 應用風險分類" },
+      { title: "AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", publisher: "NIST", note: "AI 風險治理框架" }
+    ]
+  },
+  M16: {
+    content: [
+      { heading: "Workflow 與自主 Agent 的取捨", body: "Workflow 使用預先定義的控制流；Agent 則可在執行時動態選擇下一步，兩者可以組合。", markdown: "若流程步驟穩定、可預測且需要強審計，優先使用確定性 Workflow。若任務需要根據上下文動態探索，才引入 Agent 決策。\n\n常見設計是 Workflow 負責外層狀態、權限和交易邊界，Agent 負責受限子任務。不要把整個業務流程交給無限制的自主循環。" },
+      { heading: "重試、超時與補償", body: "可靠編排需要區分暫時性故障和永久性錯誤，並為每個活動設定重試、超時和冪等語義。", markdown: "網路超時、速率限制和暫時服務不可用可能適合有限重試；參數錯誤、權限拒絕和業務規則衝突通常不應重試。使用指數退避、最大次數和總截止時間。\n\n重試可能重複外部副作用，因此活動應具備冪等性或執行狀態查詢。對跨系統流程設計補償動作和人工恢復路徑。" },
+      { heading: "持久化執行與人工介入", body: "長時間任務需要 checkpoint、事件歷史、取消、暫停和恢復機制。", markdown: "將非確定性外部呼叫放在可重試活動中，讓 Workflow 控制邏輯可重播。持久化事件歷史能支援故障後恢復和稽核。\n\n人工介入點應有明確等待狀態、審批期限、拒絕分支和恢復條件。取消任務時，還要定義已發生的副作用如何處置。" }
+    ],
+    assessments: [{ id: "m16-durable-workflow", type: "design-review", prompt: "設計一個跨三個外部服務的文件發布 Workflow，說明重試、冪等、補償、審批和恢復。", rubric: [{ criterion: "流程建模", description: "把確定性流程和 Agent 子任務分開", points: 3 }, { criterion: "故障恢復", description: "定義錯誤分類、重試、超時和冪等", points: 4 }, { criterion: "人工介入", description: "設計審批、取消和補償路徑", points: 3 }] }],
+    sources: [
+      { title: "What is a Temporal Retry Policy?", url: "https://docs.temporal.io/encyclopedia/retry-policies", publisher: "Temporal", note: "活動重試和 Workflow 執行語義" },
+      { title: "Agents SDK", url: "https://developers.openai.com/api/docs/guides/agents/sdk", publisher: "OpenAI", note: "Agent Runtime 與 orchestration" }
+    ]
+  },
+  M17: {
+    content: [
+      { heading: "Evaluation：建立可重現的品質定義", body: "AI Evaluation 用代表性資料集、明確指標和評分器檢查系統是否達到任務要求。", markdown: "先定義任務成功，再選擇指標。分類任務可看準確率、精確率、召回率和 F1；檢索任務可看 Recall@k、MRR 和 nDCG；生成任務需要結合人工評分、規則檢查和模型輔助評分。\n\n測試集應覆蓋正常案例、邊界案例、拒答、注入攻擊、長尾資料和分佈外輸入。每次 Prompt、模型、檢索器或工具變更都應執行回歸。" },
+      { heading: "Trace 與 Observability", body: "Trace 把一次端到端任務拆成模型呼叫、工具執行、檢索和交接等可關聯事件。", markdown: "Trace 通常包含多個 Span，每個 Span 記錄操作名稱、開始/結束時間、狀態、屬性和關聯 ID。Metrics 用於聚合趨勢，Logs 用於事件細節，Traces 用於跨服務因果鏈。\n\nAgent Trace 還應關聯模型版本、Prompt 版本、工具名稱、token 用量、重試次數和審批結果。記錄內容需要做敏感資訊遮罩和存取控制。" },
+      { heading: "品質、成本與延遲的聯合分析", body: "品質指標必須與延遲、成本、可靠性和安全指標一起分析，避免單一分數驅動錯誤優化。", markdown: "建立分層評測：單元級測試驗證工具和解析器；組件級測試驗證檢索或路由；端到端評測驗證任務完成；線上監控追蹤真實分佈和事故。\n\n對模型輔助評分器進行人工校準，檢查評分偏差。將成本、延遲和品質按任務類型、模型、租戶和版本切片，才能定位回歸來源。" }
+    ],
+    assessments: [{ id: "m17-eval-observability-plan", type: "design-review", prompt: "為一個 RAG Agent 設計離線評測集、線上指標和 Trace 欄位，並說明如何識別品質回歸。", rubric: [{ criterion: "評測設計", description: "定義資料集、指標和評分器", points: 4 }, { criterion: "可觀測性", description: "設計 Trace/Span/Metric/Log 關聯欄位", points: 3 }, { criterion: "回歸分析", description: "按版本、模型、租戶和任務切片", points: 3 }] }],
+    sources: [
+      { title: "Tracing", url: "https://developers.openai.com/api/docs/guides/agents-api/tracing", publisher: "OpenAI", note: "Agent Trace 結構和執行步驟" },
+      { title: "OpenTelemetry Documentation", url: "https://opentelemetry.io/docs/", publisher: "OpenTelemetry", note: "Vendor-neutral traces、metrics 和 logs" }
+    ]
+  },
+  M18: {
+    content: [
+      { heading: "AI Platform 的核心平面", body: "AI 平台需要將模型接入、流量治理、身份租戶、配額、執行和觀測分成清晰的責任邊界。", markdown: "常見平台能力包括 Model Gateway、Provider Adapter、模型路由、憑證管理、租戶與身份、配額計量、請求排隊、快取、評測、審計和觀測。\n\n控制平面管理模型/供應商配置、政策、配額和版本；資料平面承接線上請求並執行路由、限流和計量。兩者需要有明確的一致性與故障降級策略。" },
+      { heading: "多租戶隔離與公平性", body: "多租戶系統必須隔離資料和權限，同時控制資源公平、噪音鄰居和成本歸屬。", markdown: "租戶邊界應貫穿身份、資料庫查詢、向量檢索、快取鍵、日誌和模型供應商憑證。只在 API 層檢查租戶而不在資料層約束，容易產生跨租戶資料洩露。\n\n資源治理可採用每租戶併發限制、Token 配額、速率限制和優先級隊列。Kubernetes Namespace 只是隔離工具之一，仍需考慮網路、節點、RBAC 和共享控制平面風險。" },
+      { heading: "可靠性、性能與成本治理", body: "模型供應商故障、速率限制和成本波動需要透過超時、熔斷、回退、路由和預算策略管理。", markdown: "對供應商設定健康檢查、超時、重試上限和熔斷；重試時要避免放大流量。模型回退需要檢查能力相容性、資料政策和輸出品質，不可只按價格切換。\n\n建立每租戶、每模型和每功能的成本歸因，並監控 TTFT、TPOT、錯誤率、佇列等待和 Token 消耗。平台架構要同時滿足安全、可靠、性能和成本目標。" }
+    ],
+    assessments: [{ id: "m18-platform-architecture", type: "design-review", prompt: "設計一個多租戶 Model Gateway，描述控制平面、資料平面、配額、路由、憑證和故障降級。", rubric: [{ criterion: "平面劃分", description: "清晰劃分配置治理與線上請求處理", points: 3 }, { criterion: "租戶治理", description: "確保身份、資料、配額和計量隔離", points: 4 }, { criterion: "可靠性與成本", description: "定義限流、熔斷、回退和成本歸因", points: 3 }] }],
+    sources: [
+      { title: "Multi-tenancy", url: "https://kubernetes.io/docs/concepts/security/multi-tenancy/", publisher: "Kubernetes", note: "多租戶隔離和共享叢集風險" },
+      { title: "Google Cloud Well-Architected Framework", url: "https://docs.cloud.google.com/architecture/framework", publisher: "Google Cloud", note: "安全、可靠、性能、成本和運維支柱" }
+    ]
+  },
+  M19: {
+    content: [
+      { heading: "AI 功能的工程化交付", body: "AI 功能應遵循一般軟體工程的需求、設計、實現、測試、發布和運維流程，同時增加模型行為的不確定性治理。", markdown: "將 Prompt、模型配置、工具 Schema、檢索索引和評測資料視為版本化交付物。建立環境隔離、配置審查、測試、灰度發布和回滾流程。\n\nAI 系統的測試除了傳統單元與整合測試，還需要 Prompt 回歸、模型輸出評測、工具權限測試、檢索品質和安全測試。" },
+      { heading: "供應鏈與可重現性", body: "模型、資料集、依賴、容器和 Skill 都可能成為供應鏈風險來源，需要版本和來源證明。", markdown: "記錄模型 ID/版本、權重摘要、Tokenizer 版本、資料集版本、依賴鎖檔、容器映像摘要和建置來源。對外部模型與工具 SDK 做許可、漏洞和來源審查。\n\n生產部署應可追溯到程式碼提交、建置產物和配置版本。對不可完全重現的託管模型，至少保存供應商、模型版本、請求參數和評測快照。" },
+      { heading: "運維、事故與持續改進", body: "上線後需要 SLO、告警、事故處置、容量管理和持續評測。", markdown: "定義服務可用性、延遲、錯誤率和任務成功率等 SLI，為關鍵路徑設定 SLO。告警應指向可行動的使用者影響，而不是只報告主機指標。\n\n事故復盤要識別技術根因、檢測缺口和治理缺口，並形成有 owner 和期限的改進項。模型或 Prompt 更新應重新跑評測，避免品質回歸悄然進入生產。" }
+    ],
+    assessments: [{ id: "m19-release-readiness", type: "design-review", prompt: "為一個使用外部 LLM 和 RAG 的應用建立上線檢查表，覆蓋版本、供應鏈、評測、SLO、回滾和事故響應。", rubric: [{ criterion: "交付流程", description: "建立可追溯版本和灰度/回滾", points: 3 }, { criterion: "供應鏈", description: "記錄模型、資料、依賴和建置來源", points: 3 }, { criterion: "運維治理", description: "定義 SLO、告警和事故復盤", points: 4 }] }],
+    sources: [
+      { title: "Google Cloud Well-Architected Framework", url: "https://docs.cloud.google.com/architecture/framework", publisher: "Google Cloud", note: "運維、安全、可靠性與成本最佳實踐" },
+      { title: "OpenTelemetry Documentation", url: "https://opentelemetry.io/docs/", publisher: "OpenTelemetry", note: "跨服務可觀測性標準" }
+    ]
+  },
+  M20: {
+    content: [
+      { heading: "Capstone：端到端工程問題", body: "綜合專案需要從真實使用者問題出發，定義成功指標、約束、威脅模型和可驗收的系統邊界。", markdown: "選擇一個可在有限時間內交付的 AI 工程問題，例如企業知識助手、開發者 Agent 或多模態文件處理平台。先明確使用者、任務、資料來源、失敗成本和非目標。\n\n把需求轉成可測量指標：任務成功率、引用正確率、延遲、成本、權限違規率和可用性。沒有明確指標的“效果很好”不能作為驗收標準。" },
+      { heading: "架構、實現與安全控制", body: "專案需呈現模型、檢索、工具、Runtime、資料和平台元件的責任分離。", markdown: "提交架構圖、資料流、API/Schema、部署拓撲和狀態機。標出模型決策與應用執行的邊界，列出每個工具的權限、輸入驗證和副作用。\n\n完成威脅模型，至少覆蓋 Prompt Injection、資料洩露、跨租戶存取、工具越權、供應鏈和資源耗盡。高風險操作要有人工審批或其他強制控制。" },
+      { heading: "評測、交付與答辯", body: "Capstone 的完成標準是可運行、可測試、可觀測、可審計和可復現，而不是只展示 Demo。", markdown: "提交程式碼、部署說明、測試報告、評測資料集、Trace 範例、成本估算、威脅模型和已知限制。展示至少一個正常流程、一個故障流程和一個安全拒絕流程。\n\n答辯時說明架構取捨、品質指標、失敗案例和後續路線圖。未實現的能力應明確列為限制，不得以介面原型冒充已交付功能。" }
+    ],
+    assessments: [{ id: "m20-capstone-rubric", type: "design-review", prompt: "交付一個端到端 AI 工程專案，並提交架構、程式碼、測試、評測、威脅模型和運維文件。", rubric: [{ criterion: "問題與架構", description: "需求可驗收，架構邊界和資料流清晰", points: 2 }, { criterion: "工程實現", description: "核心流程可運行且具備測試", points: 3 }, { criterion: "品質與安全", description: "有評測、威脅模型和權限控制證據", points: 3 }, { criterion: "交付與運維", description: "提供部署、觀測、成本和已知限制文件", points: 2 }] }],
+    sources: [
+      { title: "AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", publisher: "NIST", note: "Capstone 風險治理參考" },
+      { title: "Google Cloud Well-Architected Framework", url: "https://docs.cloud.google.com/architecture/framework", publisher: "Google Cloud", note: "架構品質與運維檢查框架" }
+    ]
   }
 };
 
