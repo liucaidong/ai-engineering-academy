@@ -5,7 +5,7 @@ import RagLab from "./components/RagLab";
 import MarkdownContent from "./components/MarkdownContent";
 import { course } from "./data/curriculum";
 import { getCourseValidationErrors } from "./lib/validateCourse";
-import type { CourseModule } from "./types/course";
+import { EXECUTION_MODE_LABELS, type CourseModule } from "./types/course";
 
 const LEVEL_LABELS: Record<CourseModule["level"], string> = {
   L1: "基础认知", L2: "模型原理", L3: "应用工程", L4: "Agent 工程", L5: "平台工程", L6: "综合实践"
@@ -70,7 +70,7 @@ export default function App() {
           <aside className="learning-aside">
             <div className="aside-card"><span className="eyebrow">PREREQUISITES</span><h3>先修模块</h3>{selectedModule.prerequisites.length ? selectedModule.prerequisites.map((id) => <button className="prerequisite-link" key={id} onClick={() => { setSelectedModuleId(id); setActiveView("lesson"); }} type="button">{id} · {course.modules.find((item) => item.id === id)?.title}</button>) : <p className="muted">无先修要求</p>}</div>
             <div className="aside-card"><span className="eyebrow">LEARNING OUTCOMES</span><h3>完成后你将能够</h3><ul>{selectedModule.objectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></div>
-            <div className="aside-card execution-card"><span className="eyebrow">LAB EXECUTION</span><h3>实验执行说明</h3><p>{selectedModule.labId ? course.labs.find((lab) => lab.id === selectedModule.labId)?.executionMode ?? "当前实验尚未登记执行定义" : "本模块当前没有关联实验。"} 实验执行模式与安全边界以实验定义为准。</p></div>
+            <div className="aside-card execution-card"><span className="eyebrow">LAB EXECUTION</span><h3>实验执行说明</h3><p>{selectedModule.labId ? course.labs.find((lab) => lab.id === selectedModule.labId)?.executionMode ? EXECUTION_MODE_LABELS[course.labs.find((lab) => lab.id === selectedModule.labId)!.executionMode] : "当前实验尚未登记执行定义" : "本模块当前没有关联实验。"} 实验执行模式与安全边界以实验定义为准。</p></div>
           </aside>
          </div>}
         <footer className="page-footer">AI Engineering Academy <span>·</span> Learn the system, build the system.</footer>
