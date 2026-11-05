@@ -7,7 +7,6 @@ from uuid import UUID, uuid4
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
-    ForeignKey,
     ForeignKeyConstraint,
     Index,
     Integer,
@@ -121,6 +120,11 @@ class AssessmentResult(Base):
         CheckConstraint(
             "score IS NULL OR (score >= 0 AND score <= 100)",
             name="score_in_range",
+        ),
+        CheckConstraint(
+            "(status = 'draft' AND submitted_at IS NULL) OR "
+            "(status IN ('submitted', 'graded') AND submitted_at IS NOT NULL)",
+            name="submission_timestamp_matches_status",
         ),
         CheckConstraint(
             "(status = 'graded' AND score IS NOT NULL AND graded_at IS NOT NULL "
