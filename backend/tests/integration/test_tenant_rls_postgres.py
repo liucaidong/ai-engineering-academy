@@ -183,6 +183,16 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                         )
                     ).one()
                     assert flags == (True, True), f"RLS must be enabled and forced for {table}"
+                    is_owner = (
+                        await connection.execute(
+                            text(
+                                "SELECT pg_get_userbyid(relowner) = current_user "
+                                "FROM pg_class WHERE oid = to_regclass(:table_name)"
+                            ),
+                            {"table_name": table},
+                        )
+                    ).scalar_one()
+                    assert is_owner is False, f"Runtime role must not own protected table {table}"
 
             async with connection.begin():
                 await connection.execute(
