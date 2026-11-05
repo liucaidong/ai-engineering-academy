@@ -26,7 +26,25 @@ def test_course_release_has_version_uniqueness_and_guard_constraints() -> None:
     assert ("course_key", "version") in unique_columns
     assert "schema_version > 0" in check_expressions
     assert "status IN ('draft', 'published', 'retired')" in check_expressions
-    assert "content_sha256 ~ '^[0-9a-f]{64}$'" in check_expressions
+    assert "content_sha256 ~ '^[0-9a-f]{64}
+
+
+def test_course_release_content_is_postgresql_jsonb() -> None:
+    column = Base.metadata.tables["course_releases"].c.content
+    assert column.nullable is False
+    assert isinstance(column.type, JSONB)
+
+
+def test_course_release_status_defaults_to_draft() -> None:
+    column = Base.metadata.tables["course_releases"].c.status
+    assert column.default is not None
+    assert column.server_default is not None
+" in check_expressions
+    assert (
+        "((status = 'draft' AND published_at IS NULL) OR "
+        "(status IN ('published', 'retired') AND published_at IS NOT NULL))"
+        in check_expressions
+    )
 
 
 def test_course_release_content_is_postgresql_jsonb() -> None:
