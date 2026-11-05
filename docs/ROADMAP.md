@@ -3,7 +3,7 @@
 ## P1 — Frontend learning platform foundation
 - [x] React + TypeScript + Vite application shell
 - [x] 20-module curriculum navigation and full-text search
-- [x] Runtime schema validation for course content
+- [x] Runtime schema validation for course content, with strict unknown-field rejection at every object boundary
 - [x] Prerequisite integrity and cycle validation
 - [x] Explicit lab execution registry and safety notes
 - [x] Safe Markdown rendering without raw HTML
@@ -24,7 +24,9 @@
 - [x] Course module search across title, summary, objectives and lesson content
 - [x] Browser-local module bookmarks and prerequisite-aware next-module recommendations
 - [x] Tool Calling, Agent Runtime, MCP, Multi-Agent and Evaluation local teaching labs
-- [x] Browser-local course authoring workspace with JSON import/export, schema validation and local draft persistence
+- [x] Browser-local course authoring workspace with JSON import/export, strict schema validation, UTF-8 byte limits and local draft persistence
+- [x] Simplified Chinese curriculum copy pass and content release 0.3.1
+- [x] UTF-8 byte-limit helper tests for multibyte text
 
 ## P3 — Backend and execution platform
 - Server-side learner progress, assessment history and instructor feedback
