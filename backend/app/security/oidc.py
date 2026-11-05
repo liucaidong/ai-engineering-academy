@@ -45,6 +45,10 @@ def generate_session_token() -> OpaqueSessionToken:
 def hash_session_token(raw_token: str) -> str:
     if not isinstance(raw_token, str) or not 32 <= len(raw_token) <= 512:
         raise ValueError("session token has an invalid length")
+    try:
+        raw_token.encode("ascii")
+    except UnicodeEncodeError as error:
+        raise ValueError("session token must be ASCII") from error
     return sha256_hex(raw_token)
 
 
@@ -55,6 +59,10 @@ def derive_csrf_token(raw_session_token: str, secret: str | bytes) -> str:
         raise ValueError("CSRF secret must contain at least 32 bytes")
     if not isinstance(raw_session_token, str) or len(raw_session_token) < 32:
         raise ValueError("session token has an invalid length")
+    try:
+        raw_session_token.encode("ascii")
+    except UnicodeEncodeError as error:
+        raise ValueError("session token must be ASCII") from error
     digest = hmac.new(
         key,
         b"ai-engineering-academy:csrf:v1:" + raw_session_token.encode("utf-8"),
@@ -72,7 +80,12 @@ def verify_csrf_token(
         expected = derive_csrf_token(raw_session_token, secret)
     except (TypeError, ValueError):
         return False
-    return isinstance(supplied_token, str) and hmac.compare_digest(expected, supplied_token)
+    if not isinstance(supplied_token, str):
+        return False
+    try:
+        return hmac.compare_digest(expected, supplied_token)
+    except TypeError:
+        return False
 
 
 def generate_pkce_verifier() -> str:
