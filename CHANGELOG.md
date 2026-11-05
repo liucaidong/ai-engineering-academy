@@ -1,3 +1,12 @@
+## 0.14.0 — 2026-11-06
+
+### Course content
+- Deepened all 15 lessons in M07–M09 with a fifth practical section focused on reproducible protocol, retrieval and multimodal engineering exercises.
+- M07 adds tool-call timeout/state tracing, negative Schema tests, routing confusion matrices, idempotent concurrency and layered acceptance metrics.
+- M08 adds end-to-end evidence tracing, chunk-overlap calculations, exact-vs-ANN retrieval diagnostics, RRF ranking and ACL/cache regression gates.
+- M09 adds cross-modal timeline design, ViT token-cost calculations, CFG quality/diversity experiments, streaming-ASR data budgets and video sampling/privacy reviews.
+- Updated curriculum version to 0.14.0. Existing Schema, prerequisites, lab registry and platform scope remain unchanged.
+
 ## 0.13.0 — 2026-11-06
 
 ### Course content
