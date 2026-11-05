@@ -9,7 +9,7 @@ export default function ToolCallingLab() {
 
   return <section className="lab-panel" aria-labelledby="tool-calling-title">
     <div className="lab-heading"><div><span className="eyebrow">INTERACTIVE LAB · M07</span><h2 id="tool-calling-title">Tool Calling Lab</h2><p>观察模型请求如何经过 Schema、权限检查和 Runtime 执行。</p></div><span className="execution-tag">本地模拟</span></div>
-    <div className="tool-flow" aria-label="工具调用流程"><span>Model Request</span><b>→</b><span>Schema</span><b>→</b><span>Policy</span><b>→</b><span>Runtime</span><b>→</b><span>Result</span></div>
+    <div className="tool-flow" role="group" aria-label="工具调用流程"><span>Model Request</span><b>→</b><span>Schema</span><b>→</b><span>Policy</span><b>→</b><span>Runtime</span><b>→</b><span>Result</span></div>
     <label className="field-label" htmlFor="tool-name">注册工具</label>
     <select id="tool-name" className="lab-input" value={toolName} onChange={(event) => { setToolName(event.target.value); setResult(null); }}>
       <option value="search_course">search_course · 只读课程搜索</option>

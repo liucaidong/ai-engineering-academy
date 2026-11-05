@@ -13,6 +13,8 @@ describe("teaching tool-call runtime", () => {
   it("rejects malformed JSON and invalid arguments", () => {
     expect(executeTeachingToolCall("search_course", "{", true)).toMatchObject({ ok: false, error: "invalid_json" });
     expect(executeTeachingToolCall("search_course", "[]", true)).toMatchObject({ ok: false, error: "invalid_arguments" });
+    expect(executeTeachingToolCall("search_course", '{"query":"MCP","tenant":"other"}', true)).toMatchObject({ ok: false, error: "invalid_arguments" });
+    expect(executeTeachingToolCall("search_course", "x".repeat(4097), true)).toMatchObject({ ok: false, error: "invalid_arguments" });
     expect(executeTeachingToolCall("search_course", '{"query":""}', true)).toMatchObject({ ok: false, error: "invalid_arguments" });
   });
   it("rejects unknown tools and missing modules", () => {

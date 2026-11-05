@@ -7,7 +7,7 @@ export default function McpLab() {
   const [result, setResult] = useState<ToolExecutionResult | null>(null);
   return <section className="lab-panel" aria-labelledby="mcp-title">
     <div className="lab-heading"><div><span className="eyebrow">INTERACTIVE LAB · M12</span><h2 id="mcp-title">MCP Protocol Lab</h2><p>理解 Host、Client、Server 的职责，以及 Tools、Resources、Prompts 的能力发现。</p></div><span className="execution-tag">协议模拟</span></div>
-    <div className="mcp-roles" aria-label="MCP 角色关系"><article><strong>Host</strong><span>AI 应用与用户交互</span></article><b>↔</b><article><strong>Client</strong><span>管理协议请求与响应</span></article><b>↔</b><article><strong>Server</strong><span>暴露受控能力</span></article></div>
+    <div className="mcp-roles" role="group" aria-label="MCP 角色关系"><article><strong>Host</strong><span>AI 应用与用户交互</span></article><b>↔</b><article><strong>Client</strong><span>管理协议请求与响应</span></article><b>↔</b><article><strong>Server</strong><span>暴露受控能力</span></article></div>
     <button className="primary-button" type="button" onClick={() => { setCapabilities(discoverTeachingMcpCapabilities()); setResult(null); }}>发现 Server 能力</button>
     {capabilities && <div className="mcp-capabilities" aria-live="polite">
       <section><h3>Tools</h3>{capabilities.tools.map((item) => <p key={item.name}><strong>{item.name}</strong> · {item.description}</p>)}</section>
