@@ -177,7 +177,7 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                         await connection.execute(
                             text(
                                 "SELECT relrowsecurity, relforcerowsecurity "
-                                "FROM pg_class WHERE oid = to_regclass(:table_name)"
+                                "FROM pg_class WHERE oid = to_regclass('public.' || :table_name)"
                             ),
                             {"table_name": table},
                         )
@@ -187,7 +187,7 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                         await connection.execute(
                             text(
                                 "SELECT pg_get_userbyid(relowner) = current_user "
-                                "FROM pg_class WHERE oid = to_regclass(:table_name)"
+                                "FROM pg_class WHERE oid = to_regclass('public.' || :table_name)"
                             ),
                             {"table_name": table},
                         )
