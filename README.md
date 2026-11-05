@@ -37,7 +37,7 @@ AI Engineering Academy 将以工程能力为主线，覆盖 AI 基础认知、�
 ### Backend foundation
 - Python 3.11+、FastAPI、Pydantic Settings
 - SQLAlchemy Async + asyncpg + Alembic
-- PostgreSQL course-release, identity and tenant foundation schemas with RLS policies
+- PostgreSQL course-release, identity, tenant, learning-progress and assessment schemas with RLS policies
 - Backend implementation notes: [backend/README.md](backend/README.md)
 
 ## 前端本地开发
@@ -79,7 +79,7 @@ alembic -c alembic.ini upgrade head
 - 浏览器本地课程编辑工作区：JSON 导入、严格 Schema 校验、UTF-8 字节限制、草稿自动保存与校验通过后导出；
 - Tokenizer、Transformer、RAG、Tool Calling、Agent Runtime、MCP、Multi-Agent 和 Evaluation 八个本地教学实验；
 - FastAPI 后端运行骨架、liveness/readiness、生产配置 fail-closed；
-- SQLAlchemy 异步 session/transaction、Alembic 四阶段迁移、课程发布生命周期、身份/租户基础表和 transaction-local RLS context；登录与学习数据 API 尚未开放。
+- SQLAlchemy 异步 session/transaction、Alembic 五阶段迁移、课程发布生命周期、身份/租户/学习进度/测评记录基础表和 transaction-local RLS context；OIDC 登录、教师授权和学习数据 API 尚未开放。
 
 上述实验均为教学级实现，不代表真实模型推理、生产向量检索或服务端沙箱。浏览器本地进度不等同于账户级云端同步。后端当前不提供学习者数据 API，也不执行任意用户代码。数据库迁移与测试代码尚未在受控运行环境执行。
 
