@@ -19,6 +19,7 @@ AI Engineering Academy 将以工程能力为主线，覆盖 AI 基础认知、�
 - [参考课件审计](docs/REFERENCE_AUDIT.md)
 - [工程治理](docs/ENGINEERING_GOVERNANCE.md)
 - [课程内容契约](docs/COURSE_CONTENT_CONTRACT.md)
+- [工程验收清单](docs/ACCEPTANCE.md)
 - [ADR-0001：独立平台决策](docs/adr/0001-independent-platform.md)
 
 ## 技术栈

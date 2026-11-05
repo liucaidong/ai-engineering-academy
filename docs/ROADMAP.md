@@ -20,7 +20,7 @@
 
 ## P2 — Learning experience
 - Content authoring workflow and schema migration
-- Lesson-level assessments, feedback and progress
+- Server-synced assessment history and instructor feedback
 - Search, bookmarks and learning-path recommendations
 - More interactive labs: Tool Calling, Agent Runtime, MCP and Evaluation
 
