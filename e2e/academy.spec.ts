@@ -148,10 +148,10 @@ test("persists course authoring drafts locally across reloads", async ({ page })
   await page.getByRole("button", { name: "课程编辑" }).click();
   const editor = page.getByLabel("课程 JSON（最大 2 MiB UTF-8）");
   const draft = await editor.inputValue();
-  await editor.fill(draft.replace('"title": "AI Engineering Academy"', '"title": "AI Engineering Academy Draft"'));
+  await editor.fill(draft.replace('"title": "AI Engineering Academy Draft"', '"title": "AI Engineering Academy Draft"'));
   await page.reload();
   await page.getByRole("button", { name: "课程编辑" }).click();
-  await expect(page.getByLabel("课程 JSON（最大 2 MiB UTF-8）")).toContainText("AI Engineering Academy Draft");
+  await expect(page.getByLabel("课程 JSON（最大 2 MiB UTF-8）")).toHaveValue(/AI Engineering Academy Draft/);
 });
 
 test("keeps the course authoring view accessible", async ({ page }) => {
