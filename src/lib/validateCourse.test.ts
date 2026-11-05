@@ -107,4 +107,11 @@ describe("course content contract", () => {
     expect(getCourseValidationErrors(sectionExtra).some((error) => error.includes("unexpected"))).toBe(true);
   });
 
+  it("keeps the curriculum release and Simplified Chinese locale aligned", () => {
+    expect(course.version).toBe("0.3.1");
+    expect(course.language).toBe("zh-CN");
+    expect(course.modules.find((module) => module.id === "M04")?.lessons[0].content[0].heading)
+      .toBe("预训练：从大规模数据中学习表示");
+  });
+
 });
