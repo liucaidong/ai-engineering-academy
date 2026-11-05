@@ -2,12 +2,12 @@
 
 ## P1 — Frontend learning platform foundation
 - [x] React + TypeScript + Vite application shell
-- [x] 20-module curriculum navigation
+- [x] 20-module curriculum navigation and full-text search
 - [x] Runtime schema validation for course content
 - [x] Prerequisite integrity and cycle validation
 - [x] Explicit lab execution registry and safety notes
 - [x] Safe Markdown rendering without raw HTML
-- [x] Tokenizer, Transformer Attention and RAG teaching labs
+- [x] Eight teaching labs: Tokenizer, Transformer, RAG, Tool Calling, Agent Runtime, MCP, Multi-Agent and Evaluation
 - [x] Author substantive, sourced lessons and rubric assessments for M01–M03
 - [x] Author substantive, sourced lessons and rubric assessments for M04–M09
 - [x] Author substantive, sourced lessons and rubric assessments for M10–M20
@@ -21,13 +21,12 @@
 
 ## P2 — Learning experience
 - [x] Content authoring guide, schemaVersion contract and legacy v0-to-v1 migration
-- Server-synced assessment history and instructor feedback
 - [x] Course module search across title, summary, objectives and lesson content
 - [x] Browser-local module bookmarks and prerequisite-aware next-module recommendations
 - [x] Tool Calling, Agent Runtime, MCP, Multi-Agent and Evaluation local teaching labs
 
 ## P3 — Backend and execution platform
-- Server-side learner progress and assessment history
+- Server-side learner progress, assessment history and instructor feedback
 - API service and PostgreSQL persistence
 - Identity, learner profiles and progress events
 - Sandboxed code execution with quotas and isolation
