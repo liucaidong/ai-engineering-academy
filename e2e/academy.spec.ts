@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
@@ -46,6 +47,11 @@ test("runs the RAG teaching lab with a query", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "RAG Pipeline Lab" })).toBeVisible();
   await page.getByLabel("检索查询").fill("retrieval evaluation");
   await expect(page.locator(".rag-results article")).toHaveCount(3);
+});
+
+test("has no automated WCAG A/AA violations on the lesson view", async ({ page }) => {
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  expect(results.violations).toEqual([]);
 });
 
 test("supports the keyboard skip link", async ({ page }) => {
