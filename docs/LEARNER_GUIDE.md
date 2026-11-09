@@ -71,6 +71,8 @@ AI Engineering Academy 是从模型原理到工程系统交付的学习路径。
 - [学习者质量验证协议](./LEARNER_VALIDATION_PROTOCOL.md)
 - [M04–M20 先修能力地图](./LEARNER_PREREQUISITE_MAP.md)
 - [正式作业静态审查报告](./ASSESSMENT_STATIC_AUDIT.md)
+- [学习者试测执行手册](./LEARNER_PILOT_RUNBOOK.md)
+- [学习者试测知情同意模板](./LEARNER_PILOT_CONSENT.md)
 - [入门诊断题与补救路径](./LEARNER_ENTRY_DIAGNOSTIC.md)
 - [学习时间记录模板](./LEARNER_TIME_LOG_TEMPLATE.csv)
 - [正式作业可完成性审查模板](./ASSESSMENT_FEASIBILITY_REVIEW_TEMPLATE.md)
