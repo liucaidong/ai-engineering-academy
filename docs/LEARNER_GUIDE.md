@@ -66,3 +66,7 @@ AI Engineering Academy 是从模型原理到工程系统交付的学习路径。
 - [教师指南与作业参考解答](./teaching-guides/README.md)
 - [课程术语表](./GLOSSARY.md)
 - [课程来源审计](./CURRICULUM_SOURCE_AUDIT.md)
+- [学习者质量验证协议](./LEARNER_VALIDATION_PROTOCOL.md)
+- [入门诊断题与补救路径](./LEARNER_ENTRY_DIAGNOSTIC.md)
+- [学习时间记录模板](./LEARNER_TIME_LOG_TEMPLATE.csv)
+- [正式作业可完成性审查模板](./ASSESSMENT_FEASIBILITY_REVIEW_TEMPLATE.md)

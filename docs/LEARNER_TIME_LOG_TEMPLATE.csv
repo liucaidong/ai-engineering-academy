@@ -1,0 +1,5 @@
+participant_id,module_id,lesson_id,task_id,activity_type,started_at,ended_at,active_minutes,blocked_minutes,help_requests,environment,execution_mode,evidence_level,completed,result,friction_code,friction_description,artifact_ref,observer_notes
+P01,M01,m01-01-ai-system-map,m01-01-product-decomposition,lesson,,,,,,macOS,,E0,,,,,,
+P01,M01,m01-01-ai-system-map,,reading,,,,,,macOS,,E0,,,,,,
+P01,M01,m01-01-ai-system-map,,practice,,,,,,macOS,browser-local,E2,,,,,,
+P01,M01,m01-01-ai-system-map,m01-01-product-decomposition,assessment,,,,,,macOS,,E0,,,,,,
