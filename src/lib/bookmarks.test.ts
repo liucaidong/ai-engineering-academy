@@ -3,10 +3,15 @@ import { loadBookmarks, serializeBookmarks, toggleBookmark } from "./bookmarks";
 
 describe("browser-local module bookmarks", () => {
   it("round-trips known module IDs", () => {
-    expect(loadBookmarks(serializeBookmarks(["M01", "M03"]), ["M01", "M02", "M03"])).toEqual(["M01", "M03"]);
+    expect(loadBookmarks(serializeBookmarks(["M01", "M03"]), ["M01", "M02", "M03"])).toEqual([
+      "M01",
+      "M03",
+    ]);
   });
   it("filters unknown and duplicate IDs", () => {
-    expect(loadBookmarks(JSON.stringify({ version: 1, moduleIds: ["M01", "M99", "M01"] }), ["M01"])).toEqual(["M01"]);
+    expect(
+      loadBookmarks(JSON.stringify({ version: 1, moduleIds: ["M01", "M99", "M01"] }), ["M01"]),
+    ).toEqual(["M01"]);
   });
   it("ignores malformed and unsupported data", () => {
     expect(loadBookmarks("{", ["M01"])).toEqual([]);

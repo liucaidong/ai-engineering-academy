@@ -1,6 +1,10 @@
 # M05 教师教学指南与作业参考解答
 
-> 版本：0.19.0 · 适用模块：M05 LLM 推理、解码与服务工程  
+> 课程版本：0.40.9
+
+> **证据评阅：** 教师应按[全课程证据等级](../CURRICULUM_EVIDENCE_LEVELS.md)区分设计、静态审阅、模拟/Mock、本地测试、目标环境测试和生产观测；只为实际覆盖范围授予等级。
+
+>
 > 本指南为教学参考，不代表特定推理引擎的实测性能承诺。
 
 ## 使用方式与课前准备
@@ -142,6 +146,7 @@ p_i=\frac{\exp(z_i/\tau)}{\sum_j\exp(z_j/\tau)}
 - 采用 per-tenant quota/weighted fair queue，避免单一租户占满 KV。
 - 监控 P50/P95/P99 TTFT、TPOT、queue wait、output tokens/s、active sequences、KV occupancy、preemption 和 rejection。
 - 过载时先背压，再按策略拒绝/延后低优先级任务；不可无限排队。
+- 简化 M/M/1 中系统逗留时间 W=1/(μ−λ)，纯排队等待时间 Wq=λ/[μ(μ−λ)]；两者不可混称。LLM 推理有非指数服务时间和 token-aware 调度，此模型只用于说明 λ 接近 μ 时延迟急剧上升。
 - 目标 P95 TTFT 必须由业务方定义并通过压测校准，不能凭空写一个通用数值。
 
 **评分对照（10 分）：** 调度机制 4；指标公平 3；过载处理 3。
@@ -224,6 +229,32 @@ Draft model 先提出若干候选 token，target model 对候选序列并行验�
 - 只算权重，不为 KV 留空间。
 - 以平均延迟代替 P95/P99。
 - 故障时无限重试或切换到未经评估的模型。
+
+## 进阶概念辨析与课堂扩展
+
+### 1. KV Cache 分页管理不是 KV 压缩
+
+PagedAttention 将逻辑 token block 映射到物理 KV blocks，主要解决动态增长、连续大块分配、碎片和共享问题。它不减少单 token 的 K/V 数值维度，也不等同于 INT8/INT4 KV quantization。分页还会引入 block table、尾块浪费和调度管理开销。前缀复用要求 token 前缀、模型/adapter 版本、位置语义和缓存配置兼容，并需要引用计数、copy-on-write 与租户隔离。
+
+### 2. 采样、约束解码与业务校验是三层
+
+Temperature、top-k、top-p、min-p 和 repetition penalty 影响候选分布；grammar-constrained decoding 限制合法 token 序列；应用层解析、Schema validation 和业务规则校验确认输出可用。JSON 语法合法不代表字段事实正确、权限允许或业务结果成立。教师应要求学生分别报告语法成功率、Schema 成功率和任务成功率。
+
+### 3. Continuous batching、chunked prefill 与 phase disaggregation
+
+- Continuous batching 在迭代边界加入/移除请求，管理动态 batch。
+- Chunked prefill 将长 prompt 分段调度，减少长 Prefill 对 Decode 的阻塞。
+- Prefill/Decode disaggregation 将两阶段放到不同 worker/资源池，允许独立分配硬件和并行策略，但增加 KV/state transfer、网络和故障恢复成本。
+
+三者解决不同层次的问题，不能混为一个优化技术。建议对照 Orca、Sarathi-Serve、DistServe 和 Splitwise 的系统设计。
+
+### 4. Speculative Decoding 的分布保持条件
+
+对 draft 分布 q 采样得到候选 token x，target 分布为 p，标准接受概率为 min(1,p(x)/q(x))；若拒绝，按归一化残差分布 max(0,p−q) 修正采样。不能直接将 draft token 无条件采纳并声称与 target sampling 等价。速度收益还取决于 draft 成本、接受率、验证成本、batch 和内存带宽。
+
+### 5. Goodput 与 SLO-aware admission control
+
+Throughput 是完成速率；Goodput 只计满足定义的质量/延迟/错误率约束的有效请求。Admission control 应在接收请求前检查队列、KV、token 预算、租户配额和 deadline，决定接收、排队、拒绝、降级或路由。压测必须覆盖长短 prompt/output、并发、突发到达、取消、缓存命中和租户分布，并报告 P50/P95/P99 TTFT、TPOT、goodput、tokens/s、KV occupancy、OOM/rejection 与单位有效请求成本。
 
 ## 教师批改总表
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
@@ -6,17 +6,16 @@ from uuid import uuid4
 import pytest
 from fastapi import Response
 
-from app.security.oidc import generate_session_token
 from app.models.identity import AuthSession
+from app.security.oidc import generate_session_token
 from app.security.sessions import (
     CSRF_COOKIE_NAME,
     SESSION_COOKIE_NAME,
     create_session,
-    revoke_session,
     resolve_session,
+    revoke_session,
     set_session_cookies,
 )
-
 
 SECRET = "0123456789abcdef0123456789abcdef"
 
@@ -25,11 +24,9 @@ SECRET = "0123456789abcdef0123456789abcdef"
 async def test_create_session_persists_only_hash_and_returns_raw_cookie_token() -> None:
     db = SimpleNamespace(add=MagicMock(), flush=AsyncMock())
     user_id = uuid4()
-    now = datetime(2026, 11, 5, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 5, tzinfo=UTC)
 
-    record, raw_token = await create_session(
-        db, user_id=user_id, ttl=timedelta(hours=8), now=now
-    )
+    record, raw_token = await create_session(db, user_id=user_id, ttl=timedelta(hours=8), now=now)
 
     assert record.user_id == user_id
     assert record.token_hash != raw_token
@@ -57,7 +54,7 @@ async def test_session_ttl_and_naive_timestamps_are_rejected() -> None:
 @pytest.mark.asyncio
 async def test_revoke_session_uses_hash_and_returns_rowcount() -> None:
     token = generate_session_token()
-    now = datetime(2026, 11, 5, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 5, tzinfo=UTC)
     record = AuthSession(
         id=uuid4(),
         user_id=uuid4(),
@@ -101,11 +98,10 @@ def test_session_cookies_have_http_only_session_and_readable_csrf() -> None:
     assert csrf in csrf_cookie
 
 
-
 @pytest.mark.asyncio
 async def test_resolve_session_switches_from_token_hash_to_user_context() -> None:
     token = generate_session_token()
-    now = datetime(2026, 11, 5, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 5, tzinfo=UTC)
     record = AuthSession(
         id=uuid4(),
         user_id=uuid4(),

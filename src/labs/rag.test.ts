@@ -16,11 +16,15 @@ describe("RAG teaching primitives", () => {
   });
 
   it("returns ranked top-k documents", () => {
-    const results = retrieveToy("vector retrieval", [
-      { id: "a", text: "Vector retrieval uses embeddings", source: "guide-a" },
-      { id: "b", text: "Cooking pasta with tomato", source: "guide-b" },
-      { id: "c", text: "Retrieval augmented generation", source: "guide-c" }
-    ], 2);
+    const results = retrieveToy(
+      "vector retrieval",
+      [
+        { id: "a", text: "Vector retrieval uses embeddings", source: "guide-a" },
+        { id: "b", text: "Cooking pasta with tomato", source: "guide-b" },
+        { id: "c", text: "Retrieval augmented generation", source: "guide-c" },
+      ],
+      2,
+    );
     expect(results).toHaveLength(2);
     expect(results[0].rerankScore).toBeGreaterThanOrEqual(results[1].rerankScore);
   });

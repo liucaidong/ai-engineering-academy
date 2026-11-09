@@ -3,6 +3,7 @@
 The middleware is intentionally not installed by default: deployment must
 supply its exact trusted-origin allowlist and a dedicated 256-bit CSRF secret.
 """
+
 import hmac
 from urllib.parse import urlsplit
 
@@ -50,7 +51,11 @@ class CSRFSecurityMiddleware(BaseHTTPMiddleware):
         csrf_secret: str | bytes,
     ) -> None:
         super().__init__(app)
-        if not csrf_secret or len(csrf_secret.encode("utf-8") if isinstance(csrf_secret, str) else csrf_secret) < 32:
+        if (
+            not csrf_secret
+            or len(csrf_secret.encode("utf-8") if isinstance(csrf_secret, str) else csrf_secret)
+            < 32
+        ):
             raise ValueError("CSRF secret must contain at least 32 bytes")
         if not allowed_origins:
             raise ValueError("at least one trusted origin must be configured")

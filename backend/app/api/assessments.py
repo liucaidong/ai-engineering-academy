@@ -1,8 +1,9 @@
 """Learner-owned assessment attempts. No instructor grading endpoint is exposed."""
+
 import json
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
@@ -30,7 +31,9 @@ class AttemptCreate(BaseModel):
         for value in (self.response, self.rubric_self_review):
             if value is not None:
                 try:
-                    size = len(json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8"))
+                    size = len(
+                        json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+                    )
                 except (TypeError, ValueError) as error:
                     raise ValueError("payload must contain finite JSON values") from error
                 if size > 65536:
@@ -66,17 +69,23 @@ def _assessment_exists(release: CourseRelease, key: str) -> bool:
         for lesson in module["lessons"]:
             if not isinstance(lesson, dict) or not isinstance(lesson.get("assessments"), list):
                 continue
-            if any(isinstance(item, dict) and item.get("id") == key for item in lesson["assessments"]):
+            if any(
+                isinstance(item, dict) and item.get("id") == key for item in lesson["assessments"]
+            ):
                 return True
     return False
 
 
 async def _owned_attempt(db, attempt_id: UUID, user_id: UUID, tenant_id: UUID):
-    result = await db.execute(select(AssessmentResult).where(
-        AssessmentResult.id == attempt_id,
-        AssessmentResult.user_id == user_id,
-        AssessmentResult.tenant_id == tenant_id,
-    ).with_for_update())
+    result = await db.execute(
+        select(AssessmentResult)
+        .where(
+            AssessmentResult.id == attempt_id,
+            AssessmentResult.user_id == user_id,
+            AssessmentResult.tenant_id == tenant_id,
+        )
+        .with_for_update()
+    )
     value = result.scalar_one_or_none()
     if value is None:
         raise HTTPException(status_code=404, detail="Assessment attempt not found")
@@ -86,11 +95,13 @@ async def _owned_attempt(db, attempt_id: UUID, user_id: UUID, tenant_id: UUID):
 @router.get("/attempts", response_model=list[AttemptRead])
 async def list_attempts(
     request: Request,
-    tenant_id: UUID = Header(alias="X-Tenant-ID"),
-    course_release_id: UUID | None = Query(default=None),
-    limit: int = Query(default=50, ge=1, le=100),
+    tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
+    course_release_id: Annotated[UUID | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ):
-    async with learner_transaction(request, tenant_id=tenant_id, permission="assessment:read:self") as (db, principal):
+    async with learner_transaction(
+        request, tenant_id=tenant_id, permission="assessment:read:self"
+    ) as (db, principal):
         query = select(AssessmentResult).where(
             AssessmentResult.tenant_id == principal.tenant_id,
             AssessmentResult.user_id == principal.user_id,
@@ -103,41 +114,55 @@ async def list_attempts(
 
 @router.post("/attempts", response_model=AttemptRead, status_code=201)
 async def create_attempt(
-    body: AttemptCreate, request: Request, tenant_id: UUID = Header(alias="X-Tenant-ID")
+    body: AttemptCreate, request: Request, tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")]
 ):
     try:
-        async with learner_transaction(request, tenant_id=tenant_id, permission="assessment:write:self") as (db, principal):
-            result = await db.execute(select(CourseRelease).where(
-                CourseRelease.id == body.course_release_id,
-                CourseRelease.status == "published",
-            ))
+        async with learner_transaction(
+            request, tenant_id=tenant_id, permission="assessment:write:self"
+        ) as (db, principal):
+            result = await db.execute(
+                select(CourseRelease).where(
+                    CourseRelease.id == body.course_release_id,
+                    CourseRelease.status == "published",
+                )
+            )
             release = result.scalar_one_or_none()
             if release is None or not _assessment_exists(release, body.assessment_key.strip()):
                 raise HTTPException(status_code=404, detail="Published assessment not found")
-            latest = await db.execute(select(func.max(AssessmentResult.attempt_number)).where(
-                AssessmentResult.tenant_id == principal.tenant_id,
-                AssessmentResult.user_id == principal.user_id,
-                AssessmentResult.course_release_id == body.course_release_id,
-                AssessmentResult.assessment_key == body.assessment_key.strip(),
-            ))
+            latest = await db.execute(
+                select(func.max(AssessmentResult.attempt_number)).where(
+                    AssessmentResult.tenant_id == principal.tenant_id,
+                    AssessmentResult.user_id == principal.user_id,
+                    AssessmentResult.course_release_id == body.course_release_id,
+                    AssessmentResult.assessment_key == body.assessment_key.strip(),
+                )
+            )
             attempt = create_assessment_attempt(
-                tenant_id=principal.tenant_id, user_id=principal.user_id,
-                course_release_id=body.course_release_id, assessment_key=body.assessment_key,
-                attempt_number=(latest.scalar_one() or 0) + 1, grading_mode="self_review",
-                response=body.response, rubric_self_review=body.rubric_self_review,
+                tenant_id=principal.tenant_id,
+                user_id=principal.user_id,
+                course_release_id=body.course_release_id,
+                assessment_key=body.assessment_key,
+                attempt_number=(latest.scalar_one() or 0) + 1,
+                grading_mode="self_review",
+                response=body.response,
+                rubric_self_review=body.rubric_self_review,
             )
             db.add(attempt)
             await db.flush()
             return attempt
     except IntegrityError as error:
-        raise HTTPException(status_code=409, detail="Assessment attempt conflicted; retry") from error
+        raise HTTPException(
+            status_code=409, detail="Assessment attempt conflicted; retry"
+        ) from error
 
 
 @router.post("/attempts/{attempt_id}/submit", response_model=AttemptRead)
 async def submit_attempt(
-    attempt_id: UUID, request: Request, tenant_id: UUID = Header(alias="X-Tenant-ID")
+    attempt_id: UUID, request: Request, tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")]
 ):
-    async with learner_transaction(request, tenant_id=tenant_id, permission="assessment:write:self") as (db, principal):
+    async with learner_transaction(
+        request, tenant_id=tenant_id, permission="assessment:write:self"
+    ) as (db, principal):
         attempt = await _owned_attempt(db, attempt_id, principal.user_id, principal.tenant_id)
         try:
             submit_assessment(attempt)

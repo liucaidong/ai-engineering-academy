@@ -1,6 +1,7 @@
 """One-time OIDC login transaction storage with encrypted PKCE verifier."""
+
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import UUID
 
@@ -63,7 +64,7 @@ async def create_login_transaction(
     now: datetime | None = None,
 ) -> OIDCLoginStart:
     """Persist only state/nonce hashes and an encrypted PKCE verifier."""
-    current = now or datetime.now(timezone.utc)
+    current = now or datetime.now(UTC)
     if current.tzinfo is None:
         raise ValueError("OIDC transaction timestamps must be timezone-aware")
     if ttl.total_seconds() <= 0 or ttl > timedelta(minutes=15):
@@ -74,9 +75,9 @@ async def create_login_transaction(
     record = OIDCLoginTransaction(
         state_hash=parameters.state_hash,
         nonce_hash=parameters.nonce_hash,
-        code_verifier_ciphertext=cipher.encrypt(
-            parameters.code_verifier.encode("ascii")
-        ).decode("ascii"),
+        code_verifier_ciphertext=cipher.encrypt(parameters.code_verifier.encode("ascii")).decode(
+            "ascii"
+        ),
         redirect_uri=redirect_uri,
         created_at=current,
         expires_at=current + ttl,
@@ -102,7 +103,7 @@ async def consume_login_transaction(
     now: datetime | None = None,
 ) -> ConsumedOIDCLogin | None:
     """Atomically consume a state exactly once and decrypt its PKCE verifier."""
-    current = now or datetime.now(timezone.utc)
+    current = now or datetime.now(UTC)
     if current.tzinfo is None:
         raise ValueError("OIDC transaction timestamps must be timezone-aware")
     if not isinstance(state, str) or not 32 <= len(state) <= 512:
@@ -129,11 +130,15 @@ async def consume_login_transaction(
         return None
 
     try:
-        code_verifier = _cipher(encryption_key).decrypt(
-            record.code_verifier_ciphertext.encode("ascii")
-        ).decode("ascii")
+        code_verifier = (
+            _cipher(encryption_key)
+            .decrypt(record.code_verifier_ciphertext.encode("ascii"))
+            .decode("ascii")
+        )
     except (InvalidToken, UnicodeDecodeError, ValueError) as error:
-        raise OIDCLoginTransactionError("OIDC transaction verifier could not be decrypted") from error
+        raise OIDCLoginTransactionError(
+            "OIDC transaction verifier could not be decrypted"
+        ) from error
 
     record.consumed_at = current
     await db.flush()
@@ -173,6 +178,4 @@ def build_authorization_url(
             "code_challenge_method": "S256",
         }
     )
-    return urlunsplit(
-        (parsed.scheme, parsed.netloc, parsed.path, urlencode(parameters), "")
-    )
+    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(parameters), ""))

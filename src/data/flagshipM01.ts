@@ -53,9 +53,9 @@ export const flagshipM01Lessons: Course["modules"][number]["lessons"] = [
       ]
     }],
     sources: [
-      { title: "Updated OECD Definition of an AI System", url: "https://oecd.ai/en/dashboards/policy-initiatives/updated-oecd-definition-of-an-ai-system-4108", publisher: "OECD.AI", note: "用于理解 AI 系统的输入、目标、输出与自主性维度" },
+      { title: "OECD Recommendation on Artificial Intelligence (OECD/LEGAL/0449)", url: "https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449", publisher: "OECD", note: "2023-11 更新 AI system 定义、2024-05 再修订 Recommendation；定义涵盖输入推断、预测/内容/建议/决策输出及部署后自主性/适应性" },
       { title: "Explanatory Memorandum on the Updated OECD Definition of an AI System", url: "https://www.oecd.org/en/publications/explanatory-memorandum-on-the-updated-oecd-definition-of-an-ai-system_623da898-en.html", publisher: "OECD", note: "用于理解 AI 系统定义边界及其解释背景" },
-      { title: "AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", publisher: "NIST", note: "从系统生命周期和风险管理角度补充概念地图" }
+      { title: "AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", publisher: "NIST", note: "AI RMF 1.0 是自愿框架，NIST 当前正在修订；不是法规或强制认证" }
     ]
   },
   {
@@ -165,7 +165,7 @@ export const flagshipM01Lessons: Course["modules"][number]["lessons"] = [
     sources: [
       { title: "Attention Is All You Need", url: "https://arxiv.org/abs/1706.03762", publisher: "Vaswani et al., NeurIPS 2017", note: "理解 Transformer 作为现代语言模型重要架构基础" },
       { title: "Language Models are Few-Shot Learners", url: "https://arxiv.org/abs/2005.14165", publisher: "Brown et al., NeurIPS 2020", note: "大规模自回归语言模型的训练与能力研究" },
-      { title: "GPT-4 Technical Report", url: "https://arxiv.org/abs/2303.08774", publisher: "OpenAI", note: "大规模模型能力评测与局限性讨论" }
+      { title: "GPT-4 Technical Report", url: "https://arxiv.org/abs/2303.08774", publisher: "OpenAI", note: "GPT-4 技术报告描述能力与局限；明确未披露架构规模、硬件、训练计算和数据集构造细节" }
     ]
   },
   {
@@ -219,7 +219,7 @@ export const flagshipM01Lessons: Course["modules"][number]["lessons"] = [
     }],
     sources: [
       { title: "AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", publisher: "NIST", note: "风险识别、测量、管理与治理的系统框架" },
-      { title: "OWASP Top 10 for Large Language Model Applications", url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/", publisher: "OWASP", note: "提示注入、敏感信息泄露和不安全工具等应用风险" },
+      { title: "OWASP GenAI LLM Top 10 (2026)", url: "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/", publisher: "OWASP GenAI Security Project", note: "提示注入、敏感信息泄露和不安全工具等应用风险" },
       { title: "GPT-4 Technical Report", url: "https://arxiv.org/abs/2303.08774", publisher: "OpenAI", note: "模型能力评测及局限性说明" }
     ]
   },
@@ -276,7 +276,7 @@ export const flagshipM01Lessons: Course["modules"][number]["lessons"] = [
     sources: [
       { title: "AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", publisher: "NIST", note: "系统设计、风险测量、治理和运行管理" },
       { title: "NIST AI RMF Playbook", url: "https://airc.nist.gov/airmf-resources/playbook/", publisher: "NIST", note: "把风险管理原则转化为可执行工作项" },
-      { title: "OWASP Top 10 for Large Language Model Applications", url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/", publisher: "OWASP", note: "LLM 应用威胁建模和安全控制参考" }
+      { title: "OWASP GenAI LLM Top 10 (2026)", url: "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/", publisher: "OWASP GenAI Security Project", note: "LLM 应用威胁建模和安全控制参考" }
     ]
   }
 ];

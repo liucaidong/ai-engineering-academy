@@ -6,10 +6,7 @@ import pytest
 @pytest.fixture(scope="module")
 def migration_sources() -> dict[str, str]:
     directory = Path(__file__).resolve().parents[1] / "migrations" / "versions"
-    return {
-        path.name: path.read_text(encoding="utf-8")
-        for path in directory.glob("*.py")
-    }
+    return {path.name: path.read_text(encoding="utf-8") for path in directory.glob("*.py")}
 
 
 def test_identity_rls_is_enabled_and_forced_for_every_identity_table(
@@ -27,8 +24,8 @@ def test_identity_rls_is_enabled_and_forced_for_every_identity_table(
         "audit_events",
     )
 
-    assert "for table in (\"users\"" in source
-    assert all(f'\"{table}\"' in source for table in protected_tables)
+    assert 'for table in ("users"' in source
+    assert all(f'"{table}"' in source for table in protected_tables)
     assert 'op.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY")' in source
     assert 'op.execute(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY")' in source
 
@@ -41,6 +38,8 @@ def test_identity_rls_context_is_transaction_local_and_fail_closed(
     assert "current_setting('app.user_id', true)" in source
     assert "current_setting('app.tenant_id', true)" in source
     assert "NULLIF(current_setting('app.user_id', true), '')::uuid" in source
+    assert "tenant_memberships_self_select" in source
+    assert "status = 'active'" in source
     assert "NULLIF(current_setting('app.tenant_id', true), '')::uuid" in source
 
 
@@ -53,9 +52,9 @@ def test_learner_tables_force_rls_and_require_active_membership(
 
     assert 'op.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY")' in source
     assert 'op.execute(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY")' in source
-    assert f"CREATE POLICY {table}_self_select" in source
-    assert f"CREATE POLICY {table}_self_insert" in source
-    assert f"CREATE POLICY {table}_self_update" in source
+    assert "CREATE POLICY {table}_self_select" in source
+    assert "CREATE POLICY {table}_self_insert" in source
+    assert "CREATE POLICY {table}_self_update" in source
     assert "m.status = 'active'" in source
     assert "tenant_id = {_TENANT} AND user_id = {_USER}" in source
 
@@ -121,6 +120,9 @@ def test_oidc_identity_bootstrap_and_personal_workspace_policies_are_scoped(
     assert "subject = NULLIF(current_setting('app.oidc_subject', true), '')" in source
     assert "tenants_personal_owner_insert" in source
     assert "tenant_memberships_personal_self_insert" in source
+    assert "tenant_memberships_user_select" in source
+    assert "status = 'active'" in source
+    assert "m.status = 'active'" in source
     assert "tenant_membership_roles_learner_self_insert" in source
     assert "role = 'learner'" in source
     assert "granted_by_user_id IS NULL" in source
@@ -166,3 +168,17 @@ def test_tenant_membership_discovery_policy_exposes_only_active_self_rows(
     assert "user_id = NULLIF(current_setting('app.user_id', true), '')::uuid" in source
     assert "status = 'active'" in source
     assert "DROP POLICY IF EXISTS tenant_memberships_self_discovery" in source
+
+
+def test_personal_tenant_bootstrap_policy_is_exact_and_reversible(
+    migration_sources: dict[str, str],
+) -> None:
+    source = migration_sources["0011_personal_tenant_bootstrap.py"]
+    assert "tenants_personal_owner_bootstrap_select" in source
+    assert "current_setting('app.oidc_personal_tenant_id', true)" in source
+    assert "current_setting('app.tenant_id', true)" in source
+    assert "current_setting('app.user_id', true)" in source
+    assert "tenant_type = 'personal'" in source
+    assert "personal_owner_user_id" in source
+    assert "USING (true)" not in source
+    assert "DROP POLICY IF EXISTS tenants_personal_owner_bootstrap_select" in source

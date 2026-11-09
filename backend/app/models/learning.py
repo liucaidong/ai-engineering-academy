@@ -1,4 +1,5 @@
 """Tenant- and learner-owned progress and assessment records."""
+
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
@@ -16,7 +17,8 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base

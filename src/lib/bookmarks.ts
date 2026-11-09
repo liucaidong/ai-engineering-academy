@@ -2,10 +2,13 @@ import { z } from "zod";
 
 const BookmarkSchema = z.object({
   version: z.literal(1),
-  moduleIds: z.array(z.string())
+  moduleIds: z.array(z.string()),
 });
 
-export function loadBookmarks(serialized: string | null, knownModuleIds: readonly string[]): string[] {
+export function loadBookmarks(
+  serialized: string | null,
+  knownModuleIds: readonly string[],
+): string[] {
   if (!serialized) return [];
   try {
     const parsed: unknown = JSON.parse(serialized);
@@ -23,5 +26,7 @@ export function serializeBookmarks(moduleIds: readonly string[]): string {
 }
 
 export function toggleBookmark(moduleIds: readonly string[], moduleId: string): string[] {
-  return moduleIds.includes(moduleId) ? moduleIds.filter((id) => id !== moduleId) : [...moduleIds, moduleId];
+  return moduleIds.includes(moduleId)
+    ? moduleIds.filter((id) => id !== moduleId)
+    : [...moduleIds, moduleId];
 }

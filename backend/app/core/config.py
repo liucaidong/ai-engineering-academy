@@ -1,4 +1,5 @@
 """Environment-backed service configuration with fail-closed OIDC activation."""
+
 from functools import lru_cache
 from urllib.parse import urlsplit
 
@@ -82,12 +83,13 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def enforce_production_database(self) -> "Settings":
-        if self.environment == "production":
-            if not self.database_required or self.database_url is None:
-                raise ValueError(
-                    "Production requires ACADEMY_DATABASE_REQUIRED=true "
-                    "and ACADEMY_DATABASE_URL to be configured"
-                )
+        if self.environment == "production" and (
+            not self.database_required or self.database_url is None
+        ):
+            raise ValueError(
+                "Production requires ACADEMY_DATABASE_REQUIRED=true "
+                "and ACADEMY_DATABASE_URL to be configured"
+            )
         return self
 
     @model_validator(mode="after")
@@ -115,7 +117,9 @@ class Settings(BaseSettings):
                 "post-login URL, CSRF secret and allowed origins"
             )
         if not self.database_required or self.database_url is None:
-            raise ValueError("OIDC sign-in requires ACADEMY_DATABASE_REQUIRED=true and a database URL")
+            raise ValueError(
+                "OIDC sign-in requires ACADEMY_DATABASE_REQUIRED=true and a database URL"
+            )
         if self.environment == "production" and not self.session_cookie_secure:
             raise ValueError("Production OIDC sessions require Secure cookies")
         if not 300 <= self.session_ttl_seconds <= 90 * 24 * 60 * 60:
@@ -125,7 +129,9 @@ class Settings(BaseSettings):
         try:
             Fernet(self.oidc_transaction_encryption_key.get_secret_value().encode("ascii"))
         except (TypeError, ValueError) as error:
-            raise ValueError("OIDC transaction encryption key must be a valid Fernet key") from error
+            raise ValueError(
+                "OIDC transaction encryption key must be a valid Fernet key"
+            ) from error
 
         OIDCProviderConfig(
             issuer=self.oidc_issuer,

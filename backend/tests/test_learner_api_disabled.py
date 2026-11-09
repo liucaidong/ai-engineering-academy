@@ -10,7 +10,11 @@ from app.core.config import Settings
 async def test_learner_data_routes_are_disabled_by_default(monkeypatch):
     from app.api import dependencies
 
-    monkeypatch.setattr(dependencies, "get_settings", lambda: Settings(_env_file=None, learner_data_api_enabled=False))
+    monkeypatch.setattr(
+        dependencies,
+        "get_settings",
+        lambda: Settings(_env_file=None, learner_data_api_enabled=False),
+    )
     app = FastAPI()
     app.include_router(learning.router)
     app.include_router(assessments.router)

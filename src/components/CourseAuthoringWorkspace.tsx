@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import type { Course } from "../types/course";
-import { getCourseValidationErrors, validateCourse } from "../lib/validateCourse";
+import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 import { isWithinUtf8ByteLimit } from "../lib/utf8";
+import { getCourseValidationErrors, validateCourse } from "../lib/validateCourse";
+import type { Course } from "../types/course";
 
 const STORAGE_KEY = "ai-engineering-academy:authoring-draft:v1";
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
@@ -93,22 +93,46 @@ export default function CourseAuthoringWorkspace({ initialCourse }: Props) {
       <div className="authoring-toolbar">
         <label className="authoring-file-label">
           导入 JSON
-          <input aria-label="导入课程 JSON 文件" type="file" accept="application/json,.json" onChange={importFile} />
+          <input
+            aria-label="导入课程 JSON 文件"
+            type="file"
+            accept="application/json,.json"
+            onChange={importFile}
+          />
         </label>
-        <button type="button" className="secondary-button" onClick={() => setSource(initialSource)}>恢复仓库课程</button>
-        <button type="button" className="primary-button" disabled={!result.valid} onClick={exportFile}>导出已校验 JSON</button>
+        <button type="button" className="secondary-button" onClick={() => setSource(initialSource)}>
+          恢复仓库课程
+        </button>
+        <button
+          type="button"
+          className="primary-button"
+          disabled={!result.valid}
+          onClick={exportFile}
+        >
+          导出已校验 JSON
+        </button>
       </div>
       <div className="authoring-status" role="status" aria-live="polite">
         <strong>{result.valid ? "Schema 校验通过" : "Schema 校验未通过"}</strong>
-        <span>{result.valid ? `${result.course.modules.length} 个模块 · Schema v${result.course.schemaVersion}` : `${result.errors.length} 项错误 / 解析信息`}</span>
+        <span>
+          {result.valid
+            ? `${result.course.modules.length} 个模块 · Schema v${result.course.schemaVersion}`
+            : `${result.errors.length} 项错误 / 解析信息`}
+        </span>
       </div>
       {!result.valid && (
         <div className="validation-warning" role="alert">
           <strong>修复以下问题后才能导出：</strong>
-          <ul>{result.errors.map((error, index) => <li key={index}>{error}</li>)}</ul>
+          <ul>
+            {result.errors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
         </div>
       )}
-      <label className="field-label" htmlFor="course-json-editor">课程 JSON（最大 2 MiB UTF-8）</label>
+      <label className="field-label" htmlFor="course-json-editor">
+        课程 JSON（最大 2 MiB UTF-8）
+      </label>
       <textarea
         id="course-json-editor"
         className="authoring-editor"
@@ -118,7 +142,8 @@ export default function CourseAuthoringWorkspace({ initialCourse }: Props) {
         aria-describedby="authoring-storage-note"
       />
       <p id="authoring-storage-note" className="assessment-storage-note">
-        本地草稿自动保存到 localStorage。导入与导出均在浏览器内完成；此工具不是云端 CMS，也不会直接发布课程。
+        本地草稿自动保存到 localStorage。导入与导出均在浏览器内完成；此工具不是云端
+        CMS，也不会直接发布课程。
       </p>
     </section>
   );

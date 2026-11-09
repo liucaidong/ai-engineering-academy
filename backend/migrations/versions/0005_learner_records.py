@@ -3,16 +3,17 @@
 Revision ID: 0005_learner_records
 Revises: 0004_tenant_rls
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0005_learner_records"
-down_revision: Union[str, None] = "0004_tenant_rls"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "0004_tenant_rls"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 _USER = "NULLIF(current_setting('app.user_id', true), '')::uuid"
 _TENANT = "NULLIF(current_setting('app.tenant_id', true), '')::uuid"
@@ -32,10 +33,25 @@ def upgrade() -> None:
             server_default="in_progress",
             nullable=False,
         ),
-        sa.Column("started_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "started_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("last_accessed_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "last_accessed_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.CheckConstraint(
             "length(trim(module_key)) > 0",
             name="ck_learning_progress_module_key_non_empty",
@@ -99,8 +115,18 @@ def upgrade() -> None:
         sa.Column("graded_by_user_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("graded_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.CheckConstraint(
             "length(trim(assessment_key)) > 0",
             name="ck_assessment_results_assessment_key_non_empty",
@@ -180,14 +206,8 @@ def upgrade() -> None:
             f"WHERE m.tenant_id = {table}.tenant_id "
             f"AND m.user_id = {table}.user_id AND m.status = 'active')"
         )
-        op.execute(
-            f"CREATE POLICY {table}_self_select ON {table} "
-            f"FOR SELECT USING ({scope})"
-        )
-        op.execute(
-            f"CREATE POLICY {table}_self_insert ON {table} "
-            f"FOR INSERT WITH CHECK ({scope})"
-        )
+        op.execute(f"CREATE POLICY {table}_self_select ON {table} FOR SELECT USING ({scope})")
+        op.execute(f"CREATE POLICY {table}_self_insert ON {table} FOR INSERT WITH CHECK ({scope})")
         op.execute(
             f"CREATE POLICY {table}_self_update ON {table} "
             f"FOR UPDATE USING ({scope}) WITH CHECK ({scope})"

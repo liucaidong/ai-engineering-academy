@@ -1,0 +1,18 @@
+{
+  "commit_sha": "0123456789abcdef",
+  "reviewed_scope": ["src/auth/"],
+  "excluded_scope": ["vendor/"],
+  "checks_performed": ["manual source inspection"],
+  "unverified_areas": ["runtime deployment configuration"],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "path": "src/auth/session.py",
+      "line_start": 42,
+      "line_end": 47,
+      "evidence": "Session token is compared using a non-constant-time equality operation.",
+      "remediation": "Use a constant-time comparison and add a regression test."
+    }
+  ]
+}

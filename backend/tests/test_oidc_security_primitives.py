@@ -11,7 +11,6 @@ from app.security.oidc import (
     verify_oidc_state,
 )
 
-
 CSRF_SECRET = "0123456789abcdef0123456789abcdef"
 
 
@@ -49,10 +48,7 @@ def test_csrf_secret_must_have_at_least_32_bytes() -> None:
 def test_pkce_s256_matches_rfc7636_known_vector() -> None:
     verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 
-    assert (
-        pkce_s256_challenge(verifier)
-        == "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
-    )
+    assert pkce_s256_challenge(verifier) == "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
 
 
 def test_pkce_rejects_invalid_verifier() -> None:
@@ -83,7 +79,6 @@ def test_oidc_state_and_nonce_reject_mismatches() -> None:
     assert not verify_oidc_nonce("wrong-nonce-" + parameters.nonce, parameters.nonce_hash)
     assert not verify_oidc_state("", parameters.state_hash)
     assert not verify_oidc_nonce("", parameters.nonce_hash)
-
 
 
 def test_session_hash_rejects_non_ascii_tokens() -> None:

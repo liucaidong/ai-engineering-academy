@@ -35,8 +35,7 @@ def test_course_release_has_version_uniqueness_and_guard_constraints() -> None:
     assert "content_sha256 ~ '^[0-9a-f]{64}$'" in check_expressions
     assert (
         "((status = 'draft' AND published_at IS NULL) OR "
-        "(status IN ('published', 'retired') AND published_at IS NOT NULL))"
-        in check_expressions
+        "(status IN ('published', 'retired') AND published_at IS NOT NULL))" in check_expressions
     )
 
 
@@ -82,9 +81,10 @@ def test_membership_role_foreign_key_is_tenant_scoped() -> None:
     ]
 
     assert len(composite_foreign_keys) == 1
-    assert tuple(
-        element.target_fullname for element in composite_foreign_keys[0].elements
-    ) == ("tenant_memberships.tenant_id", "tenant_memberships.id")
+    assert tuple(element.target_fullname for element in composite_foreign_keys[0].elements) == (
+        "tenant_memberships.tenant_id",
+        "tenant_memberships.id",
+    )
     assert TenantMembershipRole.__tablename__ == "tenant_membership_roles"
 
 
@@ -103,7 +103,6 @@ def test_identity_and_tenant_tables_are_registered() -> None:
     assert expected.issubset(Base.metadata.tables)
 
 
-
 def test_learning_progress_is_scoped_to_membership_and_course_release() -> None:
     table = Base.metadata.tables["learning_progress"]
     foreign_keys = [
@@ -117,8 +116,7 @@ def test_learning_progress_is_scoped_to_membership_and_course_release() -> None:
         for constraint in foreign_keys
     )
     assert any(
-        tuple(element.target_fullname for element in constraint.elements)
-        == ("course_releases.id",)
+        tuple(element.target_fullname for element in constraint.elements) == ("course_releases.id",)
         for constraint in foreign_keys
     )
     assert LearningProgress.__tablename__ == "learning_progress"
@@ -153,8 +151,7 @@ def test_learning_progress_completion_timestamp_is_consistent() -> None:
     assert "completion_status IN ('in_progress', 'completed')" in checks
     assert (
         "(completion_status = 'completed' AND completed_at IS NOT NULL) OR "
-        "(completion_status = 'in_progress' AND completed_at IS NULL)"
-        in checks
+        "(completion_status = 'in_progress' AND completed_at IS NULL)" in checks
     )
 
 
@@ -169,4 +166,6 @@ def test_assessment_result_lifecycle_and_score_are_constrained() -> None:
     assert "attempt_number > 0" in checks
     assert "status IN ('draft', 'submitted', 'graded')" in checks
     assert "score IS NULL OR (score >= 0 AND score <= 100)" in checks
-    assert any("grading_fields_match_status" in (constraint.name or "") for constraint in table.constraints)
+    assert any(
+        "grading_fields_match_status" in (constraint.name or "") for constraint in table.constraints
+    )

@@ -1,6 +1,6 @@
+import pytest
 from cryptography.fernet import Fernet
 from pydantic import SecretStr, ValidationError
-import pytest
 
 from app.core.config import Settings
 
@@ -41,9 +41,7 @@ def test_complete_oidc_configuration_is_validated_and_normalized() -> None:
 
 def test_post_login_redirect_must_be_allowlisted() -> None:
     with pytest.raises(ValidationError, match="allowed-origin"):
-        valid_oidc_settings(
-            oidc_post_login_redirect_url="https://other.example.test/"
-        )
+        valid_oidc_settings(oidc_post_login_redirect_url="https://other.example.test/")
 
 
 def test_production_oidc_requires_secure_session_cookie() -> None:

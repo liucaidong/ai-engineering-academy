@@ -1,3 +1,184 @@
+## 0.40.9 — 2026-11-10
+
+- M20: matched 20/20 source occurrences against 16 current sources; added the occurrence-level review register.
+- Pinned Capstone references to MCP 2026-07-28, SLSA v1.2 and OWASP ASVS 5.0.0; corrected ISO 29148 revision lifecycle status.
+- Hardened M20 validators for requirement metadata, ADR options, evidence paths, hard-constraint gates and defense package completeness.
+- Global scoped source matching: 398/398 occurrences; zero remain pending.
+
+- Completed M01–M03 source matching: 51 lesson-level occurrences across the three modules; full course register now 398/398 with zero pending.
+- Updated OECD AI definition, PyTorch, GloVe and OpenAI token-counting/text-generation sources; added M01–M03 review files.
+- Active URL register: 287 unique URLs; 279 HTTP 200, 3 HTTP 206, 5 HTTP 403, no TLS errors, 19 redirects, no confirmed 404.
+- Final `pnpm acceptance:local` passed: 73 Vitest, 19 schema, 41 Playwright E2E, 88 Python example tests, backend pytest 122 passed / 1 optional RLS skip; Biome, TypeScript, OpenAPI drift, Vite build, Ruff, uv lock and `git diff --check` passed.
+- No commit, push, branch switch, destructive cleanup or GitHub Actions run.
+
+## 0.40.8 — 2026-11-10
+
+- M19: matched 20/20 source occurrences to 15 current claim-specific sources; added the occurrence-level review register.
+- M19 examples: finite discovery scoring, approval expiry/idempotency binding, Decimal unit economics, SRM p-values/two-proportion diagnostics, and a fuller reproducible release manifest.
+- Updated M17–M19 teaching guides and source registers; global scoped source matching is 329/398 (69 pending).
+
+## 0.40.7 — 2026-11-10
+
+### AI platform and multi-tenancy review
+- Verified all 21 M18 source occurrences across 19 unique URLs; created a dedicated claim/source review.
+- Added NIST SP 800-57 Rev.6 IPD source; confirmed Rev.5 remains the final published baseline as of 2026-11-10.
+- Updated LiteLLM, OpenAI Responses, Anthropic Messages and Stripe rate-limit references.
+- Hardened HMAC config snapshots, route/fallback checks, CloudEvents metering, Decimal settlement, tenant object ACL/cache keys and N+1 capacity calculation.
+- Global scoped source matching: 311/398 occurrences; 87 remain pending.
+- Full `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python examples, backend pytest 122 passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and `git diff --check` passed.
+
+## 0.40.6 — 2026-11-10
+
+### Evaluation and observability review
+- Verified all 20 M17 source occurrences across 18 unique URLs and created a dedicated claim/source review.
+- Distinguished IID pass@k from HumanEval's finite-sample unbiased estimator; documented task-level bootstrap and judge-bias limits.
+- Clarified NIST AI RMF revision, voluntary Playbook and OpenTelemetry GenAI Development status.
+- Hardened task contracts, paired judge order-bias tests, telemetry allowlists and finite SLO calculations.
+- Global scoped source matching: 292/397 occurrences; 105 remain pending.
+- Full `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python examples, backend pytest 122 passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and `git diff --check` passed.
+
+## 0.40.5 — 2026-11-10
+
+### Durable workflow and reliability review
+- Verified all 21 M16 source occurrences across 19 unique URLs; created a dedicated claim/source review.
+- Pinned CloudEvents to v1.0.2, clarified the `specversion:"1.0"` attribute and updated NIST SP 800-53 Release 5.2.0 source.
+- Added Temporal Worker Versioning/Event History sources and clarified Activity retries, replay compatibility and OpenTelemetry Messaging Development status.
+- Added in-memory Outbox/Inbox, Full Jitter and signed approval-event/one-time nonce examples with regression tests.
+- Global scoped source matching: 272/397 occurrences; 125 remain pending.
+- Full `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python examples, backend pytest 122 passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and `git diff --check` passed.
+
+## 0.40.4 — 2026-11-10
+
+### Agent security, privacy and governance review
+- Verified all 20 M15 source occurrences across 19 unique URLs and created a dedicated claim/source review.
+- Updated current NIST Privacy Framework, SP 800-162 Update 2, SP 800-53 Release 5.2.0, AI RMF Playbook, OWASP WSTG v4.2, EU AI Act and ISO/IEC 42001 references.
+- Hardened taint/egress fail-closed behavior, Decimal payment checks, resource ACLs, approver-bound HMAC approvals and atomic one-time nonce consumption.
+- Global scoped source matching: 252/396 occurrences; 144 remain pending.
+- Full `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python examples, backend pytest 122 passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and `git diff --check` passed.
+
+## 0.40.3 — 2026-11-10
+
+### Multi-Agent and A2A v1.0.1 technical review
+- Verified all 20 M14 source occurrences across 19 unique URLs; created a dedicated claim/source review report.
+- Pinned A2A sources to v1.0.1 and updated the example to validate supportedInterfaces, core protocol bindings, TaskState, ROLE_* and Part oneof.
+- Strengthened process-local CAS atomicity and source-lineage evidence deduplication tests.
+- Corrected OpenAI Agents SDK tracing semantics, including custom artifact spans, sensitive-data capture and ZDR limitations.
+- Global scoped source matching: 239/396 occurrences; 157 remain pending.
+- Full `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python examples, backend pytest 122 passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and `git diff --check` passed.
+
+## 0.40.2 — 2026-11-10
+
+### Agent Skills source and technical review
+- Verified all 20 M13 source occurrences across 14 unique URLs and synchronized the claim/source traceability register.
+- Updated SLSA v1.0 (Retired) to current Approved v1.2; canonicalized Claude Code Skills documentation.
+- Distinguished Agent Skills standard fields from organization-defined registry contracts and Claude Code-specific runtime fields.
+- Clarified skills-ref demonstration-only scope and the limits of runtime/tool-orchestration references.
+- Added separate binary trigger FPR, false-trigger share and multi-Skill routing error metrics with regression coverage.
+- Global scoped source matching: 219/396 occurrences; 177 remain pending.
+- Full `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python examples, backend pytest 122 passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and `git diff --check` passed.
+
+## 0.40.1 — 2026-11-10
+
+### MCP extension-scope and source reconciliation
+- Limited Tasks task-augmented execution to the currently documented `tools/call` request and added negative regression tests for `prompts/get` and `resources/read`.
+- Clarified per-request Tasks capability advertisement and server discovery; documented MCP Apps Host capability advertisement and progressive fallback.
+- Corrected OAuth 2.1 draft-17 update date, canonicalized Tasks/MCP Apps source URLs and synchronized all 24 M12 source-traceability rows.
+- Updated current course source inventory to 396 occurrences / 285 unique URLs (M12: 24 occurrences / 23 unique URLs).
+- Full `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python example tests, backend pytest 122 passed / 1 optional RLS integration test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and `git diff --check` passed.
+
+## 0.40.0 — 2026-11-10
+
+### MCP 2026-07-28 stateless protocol and security correction
+- Completed claim-to-source matching for all 24 M12 references and added `docs/claim-source-reviews/M12.md`.
+- Rebuilt the lifecycle around modern stateless requests (per-request `_meta`, optional `clientInfo`, `server/discover`) while retaining legacy 2025-11-25-and-earlier initialize/session compatibility.
+- Corrected Streamable HTTP POST headers, request-scoped SSE, `subscriptions/listen`, no GET/session endpoint, MRTR inputRequired/requestState integrity and cache `ttlMs`/`cacheScope` semantics.
+- Clarified HTTP-only MCP Authorization, OAuth 2.1 draft-17 and CIMD draft-03 status, `iss`/`resource`/audience validation, token passthrough prohibition and CIMD SSRF controls.
+- Added primary source links for versioning, caching, MRTR, Tasks, MCP Apps and deprecated feature registry; clarified optional extension negotiation and deprecation status.
+- Traceability register: 201/396 source occurrences have scoped verification notes; 195 remain pending. URL audit: 275 HTTP 200, 3 HTTP 206, 6 HTTP 403, 1 TLS error, 34 redirects and no confirmed 404.
+- `pnpm acceptance:local` is run after this tranche; GitHub Actions, commit and push remain disabled.
+
+## 0.39.9 — 2026-11-10
+
+### M11 planning and long-term memory source review
+- Completed claim-to-source matching for all 20 M11 references and added `docs/claim-source-reviews/M11.md`.
+- Corrected Plan-and-Solve and Ragas titles; clarified Tree of Thoughts vs prompting vs PDDL/classical planning boundaries.
+- Updated NIST AI RMF 1.0 status (published framework under revision; 2026 critical-infrastructure profile remains a concept note).
+- Added LongMemEval v2 and LoCoMo benchmark dimensions; qualified Mem0 latency/accuracy/token claims as author-reported results requiring independent reproduction.
+- Traceability register: 177/392 source occurrences have scoped verification notes; 215 remain pending. URL audit unchanged: 268 HTTP 200, 3 HTTP 206, 6 HTTP 403, 1 TLS error, 39 redirects and no confirmed 404.
+- `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python example tests, 122 backend tests passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and diff checks passed. GitHub Actions, commit and push remain disabled.
+
+## 0.39.8 — 2026-11-10
+
+### M10 agent runtime and observability source review
+- Completed claim-to-source matching for all 20 M10 references and added `docs/claim-source-reviews/M10.md`.
+- Added current AgentBench v3 metadata; clarified Temporal deterministic Workflow replay vs retryable Activities and LangGraph thread-scoped checkpointer vs cross-thread store.
+- OpenTelemetry GenAI Semantic Conventions are explicitly marked Development, not Stable; production guidance now pins convention/instrumentation versions and requires schema migration management.
+- Checked pass^k and the IID (p^k) formula assumptions; retained environment-state postcondition verification and retry reconciliation requirements.
+- Traceability register: 157/392 source occurrences have scoped verification notes; 235 remain pending. URL audit remains 278 URLs: 268 HTTP 200, 3 HTTP 206, 6 HTTP 403, 1 TLS error, 39 redirects and no confirmed 404.
+- `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python example tests, 122 backend tests passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and diff checks passed. GitHub Actions, commit and push remain disabled.
+
+## 0.39.7 — 2026-11-10
+
+### M09 multimodal source and version accuracy
+- Completed claim-to-source matching for all 20 M09 references and added `docs/claim-source-reviews/M09.md`.
+- Corrected paper metadata: Whisper is the model name, not part of the paper title; EnCodec is the codec name, not part of the paper title; Video-LLaMA citation now uses its full current title.
+- Clarified NIST Privacy Framework 1.0 is the published framework and 1.1 remains an Initial Public Draft, not a final standard.
+- Checked CLIP/SigLIP/ImageBind alignment claims, ViT patch/token calculations, DDPM and CFG equations, audio PCM storage, WER and video-frame sampling coverage.
+- Traceability register: 138/392 source occurrences have scoped verification notes; 254 remain pending. URL crawl unchanged: 268 HTTP 200, 3 HTTP 206, 6 HTTP 403, 1 TLS error, 39 redirects and no confirmed 404.
+- `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python example tests, 122 backend tests passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and diff checks passed. GitHub Actions, commit and push remain disabled.
+
+## 0.39.6 — 2026-11-10
+
+### M08 retrieval correctness and NIST reference currency
+- Completed claim-to-source matching for all 19 M08 references and added `docs/claim-source-reviews/M08.md`.
+- Canonicalized Unstructured, LlamaIndex and LangChain documentation; updated OWASP to its 2025 edition; replaced the generic BERT citation with the direct *Passage Re-ranking with BERT* paper; corrected Ragas/BEIR titles.
+- Clarified that LangChain RecursiveCharacterTextSplitter defaults to character length, not token length; token budgets require a tokenizer-aware length function. Verified chunk-count, vector-similarity and RRF examples.
+- Canonicalized six NIST references. Updated SP 800-53 to Release 5.2.0 and superseded SP 800-61 Rev.2 with Rev.3; retained SP 800-57 Rev.5 as final while labeling Rev.6 as draft; noted SP 800-218A.
+- Six NIST URLs had HEAD-only 404 results but all returned GET 200; they were false positives, not dead links. The crawl now retries GET after HEAD errors.
+- Traceability register: 118/392 source occurrences have scoped verification notes; 274 remain pending. URL audit: 268 HTTP 200, 3 HTTP 206, 6 HTTP 403, 1 TLS error, 39 redirects, no confirmed 404.
+- `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python example tests, 122 backend tests passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and diff checks passed. GitHub Actions, commit and push remain disabled.
+
+## 0.39.5 — 2026-11-10
+
+### M07 tool-calling protocol and side-effect semantics
+- Completed claim-to-source matching for all 20 M07 source occurrences and added `docs/claim-source-reviews/M07.md`.
+- Canonicalized OpenAI Function Calling, Anthropic Tool Use, Stripe Idempotency and OWASP API Security links.
+- Corrected the arXiv citation: arXiv:2307.16789 is ToolLLM; ToolBench is its dataset/benchmark.
+- Clarified MCP 2026-07-28 required `_meta`, JSON-RPC correlation ID vs business idempotency key, Stripe API v1/v2 retry semantics and duplicate Transactional Outbox delivery.
+- Traceability register: 90/392 occurrences have scoped verification notes; 302 remain pending. Current 278-URL recrawl: 271 HTTP 200, 6 HTTP 403, 1 TLS error, 40 redirects; all seven crawler-limited sources independently corroborated.
+- `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python example tests, 122 backend tests passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and diff checks passed. GitHub Actions, commit and push remain disabled.
+
+## 0.39.4 — 2026-11-10
+
+### M06 prompt engineering, safety and evaluation references
+- Completed source-content matching for all 21 M06 references and added `docs/claim-source-reviews/M06.md`.
+- Canonicalized OpenAI, Anthropic and Google prompt/structured-output documentation URLs; updated OWASP Top 10 to its 2025 edition.
+- Updated the adversarial-prompt paper title to current arXiv v5 PromptRobust while recording its v1 PromptBench title history.
+- Added Brown et al. for Wilson score intervals and Efron for bootstrap methods; clarified paired bootstrap must resample matched task units and report paired differences.
+- The traceability register now has 70/392 source occurrences with scoped verification notes; 322 remain pending.
+- Current 279-URL recrawl: 272 HTTP 200, 6 HTTP 403, 1 TLS error, 44 redirects. All seven crawler-limited sources were independently corroborated.
+- `pnpm acceptance:local` passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python example tests, 122 backend tests passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and diff checks passed. GitHub Actions, commit and push remain disabled.
+
+## 0.39.3 — 2026-11-10
+
+### M05 inference reference currency
+- Completed source-content matching for all 20 M05 references and added `docs/claim-source-reviews/M05.md`.
+- Replaced the legacy DeepSpeed inference tutorial URL with the current official inference overview. Added a clear note that DeepSpeed-Inference v2 is now DeepSpeed-FastGen and that old `init_inference` tutorials are legacy API examples.
+- Verified KV-cache formulas, MHA/MQA/GQA distinctions, sampling calculations, queueing examples, PagedAttention block arithmetic, speculative decoding distribution preservation and theoretical quantization payloads.
+- The claim-to-source register now has 50/390 scoped verified source occurrences; 340 remain pending.
+- Local acceptance passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python example tests, 122 backend tests passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and diff checks passed.
+- No platform feature or backend behavior changed; no GitHub Actions, commit or push was performed.
+
+## 0.39.2 — 2026-11-10
+
+### Bibliography traceability and source correction
+- Replaced the legacy M19 OpenAI API pricing URL with the current canonical official developer documentation URL; pricing remains explicitly time-sensitive.
+- Added a lesson-level claim-to-source register covering all 390 source occurrences / 276 unique URLs. Completed the first deep bibliography tranche for all 21 M04 references against primary papers and official documentation.
+- Independently corroborated six crawler-limited sources while preserving their original HTTP 403/TLS outcomes separately from independent evidence.
+- Recorded the full 276-URL recrawl: 270 HTTP 200, 5 HTTP 403, 1 TLS error, 46 redirects and no confirmed remaining 404.
+- Local acceptance passed: 73 Vitest, 19 course-schema, 41 Playwright E2E, 88 Python example tests, 122 backend tests passed / 1 optional RLS test skipped; Biome, TypeScript, OpenAPI drift, production build, Ruff, uv lock and diff checks passed.
+- No platform feature or backend behavior changed; no GitHub Actions, commit or push was performed.
+
 ## 0.22.0 — 2026-11-06
 
 ### Assessment clarity correction

@@ -5,18 +5,18 @@ uses HTTPS-only discovery/JWKS endpoints, caches signing keys, refreshes once on
 an unknown key id, exchanges authorization codes with PKCE and delegates JWT
 cryptography to PyJWT. It does not expose HTTP authentication routes.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass
 import base64
 import time
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Self
 from urllib.parse import quote_plus, urlparse
-
-from pydantic import SecretStr
 
 import httpx
 import jwt
+from pydantic import SecretStr
 
 
 class OIDCProviderError(ValueError):
@@ -84,7 +84,7 @@ class OIDCVerifier:
         self._jwks: dict[str, dict[str, Any]] = {}
         self._jwks_expires_at = 0.0
 
-    async def __aenter__(self) -> "OIDCVerifier":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(self, *_: object) -> None:
@@ -108,7 +108,13 @@ class OIDCVerifier:
         if not isinstance(value, str):
             raise OIDCProviderError(f"OIDC metadata is missing {name}")
         parsed = urlparse(value)
-        if parsed.scheme != "https" or not parsed.netloc or parsed.username is not None or parsed.password is not None or parsed.fragment:
+        if (
+            parsed.scheme != "https"
+            or not parsed.netloc
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.fragment
+        ):
             raise OIDCProviderError(f"OIDC {name} must be an HTTPS URL")
         return value
 
@@ -132,7 +138,9 @@ class OIDCVerifier:
             authorization_endpoint=self._require_https_endpoint(
                 payload.get("authorization_endpoint"), "authorization_endpoint"
             ),
-            token_endpoint=self._require_https_endpoint(payload.get("token_endpoint"), "token_endpoint"),
+            token_endpoint=self._require_https_endpoint(
+                payload.get("token_endpoint"), "token_endpoint"
+            ),
             jwks_uri=self._require_https_endpoint(payload.get("jwks_uri"), "jwks_uri"),
         )
         self._discovery = discovery
@@ -179,7 +187,6 @@ class OIDCVerifier:
         self._jwks_expires_at = now + self.config.cache_ttl_seconds
         return keys
 
-
     async def exchange_authorization_code(
         self,
         *,
@@ -224,9 +231,9 @@ class OIDCVerifier:
             if not secret:
                 raise OIDCProviderError("configured OIDC client secret is empty")
             credentials = f"{quote_plus(self.config.client_id)}:{quote_plus(secret)}"
-            headers["Authorization"] = (
-                "Basic " + base64.b64encode(credentials.encode("utf-8")).decode("ascii")
-            )
+            headers["Authorization"] = "Basic " + base64.b64encode(
+                credentials.encode("utf-8")
+            ).decode("ascii")
         else:
             form["client_id"] = self.config.client_id
 
@@ -298,16 +305,25 @@ class OIDCVerifier:
                 },
             )
         except jwt.PyJWTError as error:
-            raise OIDCProviderError("ID token signature or registered claims are invalid") from error
+            raise OIDCProviderError(
+                "ID token signature or registered claims are invalid"
+            ) from error
 
         audiences = claims.get("aud")
         if isinstance(audiences, list) and len(audiences) > 1:
             if claims.get("azp") != self.config.client_id:
-                raise OIDCProviderError("ID token azp must identify this client for multiple audiences")
+                raise OIDCProviderError(
+                    "ID token azp must identify this client for multiple audiences"
+                )
         elif claims.get("azp") is not None and claims.get("azp") != self.config.client_id:
             raise OIDCProviderError("ID token azp does not match the configured client")
         subject = claims.get("sub")
-        if not isinstance(subject, str) or not subject or len(subject) > 255 or not subject.isascii():
+        if (
+            not isinstance(subject, str)
+            or not subject
+            or len(subject) > 255
+            or not subject.isascii()
+        ):
             raise OIDCProviderError("ID token subject is invalid")
 
         from app.security.oidc import verify_oidc_nonce

@@ -25,4 +25,5 @@ async def test_all_auth_routes_fail_closed_without_oidc_configuration(monkeypatc
             await client.post("/auth/logout"),
         ]
 
-    assert [response.status_code for response in responses] == [503, 503, 503, 503, 503, 503]
+    # Tenant discovery is intentionally not exposed as an HTTP route yet.
+    assert [response.status_code for response in responses] == [503, 503, 503, 404, 503, 503]

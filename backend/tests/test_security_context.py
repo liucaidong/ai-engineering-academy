@@ -29,6 +29,7 @@ async def test_security_context_uses_transaction_local_settings() -> None:
     assert "set_config('app.tenant_id', :tenant_id, true)" in statement
     assert "set_config('app.session_token_hash', '', true)" in statement
     assert "set_config('app.oidc_state_hash', '', true)" in statement
+    assert "set_config('app.oidc_personal_tenant_id', '', true)" in statement
     assert parameters == {"user_id": str(user_id), "tenant_id": str(tenant_id)}
 
 
@@ -69,11 +70,11 @@ async def test_session_lookup_context_is_transaction_local_and_validated() -> No
     assert "set_config('app.session_token_hash', :token_hash, true)" in statement
     assert "set_config('app.oidc_issuer', '', true)" in statement
     assert "set_config('app.oidc_subject', '', true)" in statement
+    assert "set_config('app.oidc_personal_tenant_id', '', true)" in statement
     assert session.execute.await_args.args[1] == {"token_hash": token_hash}
 
     with pytest.raises(ValueError, match="64 lowercase"):
         await set_session_lookup_context(session, "not-a-hash")
-
 
 
 @pytest.mark.asyncio
@@ -92,8 +93,8 @@ async def test_oidc_state_context_clears_other_security_contexts() -> None:
     assert "set_config('app.oidc_subject', '', true)" in statement
     assert "set_config('app.oidc_issuer', '', true)" in statement
     assert "set_config('app.oidc_subject', '', true)" in statement
+    assert "set_config('app.oidc_personal_tenant_id', '', true)" in statement
     assert session.execute.await_args.args[1] == {"state_hash": state_hash}
-
 
 
 @pytest.mark.asyncio
@@ -116,3 +117,23 @@ async def test_oidc_identity_lookup_context_is_exact_and_clears_other_contexts()
             issuer=issuer,
             subject="用户",
         )
+
+
+@pytest.mark.asyncio
+async def test_personal_tenant_bootstrap_context_is_transaction_local_and_clearable() -> None:
+    from app.db.session import (
+        clear_personal_tenant_bootstrap_context,
+        set_personal_tenant_bootstrap_context,
+    )
+
+    session = FakeSession(active=True)
+    tenant_id = UUID("33333333-3333-4333-8333-333333333333")
+
+    await set_personal_tenant_bootstrap_context(session, tenant_id=tenant_id)
+    statement = str(session.execute.await_args.args[0])
+    assert "set_config('app.oidc_personal_tenant_id', :tenant_id, true)" in statement
+    assert session.execute.await_args.args[1] == {"tenant_id": str(tenant_id)}
+
+    await clear_personal_tenant_bootstrap_context(session)
+    clear_statement = str(session.execute.await_args.args[0])
+    assert "set_config('app.oidc_personal_tenant_id', '', true)" in clear_statement

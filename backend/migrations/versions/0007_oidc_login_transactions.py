@@ -3,16 +3,17 @@
 Revision ID: 0007_oidc_login_transactions
 Revises: 0006_session_lookup_rls
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0007_oidc_login_transactions"
-down_revision: Union[str, None] = "0006_session_lookup_rls"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "0006_session_lookup_rls"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -23,7 +24,9 @@ def upgrade() -> None:
         sa.Column("nonce_hash", sa.String(length=64), nullable=False),
         sa.Column("code_verifier_ciphertext", sa.String(length=1024), nullable=False),
         sa.Column("redirect_uri", sa.String(length=2048), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("consumed_at", sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint("state_hash", name="uq_oidc_login_transactions_state_hash"),

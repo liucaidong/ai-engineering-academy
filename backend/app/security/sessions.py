@@ -4,20 +4,21 @@ All database operations participate in the caller's transaction. This module
 never commits, and raw session tokens are returned only to the caller that
 must deliver them as Secure/HttpOnly cookies.
 """
+
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi import Response
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.identity import AuthSession, User
 from app.db.session import (
     clear_session_lookup_context,
     set_security_context,
     set_session_lookup_context,
 )
+from app.models.identity import AuthSession, User
 from app.security.oidc import (
     derive_csrf_token,
     generate_session_token,
@@ -36,7 +37,7 @@ class ResolvedSession:
 
 
 def _now(value: datetime | None) -> datetime:
-    current = value or datetime.now(timezone.utc)
+    current = value or datetime.now(UTC)
     if current.tzinfo is None:
         raise ValueError("session timestamps must be timezone-aware")
     return current

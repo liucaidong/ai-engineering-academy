@@ -4,10 +4,12 @@ Persistence, authorization and transaction boundaries are owned by callers.
 All database writes must run through an authenticated transaction so RLS is
 applied; these helpers never infer identity from request payloads.
 """
-from datetime import datetime, timezone
+
 import json
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
-from typing import Any, Mapping
+from typing import Any
 from uuid import UUID
 
 from app.models.learning import AssessmentResult, LearningProgress
@@ -24,7 +26,7 @@ def _json_object(value: Mapping[str, Any] | None) -> dict[str, Any]:
 
 
 def _aware_now(value: datetime | None = None) -> datetime:
-    result = value or datetime.now(timezone.utc)
+    result = value or datetime.now(UTC)
     if result.tzinfo is None or result.utcoffset() is None:
         raise ValueError("timestamps must be timezone-aware")
     return result
@@ -122,9 +124,7 @@ def create_assessment_attempt(
         grading_mode=grading_mode,
         response=_json_object(response),
         rubric_self_review=(
-            _json_object(rubric_self_review)
-            if rubric_self_review is not None
-            else None
+            _json_object(rubric_self_review) if rubric_self_review is not None else None
         ),
     )
 
@@ -144,7 +144,7 @@ def submit_assessment(
 def grade_assessment(
     result: AssessmentResult,
     *,
-    score: Decimal | int | float | str,
+    score: Decimal | float | str,
     graded_by_user_id: UUID | None = None,
     now: datetime | None = None,
     feedback: Mapping[str, Any] | None = None,

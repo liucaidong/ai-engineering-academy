@@ -11,7 +11,7 @@ export const TOY_MERGES: readonly MergeRule[] = [
   ["a", "n"],
   ["an", "d"],
   ["l", "o"],
-  ["lo", "w"]
+  ["lo", "w"],
 ];
 
 /**
@@ -19,7 +19,10 @@ export const TOY_MERGES: readonly MergeRule[] = [
  * hand-authored merge table. This is NOT a production tokenizer and does not
  * reproduce any vendor/model vocabulary or token IDs.
  */
-export function encodeWithToyBpe(input: string, rules: readonly MergeRule[] = TOY_MERGES): BpeResult {
+export function encodeWithToyBpe(
+  input: string,
+  rules: readonly MergeRule[] = TOY_MERGES,
+): BpeResult {
   const rank = new Map(rules.map(([left, right], index) => [`${left}\u0000${right}`, index]));
   const tokens: string[] = [];
   const steps: MergeStep[] = [];
@@ -30,7 +33,7 @@ export function encodeWithToyBpe(input: string, rules: readonly MergeRule[] = TO
       continue;
     }
 
-    let pieces = Array.from(segment.toLowerCase());
+    const pieces = Array.from(segment.toLowerCase());
     while (pieces.length > 1) {
       let bestIndex = -1;
       let bestRank = Number.POSITIVE_INFINITY;

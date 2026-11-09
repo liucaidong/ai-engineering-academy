@@ -4,12 +4,13 @@ This module does not perform OIDC discovery, token exchange or JWT signature
 verification. Those operations must be implemented by the provider adapter
 before any authentication route is enabled.
 """
-from dataclasses import dataclass
+
 import base64
 import hashlib
 import hmac
 import secrets
 import string
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)

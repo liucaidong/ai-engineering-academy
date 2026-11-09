@@ -1,4 +1,5 @@
 """Tenant-membership authorization with default-deny role permissions."""
+
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -55,7 +56,9 @@ async def load_tenant_principal(
 ) -> TenantPrincipal | None:
     """Resolve active membership and roles from the database, never from client claims."""
     statement = (
-        select(TenantMembership.id, TenantMembership.status, Tenant.status, TenantMembershipRole.role)
+        select(
+            TenantMembership.id, TenantMembership.status, Tenant.status, TenantMembershipRole.role
+        )
         .join(Tenant, Tenant.id == TenantMembership.tenant_id)
         .outerjoin(
             TenantMembershipRole,

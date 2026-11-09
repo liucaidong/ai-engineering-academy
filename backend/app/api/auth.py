@@ -1,13 +1,16 @@
 """OIDC Authorization Code + PKCE routes; disabled until explicitly configured."""
+
+import hmac
 from datetime import timedelta
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.core.config import Settings, get_settings
 from app.db.session import transaction_scope
+from app.security.oidc import derive_csrf_token
 from app.security.oidc_provider import OIDCProviderError, OIDCVerifier
 from app.security.oidc_transactions import (
     OIDCLoginTransactionError,
@@ -15,7 +18,6 @@ from app.security.oidc_transactions import (
     consume_login_transaction,
     create_login_transaction,
 )
-from app.security.oidc import derive_csrf_token
 from app.security.sessions import (
     SESSION_COOKIE_NAME,
     clear_session_cookies,
@@ -30,6 +32,8 @@ from app.services.oidc_identity import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+OIDC_STATE_COOKIE_NAME = "__Host-academy_oidc_state"
+OIDC_LOGIN_TRANSACTION_TTL_SECONDS = 300
 
 
 def _settings() -> Settings:
@@ -44,8 +48,8 @@ async def _database(request: Request):
     if database is None:
         raise HTTPException(status_code=503, detail="Database is unavailable")
     try:
-        await database.check_schema_revision("0010_tenant_membership_discovery")
-    except Exception as error:
+        await database.check_schema_revision("0011_personal_tenant_bootstrap")
+    except (SQLAlchemyError, RuntimeError, ValueError) as error:
         raise HTTPException(
             status_code=503,
             detail="Database migrations are not at the required revision",
@@ -84,6 +88,15 @@ async def login(request: Request) -> RedirectResponse:
     except OIDCLoginTransactionError as error:
         raise HTTPException(status_code=503, detail="Unable to start sign-in") from error
     response = RedirectResponse(authorization_url, status_code=303)
+    response.set_cookie(
+        key=OIDC_STATE_COOKIE_NAME,
+        value=login_transaction.state,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
+        max_age=OIDC_LOGIN_TRANSACTION_TTL_SECONDS,
+    )
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"
     return response
@@ -97,10 +110,15 @@ async def callback(
     error: str | None = None,
 ) -> RedirectResponse:
     settings = _settings()
+    browser_state = request.cookies.get(OIDC_STATE_COOKIE_NAME)
+    if (
+        not state
+        or not browser_state
+        or not hmac.compare_digest(browser_state.encode("utf-8"), state.encode("utf-8"))
+    ):
+        raise HTTPException(status_code=400, detail="Invalid sign-in response")
     verifier = _verifier(request)
     database = await _database(request)
-    if not state:
-        raise HTTPException(status_code=400, detail="Invalid sign-in response")
 
     try:
         async with transaction_scope(database) as db:
@@ -127,7 +145,9 @@ async def callback(
             expected_nonce_hash=login_transaction.nonce_hash,
         )
     except OIDCProviderError as exception:
-        raise HTTPException(status_code=401, detail="Identity provider response was rejected") from exception
+        raise HTTPException(
+            status_code=401, detail="Identity provider response was rejected"
+        ) from exception
 
     async def provision_and_create_session():
         async with transaction_scope(database) as db:
@@ -151,7 +171,9 @@ async def callback(
         try:
             raw_session_token = await provision_and_create_session()
         except OIDCIdentityRejected as exception:
-            raise HTTPException(status_code=403, detail="This account cannot sign in") from exception
+            raise HTTPException(
+                status_code=403, detail="This account cannot sign in"
+            ) from exception
     except OIDCIdentityRejected as exception:
         raise HTTPException(status_code=403, detail="This account cannot sign in") from exception
 
@@ -162,6 +184,13 @@ async def callback(
         csrf_secret=settings.csrf_secret_value,
         max_age_seconds=settings.session_ttl_seconds,
         secure=settings.session_cookie_secure,
+    )
+    response.delete_cookie(
+        key=OIDC_STATE_COOKIE_NAME,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
     )
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"

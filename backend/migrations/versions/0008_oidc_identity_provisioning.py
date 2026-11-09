@@ -3,14 +3,15 @@
 Revision ID: 0008_oidc_identity_provisioning
 Revises: 0007_oidc_login_transactions
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 from alembic import op
 
 revision: str = "0008_oidc_identity_provisioning"
-down_revision: Union[str, None] = "0007_oidc_login_transactions"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "0007_oidc_login_transactions"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -22,12 +23,15 @@ def upgrade() -> None:
         "AND subject = NULLIF(current_setting('app.oidc_subject', true), ''))"
     )
 
-    # A user may see their own personal tenant and memberships before selecting
-    # an active tenant. This does not expose organization membership to others.
+    # A user may discover their own personal tenant and active membership
+    # before selecting a tenant context. Suspended memberships grant no visibility.
     op.execute(
         "CREATE POLICY tenants_personal_owner_select ON tenants FOR SELECT USING "
         "(tenant_type = 'personal' AND personal_owner_user_id = "
-        "NULLIF(current_setting('app.user_id', true), '')::uuid)"
+        "NULLIF(current_setting('app.user_id', true), '')::uuid AND EXISTS ("
+        "SELECT 1 FROM tenant_memberships m WHERE m.tenant_id = tenants.id "
+        "AND m.user_id = NULLIF(current_setting('app.user_id', true), '')::uuid "
+        "AND m.status = 'active'))"
     )
     op.execute(
         "CREATE POLICY tenants_personal_owner_insert ON tenants FOR INSERT WITH CHECK "
@@ -36,7 +40,7 @@ def upgrade() -> None:
     )
     op.execute(
         "CREATE POLICY tenant_memberships_user_select ON tenant_memberships FOR SELECT USING "
-        "(user_id = NULLIF(current_setting('app.user_id', true), '')::uuid)"
+        "(user_id = NULLIF(current_setting('app.user_id', true), '')::uuid AND status = 'active')"
     )
     op.execute(
         "CREATE POLICY tenant_memberships_personal_self_insert ON tenant_memberships "
@@ -56,7 +60,7 @@ def upgrade() -> None:
         "AND m.tenant_id = tenant_membership_roles.tenant_id "
         "AND m.user_id = NULLIF(current_setting('app.user_id', true), '')::uuid "
         "AND m.status = 'active' "
-        "AND tenant_membership_roles.granted_by_user_id IS NULL)"
+        "AND tenant_membership_roles.granted_by_user_id IS NULL))"
     )
 
 

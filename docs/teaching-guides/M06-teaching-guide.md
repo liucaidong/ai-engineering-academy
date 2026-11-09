@@ -1,6 +1,8 @@
 # M06 教师教学指南与作业参考解答
 
-> 版本：0.19.0 · 适用模块：M06 Prompt Engineering、结构化输出与提示词安全
+> 课程版本：0.40.9
+
+> **证据评阅：** 教师应按[全课程证据等级](../CURRICULUM_EVIDENCE_LEVELS.md)区分设计、静态审阅、模拟/Mock、本地测试、目标环境测试和生产观测；只为实际覆盖范围授予等级。
 
 ## 使用方式与课前准备
 
@@ -229,6 +231,32 @@ Schema 通过只代表结构有效，不代表业务正确或用户有权限。�
 - Prompt 版本号变了，但模型、工具 Schema 和数据集未记录。
 - Canary 只看平均质量，不看安全硬约束和 P95。
 - 回滚只恢复 Prompt 文本，却没有恢复兼容的模型/工具版本。
+
+## 进阶概念辨析与课堂扩展
+
+### 1. Prompt 契约应绑定运行时依赖
+
+Prompt 的行为由模板、模型/provider 版本、消息序列化、Tokenizer、工具 Schema、检索策略、采样参数和数据快照共同决定。教学中要求学生保存 prompt hash、owner、变量 Schema、兼容模型、测试集版本、变更理由和回滚目标。Prompt 文本本身不包含可信身份或权限证明。
+
+### 2. Few-shot 是预算约束下的覆盖优化
+
+建议先满足类别和风险边界的最小覆盖，再按相关性、质量和多样性补充。MMR 等选择器是启发式，必须用目标 Tokenizer 计量，并通过顺序扰动实验检查位置敏感性。对比样本应突出决定标签的关键特征，避免只给相似正例。
+
+### 3. Grammar-Constrained Decoding 不等于业务正确
+
+语法约束把生成限制在某个形式语言中；JSON parse、完整 Schema、业务语义和资源授权仍需独立执行。供应商对 JSON Schema 的支持可能是子集，必须建立目标 API 的兼容性矩阵，并对缺失字段、null、额外字段、递归和数值边界做测试。
+
+### 4. Prompt Injection 需要可执行的红队证据
+
+建议以 BIPIA 等间接注入研究为起点，构造直接用户注入、网页/文档注入、工具结果伪装、跨轮持久化和数据外带测试。每条用例记录 source、payload、target asset、tool path、expected block layer、actual result 和 data exposure。必须验证工具执行端的实际副作用；模型口头拒绝不是安全验收。
+
+### 5. LLM Judge 必须做测量校准
+
+建立人工标注基准，报告 Judge 与人工的一致性、分歧和置信区间。交换候选顺序识别 position bias，改变长度识别 verbosity bias，检查 Judge 对自身模型输出的偏好。二项比例可报告 Wilson score 区间；成对指标应按相同任务/样本对执行 paired bootstrap，并直接报告配对差值区间，不能将 A/B 两组独立重抽样。安全硬门槛不得被总体均值抵消。
+
+### 6. 实验工作簿与代码
+
+学生实验统一见 [M06 实验工作簿](./M06-lab-workbook.md)，可运行计算器见仓库的 `examples/m06/README.md`。示例代码仅检查 manifest、样本覆盖、结构化数据、攻击矩阵和统计指标，不连接模型或真实业务工具。
 
 ## 教师批改总表
 

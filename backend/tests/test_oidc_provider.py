@@ -4,16 +4,14 @@ import base64
 import time
 from urllib.parse import parse_qs
 
-
 import httpx
 import jwt
 import pytest
-from pydantic import SecretStr
 from cryptography.hazmat.primitives.asymmetric import rsa
+from pydantic import SecretStr
 
 from app.security.oidc import generate_oidc_login_parameters
 from app.security.oidc_provider import OIDCProviderConfig, OIDCProviderError, OIDCVerifier
-
 
 ISSUER = "https://identity.example.test"
 CLIENT_ID = "academy-web"
@@ -130,7 +128,6 @@ def test_provider_configuration_is_fail_closed() -> None:
             client_id=CLIENT_ID,
             allowed_algorithms=("none",),  # type: ignore[arg-type]
         )
-
 
 
 @pytest.mark.asyncio

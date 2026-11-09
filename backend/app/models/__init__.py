@@ -1,4 +1,5 @@
 """Import model modules here so Alembic can discover all mapped tables."""
+
 from app.models.course_release import CourseRelease
 from app.models.identity import (
     AuditEvent,
@@ -19,11 +20,11 @@ __all__ = [
     "AuthSession",
     "CourseRelease",
     "ExternalIdentity",
+    "LearningProgress",
     "OIDCLoginTransaction",
     "Tenant",
     "TenantInvitation",
     "TenantMembership",
     "TenantMembershipRole",
-    "LearningProgress",
     "User",
 ]

@@ -1,6 +1,7 @@
 """OIDC subject resolution and least-privilege personal workspace provisioning."""
+
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import select
@@ -8,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import (
     clear_oidc_identity_lookup_context,
+    clear_personal_tenant_bootstrap_context,
     set_oidc_identity_lookup_context,
+    set_personal_tenant_bootstrap_context,
     set_security_context,
 )
 from app.models.identity import (
@@ -54,7 +57,7 @@ async def resolve_or_provision_oidc_identity(
     Caller must run this function inside one transaction after ID-token signature,
     issuer, audience, expiry, nonce and PKCE validation have succeeded.
     """
-    current = now or datetime.now(timezone.utc)
+    current = now or datetime.now(UTC)
     if current.tzinfo is None:
         raise ValueError("authentication timestamp must be timezone-aware")
     issuer_claim = claims.get("iss")
@@ -150,6 +153,7 @@ async def resolve_or_provision_oidc_identity(
     )
     membership = membership_result.scalar_one_or_none()
     if membership is None:
+        await set_personal_tenant_bootstrap_context(db, tenant_id=tenant.id)
         membership = TenantMembership(
             id=uuid4(),
             tenant_id=tenant.id,
@@ -158,6 +162,7 @@ async def resolve_or_provision_oidc_identity(
         )
         db.add(membership)
         await db.flush()
+        await clear_personal_tenant_bootstrap_context(db)
     elif membership.status != "active":
         raise OIDCIdentityRejected("personal workspace membership is unavailable")
 

@@ -14,7 +14,9 @@ describe("browser-local learner progress", () => {
 
   it("fails closed for malformed or unsupported data", () => {
     expect(loadProgress("{", ["M01"])).toEqual([]);
-    expect(loadProgress(JSON.stringify({ version: 2, completedModuleIds: ["M01"] }), ["M01"])).toEqual([]);
+    expect(
+      loadProgress(JSON.stringify({ version: 2, completedModuleIds: ["M01"] }), ["M01"]),
+    ).toEqual([]);
     expect(loadProgress(null, ["M01"])).toEqual([]);
   });
 

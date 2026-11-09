@@ -1,4 +1,5 @@
 """Async SQLAlchemy engine lifecycle and dependency probe."""
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
@@ -6,9 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async
 class Database:
     def __init__(self, database_url: str | None) -> None:
         self._engine: AsyncEngine | None = (
-            create_async_engine(database_url, pool_pre_ping=True)
-            if database_url
-            else None
+            create_async_engine(database_url, pool_pre_ping=True) if database_url else None
         )
         self.session_factory = (
             async_sessionmaker(self._engine, expire_on_commit=False, autoflush=False)
@@ -32,9 +31,7 @@ class Database:
             result = await connection.execute(text("SELECT version_num FROM alembic_version"))
             revisions = tuple(result.scalars().all())
         if revisions != (expected_revision,):
-            raise RuntimeError(
-                f"Database migration head mismatch: expected {expected_revision}"
-            )
+            raise RuntimeError(f"Database migration head mismatch: expected {expected_revision}")
 
     async def dispose(self) -> None:
         if self._engine is not None:

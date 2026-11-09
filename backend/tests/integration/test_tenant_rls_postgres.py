@@ -4,16 +4,18 @@ Set ACADEMY_TEST_ADMIN_DATABASE_URL to a test-only superuser/BYPASSRLS connectio
 and ACADEMY_TEST_RUNTIME_DATABASE_URL to the actual non-owner application role.
 The database must already be migrated to head.
 """
+
 import os
 from uuid import uuid4
 
 import pytest
 from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import create_async_engine
 
 
 @pytest.mark.asyncio
-async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
+async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() -> None:
     admin_url = os.getenv("ACADEMY_TEST_ADMIN_DATABASE_URL")
     runtime_url = os.getenv("ACADEMY_TEST_RUNTIME_DATABASE_URL")
     if not admin_url or not runtime_url:
@@ -22,9 +24,10 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
     admin_engine = create_async_engine(admin_url)
     runtime_engine = create_async_engine(runtime_url)
 
-    user_a, user_b, user_c = uuid4(), uuid4(), uuid4()
-    tenant_a, tenant_b = uuid4(), uuid4()
+    user_a, user_b, user_c, bootstrap_user = uuid4(), uuid4(), uuid4(), uuid4()
+    tenant_a, tenant_b, bootstrap_tenant = uuid4(), uuid4(), uuid4()
     membership_a, membership_b, membership_c = uuid4(), uuid4(), uuid4()
+    bootstrap_membership = uuid4()
     progress_a, progress_b, progress_c = uuid4(), uuid4(), uuid4()
     result_a, result_b, result_c = uuid4(), uuid4(), uuid4()
     release_id = uuid4()
@@ -46,21 +49,30 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
             await connection.execute(
                 text(
                     "INSERT INTO users (id, status) VALUES "
-                    "(:user_a, 'active'), (:user_b, 'active'), (:user_c, 'active')"
+                    "(:user_a, 'active'), (:user_b, 'active'), (:user_c, 'active'), "
+                    "(:bootstrap_user, 'active')"
                 ),
-                {"user_a": user_a, "user_b": user_b, "user_c": user_c},
+                {
+                    "user_a": user_a,
+                    "user_b": user_b,
+                    "user_c": user_c,
+                    "bootstrap_user": bootstrap_user,
+                },
             )
             await connection.execute(
                 text(
                     "INSERT INTO tenants (id, tenant_type, name, personal_owner_user_id) VALUES "
                     "(:tenant_a, 'personal', 'Tenant A', :user_a), "
-                    "(:tenant_b, 'personal', 'Tenant B', :user_b)"
+                    "(:tenant_b, 'personal', 'Tenant B', :user_b), "
+                    "(:bootstrap_tenant, 'personal', 'Bootstrap Tenant', :bootstrap_user)"
                 ),
                 {
                     "tenant_a": tenant_a,
                     "tenant_b": tenant_b,
+                    "bootstrap_tenant": bootstrap_tenant,
                     "user_a": user_a,
                     "user_b": user_b,
+                    "bootstrap_user": bootstrap_user,
                 },
             )
             await connection.execute(
@@ -202,7 +214,9 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     ),
                     {"user_id": str(user_a), "tenant_id": str(tenant_a)},
                 )
-                assert (await connection.execute(text("SELECT id FROM tenants"))).scalars().all() == [tenant_a]
+                assert (
+                    await connection.execute(text("SELECT id FROM tenants"))
+                ).scalars().all() == [tenant_a]
                 assert (
                     await connection.execute(text("SELECT id FROM tenant_memberships"))
                 ).scalars().all() == [membership_a]
@@ -222,10 +236,10 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                 assert progress_update.rowcount == 0
                 assessment_update = await connection.execute(
                     text(
-                        "UPDATE assessment_results SET response = '{\\"tampered\\":true}'::jsonb "
+                        "UPDATE assessment_results SET response = CAST(:response AS jsonb) "
                         "WHERE id = :other_result_id"
                     ),
-                    {"other_result_id": result_c},
+                    {"response": '{"tampered":true}', "other_result_id": result_c},
                 )
                 assert assessment_update.rowcount == 0
 
@@ -237,6 +251,25 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     ),
                     {"user_id": str(user_a), "tenant_id": str(tenant_b)},
                 )
+                # The self-discovery policy intentionally allows a user to list
+                # their own active memberships before choosing a tenant context.
+                membership_rows = (
+                    (await connection.execute(text("SELECT id FROM tenant_memberships")))
+                    .scalars()
+                    .all()
+                )
+                assert membership_rows == [membership_a]
+                tenant_rows = (
+                    (await connection.execute(text("SELECT id FROM tenants"))).scalars().all()
+                )
+                assert tenant_rows == [tenant_a]
+                for table in ("learning_progress", "assessment_results"):
+                    rows = (
+                        (await connection.execute(text(f"SELECT id FROM {table}"))).scalars().all()
+                    )
+                    assert rows == [], f"unexpected rows visible in {table}: {rows}"
+
+            async with connection.begin():
                 for table in (
                     "tenants",
                     "tenant_memberships",
@@ -244,50 +277,122 @@ async def test_runtime_role_cannot_read_another_tenants_rows() -> None:
                     "assessment_results",
                 ):
                     rows = (
-                        await connection.execute(text(f"SELECT id FROM {table}"))
-                    ).scalars().all()
-                    assert rows == []
-
-            async with connection.begin():
-                for table in ("tenants", "tenant_memberships", "learning_progress", "assessment_results"):
-                    rows = (
-                        await connection.execute(text(f"SELECT id FROM {table}"))
-                    ).scalars().all()
+                        (await connection.execute(text(f"SELECT id FROM {table}"))).scalars().all()
+                    )
                     assert rows == []
 
         async with admin_engine.begin() as connection:
             await connection.execute(
-                text("UPDATE tenant_memberships SET status = 'suspended' WHERE id = :membership_id"),
+                text(
+                    "UPDATE tenant_memberships SET status = 'suspended' WHERE id = :membership_id"
+                ),
                 {"membership_id": membership_a},
             )
+
+        async with runtime_engine.connect() as connection, connection.begin():
+            await connection.execute(
+                text(
+                    "SELECT set_config('app.user_id', :user_id, true), "
+                    "set_config('app.tenant_id', :tenant_id, true)"
+                ),
+                {"user_id": str(user_a), "tenant_id": str(tenant_a)},
+            )
+            assert (await connection.execute(text("SELECT id FROM tenants"))).scalars().all() == []
+            assert (
+                await connection.execute(text("SELECT id FROM tenant_memberships"))
+            ).scalars().all() == []
+            assert (
+                await connection.execute(text("SELECT id FROM learning_progress"))
+            ).scalars().all() == []
+            assert (
+                await connection.execute(text("SELECT id FROM assessment_results"))
+            ).scalars().all() == []
 
         async with runtime_engine.connect() as connection:
             async with connection.begin():
                 await connection.execute(
                     text(
                         "SELECT set_config('app.user_id', :user_id, true), "
-                        "set_config('app.tenant_id', :tenant_id, true)"
+                        "set_config('app.tenant_id', :tenant_id, true), "
+                        "set_config('app.oidc_personal_tenant_id', :bootstrap_tenant, true)"
                     ),
-                    {"user_id": str(user_a), "tenant_id": str(tenant_a)},
+                    {
+                        "user_id": str(bootstrap_user),
+                        "tenant_id": str(bootstrap_tenant),
+                        "bootstrap_tenant": str(bootstrap_tenant),
+                    },
                 )
-                assert (await connection.execute(text("SELECT id FROM tenants"))).scalars().all() == []
                 assert (
-                    await connection.execute(text("SELECT id FROM learning_progress"))
-                ).scalars().all() == []
+                    await connection.execute(text("SELECT id FROM tenants"))
+                ).scalars().all() == [bootstrap_tenant]
+                await connection.execute(
+                    text(
+                        "INSERT INTO tenant_memberships (id, tenant_id, user_id, status) "
+                        "VALUES (:membership_id, :tenant_id, :user_id, 'active')"
+                    ),
+                    {
+                        "membership_id": bootstrap_membership,
+                        "tenant_id": bootstrap_tenant,
+                        "user_id": bootstrap_user,
+                    },
+                )
+                await connection.execute(
+                    text("SELECT set_config('app.oidc_personal_tenant_id', '', true)")
+                )
                 assert (
-                    await connection.execute(text("SELECT id FROM assessment_results"))
-                ).scalars().all() == []
+                    await connection.execute(text("SELECT id FROM tenant_memberships"))
+                ).scalars().all() == [bootstrap_membership]
+
+            async with connection.begin():
+                await connection.execute(
+                    text(
+                        "SELECT set_config('app.user_id', :user_id, true), "
+                        "set_config('app.tenant_id', :tenant_id, true), "
+                        "set_config('app.oidc_personal_tenant_id', :bootstrap_tenant, true)"
+                    ),
+                    {
+                        "user_id": str(bootstrap_user),
+                        "tenant_id": str(tenant_b),
+                        "bootstrap_tenant": str(tenant_b),
+                    },
+                )
+                with pytest.raises(DBAPIError):
+                    async with connection.begin_nested():
+                        await connection.execute(
+                            text(
+                                "INSERT INTO tenant_memberships (id, tenant_id, user_id, status) "
+                                "VALUES (:membership_id, :tenant_id, :user_id, 'active')"
+                            ),
+                            {
+                                "membership_id": uuid4(),
+                                "tenant_id": tenant_b,
+                                "user_id": bootstrap_user,
+                            },
+                        )
 
     finally:
         if admin_can_bypass_rls:
             async with admin_engine.begin() as connection:
                 await connection.execute(
-                    text("DELETE FROM tenants WHERE id IN (:tenant_a, :tenant_b)"),
-                    {"tenant_a": tenant_a, "tenant_b": tenant_b},
+                    text(
+                        "DELETE FROM tenants WHERE id IN (:tenant_a, :tenant_b, :bootstrap_tenant)"
+                    ),
+                    {
+                        "tenant_a": tenant_a,
+                        "tenant_b": tenant_b,
+                        "bootstrap_tenant": bootstrap_tenant,
+                    },
                 )
                 await connection.execute(
-                    text("DELETE FROM users WHERE id IN (:user_a, :user_b, :user_c)"),
-                    {"user_a": user_a, "user_b": user_b, "user_c": user_c},
+                    text(
+                        "DELETE FROM users WHERE id IN (:user_a, :user_b, :user_c, :bootstrap_user)"
+                    ),
+                    {
+                        "user_a": user_a,
+                        "user_b": user_b,
+                        "user_c": user_c,
+                        "bootstrap_user": bootstrap_user,
+                    },
                 )
                 await connection.execute(
                     text("DELETE FROM course_releases WHERE id = :release_id"),

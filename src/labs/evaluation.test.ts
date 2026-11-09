@@ -5,7 +5,7 @@ describe("teaching evaluation metrics", () => {
   it("calculates exact-match accuracy after trimming and case normalization", () => {
     const result = evaluateTeachingDataset([
       { id: "a", prompt: "Q1", expected: "Transformer", actual: " transformer " },
-      { id: "b", prompt: "Q2", expected: "RAG", actual: "Agent" }
+      { id: "b", prompt: "Q2", expected: "RAG", actual: "Agent" },
     ]);
     expect(result).toMatchObject({ total: 2, passed: 1, accuracy: 0.5 });
   });

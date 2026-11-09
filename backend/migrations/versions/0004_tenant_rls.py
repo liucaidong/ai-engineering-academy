@@ -3,14 +3,15 @@
 Revision ID: 0004_tenant_rls
 Revises: 0003_identity_tenancy
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 from alembic import op
 
 revision: str = "0004_tenant_rls"
-down_revision: Union[str, None] = "0003_identity_tenancy"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "0003_identity_tenancy"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 _USER = "NULLIF(current_setting('app.user_id', true), '')::uuid"
 _TENANT = "NULLIF(current_setting('app.tenant_id', true), '')::uuid"
@@ -22,12 +23,8 @@ def upgrade() -> None:
         op.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY")
         op.execute(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY")
 
-    op.execute(
-        f"CREATE POLICY users_self_select ON users FOR SELECT USING (id = {_USER})"
-    )
-    op.execute(
-        f"CREATE POLICY users_self_insert ON users FOR INSERT WITH CHECK (id = {_USER})"
-    )
+    op.execute(f"CREATE POLICY users_self_select ON users FOR SELECT USING (id = {_USER})")
+    op.execute(f"CREATE POLICY users_self_insert ON users FOR INSERT WITH CHECK (id = {_USER})")
     op.execute(
         f"CREATE POLICY users_self_update ON users FOR UPDATE "
         f"USING (id = {_USER}) WITH CHECK (id = {_USER})"
@@ -84,7 +81,7 @@ def upgrade() -> None:
     )
     op.execute(
         f"CREATE POLICY tenant_memberships_self_select ON tenant_memberships "
-        f"FOR SELECT USING (tenant_id = {_TENANT} AND user_id = {_USER})"
+        f"FOR SELECT USING (tenant_id = {_TENANT} AND user_id = {_USER} AND status = 'active')"
     )
     op.execute(
         f"CREATE POLICY tenant_membership_roles_self_select ON tenant_membership_roles "

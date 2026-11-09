@@ -3,16 +3,17 @@
 Revision ID: 0001_course_releases
 Revises:
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0001_course_releases"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -25,11 +26,20 @@ def upgrade() -> None:
         sa.Column("content_sha256", sa.String(length=64), nullable=False),
         sa.Column("content", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("status", sa.String(length=16), server_default="draft", nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=True),
         sa.CheckConstraint("schema_version > 0", name="ck_course_releases_schema_version_positive"),
-        sa.CheckConstraint("status IN ('draft', 'published', 'retired')", name="ck_course_releases_status_valid"),
-        sa.CheckConstraint("content_sha256 ~ '^[0-9a-f]{64}$'", name="ck_course_releases_content_sha256_hex"),
+        sa.CheckConstraint(
+            "status IN ('draft', 'published', 'retired')", name="ck_course_releases_status_valid"
+        ),
+        sa.CheckConstraint(
+            "content_sha256 ~ '^[0-9a-f]{64}$'", name="ck_course_releases_content_sha256_hex"
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_course_releases"),
         sa.UniqueConstraint("course_key", "version", name="uq_course_releases_course_version"),
     )

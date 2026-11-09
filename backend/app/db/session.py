@@ -1,4 +1,5 @@
 """Async SQLAlchemy session and transaction boundaries."""
+
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from uuid import UUID
@@ -21,9 +22,8 @@ async def session_scope(database: Database) -> AsyncIterator[AsyncSession]:
 @asynccontextmanager
 async def transaction_scope(database: Database) -> AsyncIterator[AsyncSession]:
     """Yield a session with one atomic transaction, committing on success."""
-    async with session_scope(database) as session:
-        async with session.begin():
-            yield session
+    async with session_scope(database) as session, session.begin():
+        yield session
 
 
 async def set_security_context(
@@ -49,7 +49,8 @@ async def set_security_context(
             "set_config('app.session_token_hash', '', true), "
             "set_config('app.oidc_state_hash', '', true), "
             "set_config('app.oidc_issuer', '', true), "
-            "set_config('app.oidc_subject', '', true)"
+            "set_config('app.oidc_subject', '', true), "
+            "set_config('app.oidc_personal_tenant_id', '', true)"
         ),
         {
             "user_id": str(user_id),
@@ -71,7 +72,6 @@ async def authenticated_transaction_scope(
         yield session
 
 
-
 async def set_session_lookup_context(session: AsyncSession, token_hash: str) -> None:
     """Set the narrow transaction-local RLS context used before user resolution."""
     if not session.in_transaction():
@@ -90,7 +90,8 @@ async def set_session_lookup_context(session: AsyncSession, token_hash: str) -> 
             "set_config('app.session_token_hash', :token_hash, true), "
             "set_config('app.oidc_state_hash', '', true), "
             "set_config('app.oidc_issuer', '', true), "
-            "set_config('app.oidc_subject', '', true)"
+            "set_config('app.oidc_subject', '', true), "
+            "set_config('app.oidc_personal_tenant_id', '', true)"
         ),
         {"token_hash": token_hash},
     )
@@ -100,10 +101,7 @@ async def clear_session_lookup_context(session: AsyncSession) -> None:
     """Remove the bootstrap token hash after a missing or expired lookup."""
     if not session.in_transaction():
         raise RuntimeError("Session lookup context must be cleared inside an active transaction")
-    await session.execute(
-        text("SELECT set_config('app.session_token_hash', '', true)")
-    )
-
+    await session.execute(text("SELECT set_config('app.session_token_hash', '', true)"))
 
 
 async def set_oidc_state_context(session: AsyncSession, state_hash: str) -> None:
@@ -124,7 +122,8 @@ async def set_oidc_state_context(session: AsyncSession, state_hash: str) -> None
             "set_config('app.session_token_hash', '', true), "
             "set_config('app.oidc_state_hash', :state_hash, true), "
             "set_config('app.oidc_issuer', '', true), "
-            "set_config('app.oidc_subject', '', true)"
+            "set_config('app.oidc_subject', '', true), "
+            "set_config('app.oidc_personal_tenant_id', '', true)"
         ),
         {"state_hash": state_hash},
     )
@@ -134,10 +133,7 @@ async def clear_oidc_state_context(session: AsyncSession) -> None:
     """Clear the one-time OIDC state lookup context."""
     if not session.in_transaction():
         raise RuntimeError("OIDC state context must be cleared inside an active transaction")
-    await session.execute(
-        text("SELECT set_config('app.oidc_state_hash', '', true)")
-    )
-
+    await session.execute(text("SELECT set_config('app.oidc_state_hash', '', true)"))
 
 
 async def set_oidc_identity_lookup_context(
@@ -163,13 +159,10 @@ async def set_oidc_identity_lookup_context(
         or len(issuer) > 512
     ):
         raise ValueError("OIDC issuer must be a valid canonical HTTPS identifier")
-    if (
-        not isinstance(subject, str)
-        or not subject
-        or len(subject) > 255
-        or not subject.isascii()
-    ):
-        raise ValueError("OIDC subject must be a non-empty ASCII identifier of at most 255 characters")
+    if not isinstance(subject, str) or not subject or len(subject) > 255 or not subject.isascii():
+        raise ValueError(
+            "OIDC subject must be a non-empty ASCII identifier of at most 255 characters"
+        )
     await session.execute(
         text(
             "SELECT "
@@ -178,7 +171,8 @@ async def set_oidc_identity_lookup_context(
             "set_config('app.session_token_hash', '', true), "
             "set_config('app.oidc_state_hash', '', true), "
             "set_config('app.oidc_issuer', :issuer, true), "
-            "set_config('app.oidc_subject', :subject, true)"
+            "set_config('app.oidc_subject', :subject, true), "
+            "set_config('app.oidc_personal_tenant_id', '', true)"
         ),
         {"issuer": issuer, "subject": subject},
     )
@@ -187,7 +181,9 @@ async def set_oidc_identity_lookup_context(
 async def clear_oidc_identity_lookup_context(session: AsyncSession) -> None:
     """Clear the exact external-identity lookup context."""
     if not session.in_transaction():
-        raise RuntimeError("OIDC identity lookup context must be cleared inside an active transaction")
+        raise RuntimeError(
+            "OIDC identity lookup context must be cleared inside an active transaction"
+        )
     await session.execute(
         text(
             "SELECT "
@@ -195,3 +191,24 @@ async def clear_oidc_identity_lookup_context(session: AsyncSession) -> None:
             "set_config('app.oidc_subject', '', true)"
         )
     )
+
+
+async def set_personal_tenant_bootstrap_context(
+    session: AsyncSession,
+    *,
+    tenant_id: UUID,
+) -> None:
+    """Temporarily expose one newly created personal tenant during first membership insert."""
+    if not session.in_transaction():
+        raise RuntimeError("Personal tenant bootstrap context requires an active transaction")
+    await session.execute(
+        text("SELECT set_config('app.oidc_personal_tenant_id', :tenant_id, true)"),
+        {"tenant_id": str(tenant_id)},
+    )
+
+
+async def clear_personal_tenant_bootstrap_context(session: AsyncSession) -> None:
+    """Clear the narrow personal-tenant bootstrap context after membership creation."""
+    if not session.in_transaction():
+        raise RuntimeError("Personal tenant bootstrap context requires an active transaction")
+    await session.execute(text("SELECT set_config('app.oidc_personal_tenant_id', '', true)"))

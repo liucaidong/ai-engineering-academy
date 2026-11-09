@@ -3,6 +3,15 @@
 ## 课程结构
 课程分为六个层级、二十个模块。模块顺序体现先修关系，允许后续按学习者水平开放跳转。
 
+跨模块教学审计与统一评价文档：
+- [M01–M20 学习路径与依赖图](./CURRICULUM_LEARNING_PATH.md)
+- [跨模块知识体系审计](./CURRICULUM_CROSS_MODULE_AUDIT.md)
+- [教学质量评价矩阵](./CURRICULUM_TEACHING_QUALITY_MATRIX.md)
+- [跨模块能力与实验评价框架](./CURRICULUM_ASSESSMENT_FRAMEWORK.md)
+- [Capstone 能力映射与验收门槛](./CURRICULUM_CAPSTONE_ALIGNMENT.md)
+- [进阶审计、整改与剩余风险](./CURRICULUM_PROGRESSION_REMEDIATION_REPORT.md)
+- [最终编辑审校与发布就绪清单](./CURRICULUM_RELEASE_READINESS.md)
+
 | 层级 | 模块 | 主题 | 核心产出 |
 |---|---|---|---|
 | L1 基础认知 | M01 | AI / ML / DL / LLM 基础 | 区分概念、任务和能力边界 |
@@ -16,12 +25,12 @@
 | L3 应用工程 | M09 | 多模态 AI | 设计文本/图像/音频流程 |
 | L4 Agent 工程 | M10 | Agent 基础与 Runtime | 描述 Agent 循环与状态 |
 | L4 Agent 工程 | M11 | Planning、Memory 与状态 | 管理任务计划和记忆边界 |
-| L4 Agent 工程 | M12 | MCP 协议与集成 | 理解 Host/Client/Server 与工具资源 |
-| L4 Agent 工程 | M13 | Skills 与可复用能力 | 设计可发现、可执行的能力包 |
-| L4 Agent 工程 | M14 | Multi-Agent | 评估协作拓扑、协调和成本 |
+| L4 Agent 工程 | M12 | MCP 协议与集成 | 掌握 JSON-RPC、2026-07-28 stateless MCP、授权与扩展治理 |
+| L4 Agent 工程 | M13 | Skills 与可复用能力 | 掌握 Agent Skills 格式、渐进披露、供应链与 Runtime 边界 |
+| L4 Agent 工程 | M14 | Multi-Agent | 掌握 A2A 消息边界、共享状态一致性和单位成功成本 |
 | L4 Agent 工程 | M15 | 安全、权限与人工审批 | 建立最小权限和审批策略 |
-| L4/L5 | M16 | Workflow 与编排 | 区分确定性流程与自主 Agent |
-| L5 平台工程 | M17 | Evaluation 与 Observability | 构建离线评测和线上观测 |
+| L4/L5 | M16 | Workflow 与编排 | 掌握 Durable Workflow、Saga、幂等、重试和 Replay Versioning |
+| L5 平台工程 | M17 | Evaluation 与 Observability | 建立统计可信的 Agent 评测、GenAI Trace 和质量 SLO |
 | L5 平台工程 | M18 | AI 平台架构 | 设计模型网关、队列和租户边界 |
 | L5 平台工程 | M19 | 应用工程化与交付 | 部署、监控、治理和维护应用 |
 | L6 综合实践 | M20 | Capstone 综合项目 | 交付端到端 AI 工程系统 |
@@ -45,6 +54,7 @@ M01 是 Academy 的第一门完整课程，不再以一篇概念导读作为入�
 - **明确事实、简化和假设。** 教学模型用于建立直觉时，必须说明它省略了什么；无法确认的产品内部实现必须标为假设。
 - **把安全与可靠性放进入门课程。** 权限、证据、验证、人工介入和可观测性不是高级课程才需要考虑的附加项。
 - **以可评审产物收尾。** 学习者最终提交系统设计，而不只是完成术语记忆题。
+- 配套 [M01 实验工作簿](./teaching-guides/M01-lab-workbook.md)，将产品分解、数据泛化、失败分析和系统设计转为可复核任务。
 
 ## 旗舰课程：M02《Transformer 与 Attention》
 
@@ -66,6 +76,7 @@ M02 承接 M01 的 AI 系统基础，进入现代大语言模型的核心架构�
 - 分清 Causal Mask 与 Padding Mask 的目的，避免把所有 mask 混为一谈。
 - 将标准 Attention 的二次复杂度与 FlashAttention 的 IO 优化区分开：后者不改变标准注意力的数学结果定义。
 - 通过浏览器本地固定矩阵实验验证数值流程；实验不加载真实模型权重，也不代表 GPU 性能基准。
+- 配套 [M02 实验工作簿](./teaching-guides/M02-lab-workbook.md)，要求手算 Attention、验证 Mask、推导张量维度并分析优化边界。
 
 ## 旗舰课程：M03《Token、Embedding 与 Context》
 
@@ -88,11 +99,12 @@ M03 将模型输入表示拆成三个相互关联但不能混淆的层次：文�
 - 区分标称上下文窗口与模型对长上下文的有效利用质量；摘要、滑动窗口和 RAG 都需要任务级验证。
 - Tokenizer Lab 仅使用浏览器本地玩具 BPE 词表，不等同于任何厂商的生产 tokenizer，不验证真实 token ID 或 API 计量结果。
 - 对模型专用 Chat Template、特殊 token 和消息结束语义，以目标模型/服务的官方文档为准。
+- 配套 [M03 实验工作簿](./teaching-guides/M03-lab-workbook.md)，覆盖 Tokenizer、Embedding 账本、Context Budget 和序列化审计。
 
 
 ## 旗舰课程：M04《预训练、微调与对齐》
 
-M04 从自回归预训练目标出发，连接数据治理、模型架构、监督微调、参数高效适配、偏好优化和发布评测。课程将训练 FLOPs、LoRA 参数量、PPO clipping 等内容转化为可复算案例，并明确奖励模型只是偏好代理。
+M04 从预训练目标和数据治理出发，区分 Causal LM、MLM 与 Span Corruption，连接 Transformer 信息流、Dense/MoE 计算结构、SFT、LoRA/QLoRA、RLHF/PPO、DPO 与 RLAIF，再落到校准评测和模型发布门禁。课程配套教师指南、五项可复现实验及 Python 标准库计算器（见 [M04 实验工作簿](./teaching-guides/M04-lab-workbook.md) 与 [实验代码](../examples/m04/README.md)）。所有数值均标注教学假设，不将理论估算冒充实测性能。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -106,7 +118,7 @@ M04 从自回归预训练目标出发，连接数据治理、模型架构、监�
 
 ## 旗舰课程：M05《推理、解码与部署》
 
-M05 从自回归生成的数据路径出发，深入 KV Cache、采样分布、连续批处理、推测解码、量化和多 GPU 推理服务。容量估算明确区分权重、KV、激活、工作区与运行时开销。
+M05 从自回归生成的数据路径出发，深入 KV Cache/PagedAttention、采样与约束解码、Continuous Batching、Chunked Prefill、Prefill/Decode 分离、推测解码和量化，并以 Goodput、SLO 和 Admission Control 收束容量工程。配套五项可复现实验见 [M05 实验工作簿](./teaching-guides/M05-lab-workbook.md) 与 [Python 实验代码](../examples/m05/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -120,7 +132,7 @@ M05 从自回归生成的数据路径出发，深入 KV Cache、采样分布、�
 
 ## 旗舰课程：M06《Prompt Engineering》
 
-M06 将提示词视为可测试、可版本化的任务接口，而不是依靠措辞技巧保证模型正确。课程覆盖消息职责、Few-shot 示例选择、结构化输出、Prompt Injection 和回归发布。
+M06 将提示词视为绑定模型、工具、数据和评测版本的任务契约，而不是依靠措辞技巧保证模型正确。课程深入 Few-shot 覆盖/多样性、Grammar-Constrained Decoding、Schema/业务/授权分层、BIPIA 风格间接注入红队、LLM Judge 校准和统计不确定性。配套五项实验见 [M06 实验工作簿](./teaching-guides/M06-lab-workbook.md) 与 [Python 实验代码](../examples/m06/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -135,7 +147,7 @@ M06 将提示词视为可测试、可版本化的任务接口，而不是依靠�
 
 ## 旗舰课程：M07《结构化输出与 Tool Calling》
 
-M07 将工具调用视为受宿主控制的协议流程，而不是模型直接执行代码。课程从请求/响应状态机推进到 Schema 校验、工具发现、幂等副作用和安全评测。
+M07 将工具调用视为受宿主控制的协议流程，而不是模型直接执行代码。课程明确 Provider Function Calling、Host Runtime、MCP Tools 与 JSON-RPC 的边界，深入 provider-specific Strict Schema、Deferred Tool Discovery、Programmatic Tool Calling、unknown outcome、幂等副作用和分层验收。配套五项实验见 [M07 实验工作簿](./teaching-guides/M07-lab-workbook.md) 与 [Python 实验代码](../examples/m07/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -147,7 +159,7 @@ M07 将工具调用视为受宿主控制的协议流程，而不是模型直接�
 
 ## 旗舰课程：M08《检索增强生成 RAG》
 
-M08 覆盖从原始文档到可引用答案的完整知识流水线，强调检索质量、证据追溯、ACL 过滤和数据更新，而不是将 RAG 简化为“向量数据库 + Prompt”。
+M08 覆盖从原始文档到可引用答案的完整知识流水线，强调检索质量、证据追溯、ACL 过滤和数据更新，而不是将 RAG 简化为“向量数据库 + Prompt”。配套五项实验见 [M08 实验工作簿](./teaching-guides/M08-lab-workbook.md) 与 [Python 实验代码](../examples/m08/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -159,7 +171,7 @@ M08 覆盖从原始文档到可引用答案的完整知识流水线，强调检�
 
 ## 旗舰课程：M09《多模态 AI》
 
-M09 从不同模态的表示与融合机制出发，覆盖视觉编码、扩散生成、音频 tokenization、ASR/TTS 和系统级同步、评测与隐私。公式案例均为教学计算，不代表真实模型推理基准。
+M09 从不同模态的表示与融合机制出发，覆盖视觉编码、扩散生成、音频 tokenization、ASR/TTS 和系统级同步、评测与隐私。配套五项实验见 [M09 实验工作簿](./teaching-guides/M09-lab-workbook.md) 与 [Python 实验代码](../examples/m09/README.md)。公式案例均为教学计算，不代表真实模型推理基准。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -172,7 +184,7 @@ M09 从不同模态的表示与融合机制出发，覆盖视觉编码、扩散�
 
 ## 旗舰课程：M10《Agent 基础与 Runtime》
 
-M10 将 Agent 视为受运行时约束的状态化系统，覆盖目标、动作、观察、循环、状态机、工具生命周期、上下文隔离和故障恢复。
+M10 将 Agent 视为受运行时约束的状态化系统，覆盖自主性包络、Plan/Act/Observe、后置条件验证、Durable Replay、Capability Security 和 Agent 可靠性评测。配套五项实验见 [M10 实验工作簿](./teaching-guides/M10-lab-workbook.md) 与 [Python 实验代码](../examples/m10/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -184,7 +196,7 @@ M10 将 Agent 视为受运行时约束的状态化系统，覆盖目标、动作
 
 ## 旗舰课程：M11《Planning、Memory 与状态》
 
-M11 深化任务 DAG、动态重规划、记忆分层、检索巩固和人类反馈。课程明确区分上下文、任务状态、长期记忆和外部知识库，并把过期、冲突、删除与撤权纳入设计。
+M11 深化形式化计划 DAG、动态重规划、记忆分层、检索巩固和人类反馈。课程明确区分上下文、任务状态、长期记忆和外部知识库，并把来源、时间、过期、冲突、删除与撤权纳入设计。配套五项实验见 [M11 实验工作簿](./teaching-guides/M11-lab-workbook.md) 与 [Python 实验代码](../examples/m11/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -196,7 +208,7 @@ M11 深化任务 DAG、动态重规划、记忆分层、检索巩固和人类反
 
 ## 旗舰课程：M12《MCP 协议与集成》
 
-M12 按协议工程组织内容，区分协议消息、能力模型、传输层、身份授权和部署运维。协议连通不等于 Server 可信，也不等于工具获得用户授权。
+M12 按协议工程组织内容，区分 JSON-RPC 消息、能力模型、传输层、身份授权和部署运维，并以官方 2026-07-28 规范为当前基线，明确 legacy handshake 与 modern stateless 两个协议时代。覆盖 server/discover、ttlMs/cacheScope、无会话 Streamable HTTP、MRTR、OAuth issuer/audience binding、Extensions/Tasks/MCP Apps 和弃用迁移。协议连通不等于 Server 可信，也不等于工具获得用户授权。配套五项实验见 [M12 实验工作簿](./teaching-guides/M12-lab-workbook.md) 与 [Python 实验代码](../examples/m12/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -209,7 +221,7 @@ M12 按协议工程组织内容，区分协议消息、能力模型、传输层�
 
 ## 旗舰课程：M13《Skills 与可复用能力》
 
-M13 将 Skill 定义为带有输入输出契约、资源、权限和生命周期的可复用能力包。课程强调不同平台的格式差异，不把某一种 Skill 规范冒充为所有 Agent Runtime 的统一实现。
+M13 以 Agent Skills 开放格式为基线，区分 Package conformance、Host/Runtime integration 和 Task effectiveness。覆盖 SKILL.md 元数据约束、Progressive Disclosure、Skill DAG Schema 兼容、最小权限与供应链来源审查，以及触发/任务效果分层评测。明确 allowed-tools 为实验字段、version 非规范顶层字段；Skill 本身不授予工具权限。配套实验见 [M13 实验工作簿](./teaching-guides/M13-lab-workbook.md) 与 [Python 实验代码](../examples/m13/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -221,7 +233,7 @@ M13 将 Skill 定义为带有输入输出契约、资源、权限和生命周期
 
 ## 旗舰课程：M14《Multi-Agent 系统》
 
-M14 从“何时值得使用多个 Agent”开始，逐步进入协作拓扑、任务协议、共享状态、冲突仲裁和对照评测。课程要求与单 Agent baseline 比较净收益，避免把 Agent 数量当作能力指标。
+M14 从“何时值得使用多个 Agent”开始，逐步进入拓扑选择与协调税、内部 Task/Result 与 A2A 远程互操作、共享状态 CAS/事件账本、独立证据与 Claim Ledger，以及 Paired Benchmark、Trace 和 Cost per Successful Task。明确 A2A、MCP 与 Runtime 内部消息合同的职责边界。配套实验见 [M14 实验工作簿](./teaching-guides/M14-lab-workbook.md) 与 [Python 实验代码](../examples/m14/README.md)。课程要求与单 Agent baseline 比较净收益，避免把 Agent 数量当作能力指标。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -233,7 +245,7 @@ M14 从“何时值得使用多个 Agent”开始，逐步进入协作拓扑、�
 
 ## 旗舰课程：M15《安全、权限与人工审批》
 
-M15 将安全从 Prompt 层扩展到身份、数据、工具、运行时、供应链和组织治理。重点是服务端强制控制、最小权限、真实人工监督和可审计证据。
+M15 将安全从 Prompt 层扩展到身份、数据、工具、运行时、供应链和组织治理。重点覆盖 MITRE ATLAS 攻击链、Prompt Injection/Taint/Egress、PDP/PEP 与 RBAC/ABAC、委托权限链、参数绑定 HMAC 审批、风险分级人工监督、红队指标和事件响应。配套实验见 [M15 实验工作簿](./teaching-guides/M15-lab-workbook.md) 与 [Python 实验代码](../examples/m15/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -246,7 +258,7 @@ M15 将安全从 Prompt 层扩展到身份、数据、工具、运行时、供�
 
 ## 旗舰课程：M16《Workflow 与编排》
 
-M16 强调确定性业务流程、事件驱动编排和受控 Agent 节点的组合。课程覆盖 Saga、重试、超时、熔断、人工审批、审计和历史执行兼容。
+M16 强调确定性业务流程、事件驱动编排和受控 Agent 节点的组合。课程覆盖 Control/Decision Plane、Saga/Transactional Outbox/CloudEvents、Retry Budget/Deadline/Circuit Breaker、Durable Approval/Trace Context，以及 Replay Determinism/Workflow Versioning。配套实验见 [M16 实验工作簿](./teaching-guides/M16-lab-workbook.md) 与 [Python 实验代码](../examples/m16/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -258,7 +270,7 @@ M16 强调确定性业务流程、事件驱动编排和受控 Agent 节点的组
 
 ## 旗舰课程：M17《Evaluation 与 Observability》
 
-M17 将离线评测、自动评分、线上观测和质量 SLO 连接起来。课程要求明确定义分母、统计窗口、样本分层和评分器偏差，不把 LLM Judge 视为客观真值。
+M17 将离线评测、自动评分、线上观测和质量 SLO 连接起来。课程覆盖 Eval Harness/Outcome Grading、Paired Trials/Bootstrap/pass@k、LLM Judge 校准与人类一致性、OpenTelemetry GenAI Trace/低基数 Metrics/隐私、Quality SLO/Error Budget Burn Rate 和持续评测。配套实验见 [M17 实验工作簿](./teaching-guides/M17-lab-workbook.md) 与 [Python 实验代码](../examples/m17/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -270,7 +282,7 @@ M17 将离线评测、自动评分、线上观测和质量 SLO 连接起来。�
 
 ## 旗舰课程：M18《AI 平台架构》
 
-M18 从平台责任边界进入控制平面/数据平面、模型网关、配额计量、租户隔离和平台可靠性。平台架构示例是教学设计，不代表本项目新增了对应运行时或后端能力。
+M18 从平台责任边界进入控制平面/数据平面、Desired State Reconciliation、Model Gateway 能力路由与双层限流、Usage Event Ledger/Reservation/Settlement、Silo/Pool/Bridge 多租户隔离和 Fair Scheduling/Overload Control。配套 [M18 实验工作簿](./teaching-guides/M18-lab-workbook.md) 与 [Python 示例](../examples/m18/README.md)。这些示例是教学模型，不代表本项目新增了对应运行时或后端能力。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -283,7 +295,7 @@ M18 从平台责任边界进入控制平面/数据平面、模型网关、配额
 
 ## 旗舰课程：M19《应用工程化与交付》
 
-M19 将 AI 产品交付从“模型接入”扩展到用户价值、体验治理、成本模型、产品实验和持续运营。课程强调模型调用量不是产品价值，人工复核和失败处理必须进入单位经济性。
+M19 将 AI 产品交付从“模型接入”扩展到持续用户发现、Opportunity Solution Tree、风险分级 AI UX/HITL、Cost per Successful Task、实验 SRM/多重比较，到绑定模型/Prompt/工具/索引/策略的 Release Manifest。课程强调模型调用量不是产品价值，人工复核、失败重试和经验证的任务成功率必须进入单位经济性。配套 [M19 实验工作簿](./teaching-guides/M19-lab-workbook.md) 与 [Python 示例](../examples/m19/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -295,7 +307,7 @@ M19 将 AI 产品交付从“模型接入”扩展到用户价值、体验治理
 
 ## 旗舰课程：M20《Capstone 综合项目》
 
-M20 是课程体系的综合交付阶段，不以 Demo 演示作为唯一完成标准。学习者必须提交可验收需求、架构决策、核心实现、评测证据、安全审计和运行文档，并明确区分已实现、已测试和未验证能力。
+M20 是课程体系的综合交付阶段，不以 Demo 演示作为唯一完成标准。学习者必须通过项目章程、架构 ADR、垂直切片、分层测试、Evidence Matrix 和可复现答辩 Gate，提交可验收需求、架构决策、核心实现、评测证据、安全审计和运行文档，并明确区分设计、模拟、本地测试、目标环境测试和生产观测。配套 [M20 Capstone 实验工作簿](./teaching-guides/M20-lab-workbook.md) 与 [Python 示例](../examples/m20/README.md)。
 
 | 讲次 | 主题 | 核心学习产物 |
 |---|---|---|
@@ -453,7 +465,7 @@ M20 是课程体系的综合交付阶段，不以 Demo 演示作为唯一完成�
 
 
 
-## 教师指南与教学资源（0.21.0）
+## 教师指南与教学资源（0.26.0）
 
 教师指南已覆盖 M01–M20 全部 20 个模块，共 100 讲和 100 项正式作业参考解答。每份指南对应原始课程题目和 Rubric，提供教学路径、检查点、课后复习、参考解答、评分对照与常见错误。
 
@@ -461,6 +473,6 @@ M20 是课程体系的综合交付阶段，不以 Demo 演示作为唯一完成�
 - [教师教学实施手册](./TEACHING_PLAYBOOK.md)：24 周节奏、单讲模板、实验执行模式、评分政策和 Capstone 评审。
 - [学习者手册](./LEARNER_GUIDE.md)：学习闭环、作业方法、实验边界和 Capstone 准备。
 - [课程术语表](./GLOSSARY.md)：统一 M01–M20 核心术语。
-- [课程参考来源静态审计](./CURRICULUM_SOURCE_AUDIT.md)：306 条来源、204 个唯一 URL 的结构统计与核验边界。
+- [课程参考来源静态审计](./CURRICULUM_SOURCE_AUDIT.md)：325 条来源、221 个唯一 URL 的结构统计与核验边界。
 
 教师材料只扩展教学文档，不改变课程 Schema、Lesson/Assessment IDs、先修关系、Lab Registry 或平台功能。

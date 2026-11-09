@@ -12,6 +12,9 @@ describe("local MCP protocol simulation", () => {
     expect(callTeachingMcpTool("search_course", '{"query":"MCP"}').ok).toBe(true);
   });
   it("does not dispatch tools that were not registered", () => {
-    expect(callTeachingMcpTool("delete_everything", "{}")).toMatchObject({ ok: false, error: "unknown_tool" });
+    expect(callTeachingMcpTool("delete_everything", "{}")).toMatchObject({
+      ok: false,
+      error: "unknown_tool",
+    });
   });
 });

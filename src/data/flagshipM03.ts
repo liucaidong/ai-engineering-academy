@@ -113,7 +113,7 @@ export const flagshipM03Lessons: Course["modules"][number]["lessons"] = [
     }],
     sources: [
       { title: "Efficient Estimation of Word Representations in Vector Space", url: "https://arxiv.org/abs/1301.3781", publisher: "Mikolov et al., ICLR Workshop 2013", note: "经典静态词向量训练方法背景" },
-      { title: "GloVe: Global Vectors for Word Representation", url: "https://nlp.stanford.edu/projects/glove/", publisher: "Stanford NLP", note: "基于全局词共现统计的静态词向量" },
+      { title: "GloVe: Global Vectors for Word Representation", url: "https://aclanthology.org/D14-1162/", publisher: "Pennington, Socher and Manning, EMNLP 2014 / ACL Anthology", note: "全局词-词共现矩阵上的加权最小二乘 log-bilinear 模型，产生静态词向量；不同上下文不会自动生成不同的 token embedding" },
       { title: "Attention Is All You Need", url: "https://arxiv.org/abs/1706.03762", publisher: "Vaswani et al., NeurIPS 2017", note: "Transformer 输入表示、位置编码与输出结构" },
       { title: "The Illustrated Transformer", url: "https://jalammar.github.io/illustrated-transformer/", publisher: "Jay Alammar", note: "Embedding、位置编码与 Transformer 数据流的教学图解" }
     ]
@@ -168,10 +168,10 @@ export const flagshipM03Lessons: Course["modules"][number]["lessons"] = [
       ]
     }],
     sources: [
-      { title: "Lost in the Middle: How Language Models Use Long Contexts", url: "https://arxiv.org/abs/2307.03172", publisher: "Liu et al., TACL 2024", note: "长上下文中位置信息利用的实验研究" },
-      { title: "LongBench: A Bilingual, Multitask Benchmark for Long Context Understanding", url: "https://arxiv.org/abs/2308.14508", publisher: "Bai et al., ACL 2024", note: "长上下文多任务评测基准" },
-      { title: "Gemini 1.5: Unlocking multimodal understanding across millions of tokens of context", url: "https://arxiv.org/abs/2403.05530", publisher: "Google, 2024", note: "长上下文模型能力与评测报告" },
-      { title: "OpenAI Cookbook: How to count tokens with tiktoken", url: "https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken", publisher: "OpenAI", note: "使用目标 tokenizer 计数的示例；消息格式开销需结合 API 版本" }
+      { title: "Lost in the Middle: How Language Models Use Long Contexts", url: "https://arxiv.org/abs/2307.03172", publisher: "Liu et al., TACL 2024", note: "Liu et al., TACL 2024；在多文档 QA 和 key-value retrieval 等设置中观察到位置敏感性，不能外推为所有模型/任务固定曲线" },
+      { title: "LongBench: A Bilingual, Multitask Benchmark for Long Context Understanding", url: "https://arxiv.org/abs/2308.14508", publisher: "Bai et al., ACL 2024", note: "ACL 2024 LongBench：21 个数据集、6 类任务、英中双语；论文基准结果不等于所有当前模型的通用排名" },
+      { title: "Gemini 1.5: Unlocking multimodal understanding across millions of tokens of context", url: "https://arxiv.org/abs/2403.05530", publisher: "Google, 2024", note: "Google Gemini 1.5 技术报告中的模型家族实验结果（包括百万级、最高至 10M token 的长上下文测试）；不是当前 Gemini API 的通用窗口承诺或 SLA" },
+      { title: "OpenAI API: Counting tokens", url: "https://developers.openai.com/api/docs/guides/token-counting", publisher: "OpenAI API Documentation", note: "当前 token-count endpoint 可按 Responses API 输入结构计数；本地 tiktoken 适合文本估算，不覆盖图像/文件和服务端格式开销" }
     ]
   },
   {
@@ -194,7 +194,20 @@ export const flagshipM03Lessons: Course["modules"][number]["lessons"] = [
       {
         heading: "从结构化消息到模型序列",
         body: "Chat API 中的 role/content/tool 等结构通常需要被序列化为模型专用的消息格式，具体模板取决于模型和接口。",
-        markdown: "应用层可能维护如下结构化消息：\n\n```json\n[\n  { "role": "system", "content": "遵守安全策略" },\n  { "role": "user", "content": "查找退款政策" },\n  { "role": "assistant", "tool_calls": [{ "name": "search_policy", "arguments": { "query": "退款" } }] },\n  { "role": "tool", "name": "search_policy", "content": "政策片段与来源" }\n]\n```\n\n服务端或客户端会根据协议把这些结构转成目标模型可识别的 token 序列。Chat Template 可能加入角色边界、通道信息、工具交接标记、生成前缀或其他控制符号。\n\n不要将 JSON 对象本身等同于模型输入 token。也不要手工拼接某模型的特殊 token 字符串来替代官方 SDK/模板，除非你明确掌握该模型的序列化契约。模板版本变化可能改变 token 用量、角色边界或工具控制流。"
+        markdown: `应用层可能维护如下结构化消息：
+
+~~~json
+[
+  { "role": "system", "content": "遵守安全策略" },
+  { "role": "user", "content": "查找退款政策" },
+  { "role": "assistant", "tool_calls": [{ "name": "search_policy", "arguments": { "query": "退款" } }] },
+  { "role": "tool", "name": "search_policy", "content": "政策片段与来源" }
+]
+~~~
+
+服务端或客户端会根据协议把这些结构转成目标模型可识别的 token 序列。Chat Template 可能加入角色边界、通道信息、工具交接标记、生成前缀或其他控制符号。
+
+不要将 JSON 对象本身等同于模型输入 token。也不要手工拼接某模型的特殊 token 字符串来替代官方 SDK/模板，除非你明确掌握该模型的序列化契约。模板版本变化可能改变 token 用量、角色边界或工具控制流。`
       },
       {
         heading: "上下文中的优先级、来源与冲突",
@@ -225,8 +238,8 @@ export const flagshipM03Lessons: Course["modules"][number]["lessons"] = [
     }],
     sources: [
       { title: "Chat templates", url: "https://huggingface.co/docs/transformers/chat_templating", publisher: "Hugging Face", note: "结构化对话消息到模型输入序列的模板机制" },
-      { title: "Messages and roles", url: "https://platform.openai.com/docs/guides/text-generation", publisher: "OpenAI API Documentation", note: "消息输入与文本生成接口概念；具体接口以当前文档为准" },
-      { title: "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks", url: "https://arxiv.org/abs/2005.11401", publisher: "Lewis et al., NeurIPS 2020", note: "RAG 将参数化生成与非参数化检索结合" },
+      { title: "OpenAI API: Text generation, message roles and instructions", url: "https://developers.openai.com/api/docs/guides/text", publisher: "OpenAI API Documentation", note: "Responses API 文本生成、developer/user/assistant 角色和 instructions 优先级；具体行为需绑定 API 与模型版本" },
+      { title: "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks", url: "https://arxiv.org/abs/2005.11401", publisher: "Lewis et al., NeurIPS 2020", note: "Lewis et al., NeurIPS 2020；将参数化 seq2seq generator 与非参数化 dense retriever 结合，原论文评测知识密集型 NLP 任务" },
       { title: "Lost in the Middle: How Language Models Use Long Contexts", url: "https://arxiv.org/abs/2307.03172", publisher: "Liu et al., TACL 2024", note: "长上下文输入组织与信息位置影响" }
     ]
   },
@@ -283,7 +296,7 @@ export const flagshipM03Lessons: Course["modules"][number]["lessons"] = [
     sources: [
       { title: "Tokenizer documentation", url: "https://huggingface.co/docs/tokenizers/index", publisher: "Hugging Face", note: "Tokenizer 构建、训练和编码 API" },
       { title: "tiktoken", url: "https://github.com/openai/tiktoken", publisher: "OpenAI", note: "OpenAI tokenizer 实现与编码名称说明；须匹配模型" },
-      { title: "How to count tokens with tiktoken", url: "https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken", publisher: "OpenAI Cookbook", note: "真实 tokenizer 计量示例及消息开销注意事项" },
+      { title: "OpenAI API: Counting tokens", url: "https://developers.openai.com/api/docs/guides/token-counting", publisher: "OpenAI API Documentation", note: "当前服务端 token-count endpoint 与本地 tiktoken 的适用边界；图像/文件与隐藏格式开销需由目标 API 计量" },
       { title: "Llama 3 model card", url: "https://huggingface.co/meta-llama/Meta-Llama-3-8B", publisher: "Meta / Hugging Face", note: "具体模型 tokenizer 与模型资产的版本化示例" }
     ]
   }

@@ -3,16 +3,17 @@
 Revision ID: 0003_identity_tenancy
 Revises: 0002_release_publication_state
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0003_identity_tenancy"
-down_revision: Union[str, None] = "0002_release_publication_state"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "0002_release_publication_state"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -23,8 +24,18 @@ def upgrade() -> None:
         sa.Column("display_name", sa.String(length=120), nullable=True),
         sa.Column("email", sa.String(length=320), nullable=True),
         sa.Column("email_verified_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.CheckConstraint(
             "status IN ('active', 'suspended', 'deletion_pending')",
             name="ck_users_status_valid",
@@ -38,17 +49,21 @@ def upgrade() -> None:
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("issuer", sa.String(length=512), nullable=False),
         sa.Column("subject", sa.String(length=255), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("last_authenticated_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(
-            ["user_id"], ["users.id"],
+            ["user_id"],
+            ["users.id"],
             name="fk_external_identities_user_id_users",
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name="pk_external_identities"),
-        sa.UniqueConstraint(
-            "issuer", "subject", name="uq_external_identities_issuer_subject"
-        ),
+        sa.UniqueConstraint("issuer", "subject", name="uq_external_identities_issuer_subject"),
     )
     op.create_index(
         "ix_external_identities_user_id", "external_identities", ["user_id"], unique=False
@@ -59,14 +74,22 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("token_hash", sa.String(length=64), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("last_seen_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("revoked_at", sa.DateTime(timezone=True), nullable=True),
         sa.CheckConstraint("token_hash ~ '^[0-9a-f]{64}$'", name="ck_auth_sessions_token_hash_hex"),
-        sa.CheckConstraint("expires_at > created_at", name="ck_auth_sessions_expiry_after_creation"),
+        sa.CheckConstraint(
+            "expires_at > created_at", name="ck_auth_sessions_expiry_after_creation"
+        ),
         sa.ForeignKeyConstraint(
-            ["user_id"], ["users.id"],
+            ["user_id"],
+            ["users.id"],
             name="fk_auth_sessions_user_id_users",
             ondelete="CASCADE",
         ),
@@ -87,7 +110,12 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=160), nullable=False),
         sa.Column("status", sa.String(length=16), server_default="active", nullable=False),
         sa.Column("personal_owner_user_id", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.CheckConstraint(
             "(tenant_type = 'personal' AND personal_owner_user_id IS NOT NULL) OR "
             "(tenant_type = 'organization' AND personal_owner_user_id IS NULL)",
@@ -99,7 +127,8 @@ def upgrade() -> None:
         ),
         sa.CheckConstraint("status IN ('active', 'suspended')", name="ck_tenants_status_valid"),
         sa.ForeignKeyConstraint(
-            ["personal_owner_user_id"], ["users.id"],
+            ["personal_owner_user_id"],
+            ["users.id"],
             name="fk_tenants_personal_owner_user_id_users",
             ondelete="RESTRICT",
         ),
@@ -113,28 +142,31 @@ def upgrade() -> None:
         sa.Column("tenant_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("status", sa.String(length=16), server_default="active", nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.CheckConstraint(
             "status IN ('active', 'suspended')",
             name="ck_tenant_memberships_status_valid",
         ),
         sa.ForeignKeyConstraint(
-            ["tenant_id"], ["tenants.id"],
+            ["tenant_id"],
+            ["tenants.id"],
             name="fk_tenant_memberships_tenant_id_tenants",
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["user_id"], ["users.id"],
+            ["user_id"],
+            ["users.id"],
             name="fk_tenant_memberships_user_id_users",
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name="pk_tenant_memberships"),
-        sa.UniqueConstraint(
-            "tenant_id", "user_id", name="uq_tenant_memberships_tenant_user"
-        ),
-        sa.UniqueConstraint(
-            "tenant_id", "id", name="uq_tenant_memberships_tenant_id"
-        ),
+        sa.UniqueConstraint("tenant_id", "user_id", name="uq_tenant_memberships_tenant_user"),
+        sa.UniqueConstraint("tenant_id", "id", name="uq_tenant_memberships_tenant_id"),
     )
     op.create_index(
         "ix_tenant_memberships_user_status",
@@ -149,7 +181,12 @@ def upgrade() -> None:
         sa.Column("membership_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("role", sa.String(length=24), nullable=False),
         sa.Column("granted_by_user_id", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.CheckConstraint(
             "role IN ('learner', 'instructor', 'tenant_admin')",
             name="ck_tenant_membership_roles_role_valid",
@@ -161,13 +198,12 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["granted_by_user_id"], ["users.id"],
+            ["granted_by_user_id"],
+            ["users.id"],
             name="fk_tenant_membership_roles_granted_by_user_id_users",
             ondelete="SET NULL",
         ),
-        sa.PrimaryKeyConstraint(
-            "membership_id", "role", name="pk_tenant_membership_roles"
-        ),
+        sa.PrimaryKeyConstraint("membership_id", "role", name="pk_tenant_membership_roles"),
     )
     op.create_index(
         "ix_tenant_membership_roles_tenant_role",
@@ -186,8 +222,15 @@ def upgrade() -> None:
         sa.Column("created_by_user_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("accepted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.CheckConstraint("token_hash ~ '^[0-9a-f]{64}$'", name="ck_tenant_invitations_token_hash_hex"),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.CheckConstraint(
+            "token_hash ~ '^[0-9a-f]{64}$'", name="ck_tenant_invitations_token_hash_hex"
+        ),
         sa.CheckConstraint(
             "role IN ('learner', 'instructor', 'tenant_admin')",
             name="ck_tenant_invitations_role_valid",
@@ -197,12 +240,14 @@ def upgrade() -> None:
             name="ck_tenant_invitations_expiry_after_creation",
         ),
         sa.ForeignKeyConstraint(
-            ["tenant_id"], ["tenants.id"],
+            ["tenant_id"],
+            ["tenants.id"],
             name="fk_tenant_invitations_tenant_id_tenants",
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["created_by_user_id"], ["users.id"],
+            ["created_by_user_id"],
+            ["users.id"],
             name="fk_tenant_invitations_created_by_user_id_users",
             ondelete="RESTRICT",
         ),
@@ -231,14 +276,21 @@ def upgrade() -> None:
             server_default=sa.text("'{}'::jsonb"),
             nullable=False,
         ),
-        sa.Column("occurred_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "occurred_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
-            ["actor_user_id"], ["users.id"],
+            ["actor_user_id"],
+            ["users.id"],
             name="fk_audit_events_actor_user_id_users",
             ondelete="SET NULL",
         ),
         sa.ForeignKeyConstraint(
-            ["tenant_id"], ["tenants.id"],
+            ["tenant_id"],
+            ["tenants.id"],
             name="fk_audit_events_tenant_id_tenants",
             ondelete="SET NULL",
         ),

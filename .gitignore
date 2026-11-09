@@ -9,3 +9,15 @@ coverage/
 
 playwright-report/
 test-results/
+
+# Python environments, bytecode and build metadata
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# TypeScript incremental build metadata
+*.tsbuildinfo

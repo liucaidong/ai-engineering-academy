@@ -1,4 +1,4 @@
-import { CourseSchema, type Course } from "../types/course";
+import { type Course, CourseSchema } from "../types/course";
 
 export const CURRENT_COURSE_SCHEMA_VERSION = 1;
 

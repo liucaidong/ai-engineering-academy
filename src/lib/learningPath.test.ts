@@ -14,6 +14,11 @@ describe("prerequisite-aware learning path", () => {
     expect(unlocked.map((module) => module.id)).toEqual(["M01"]);
   });
   it("returns null when every module is complete", () => {
-    expect(getNextRecommendedModule(course.modules, course.modules.map((module) => module.id))).toBeNull();
+    expect(
+      getNextRecommendedModule(
+        course.modules,
+        course.modules.map((module) => module.id),
+      ),
+    ).toBeNull();
   });
 });

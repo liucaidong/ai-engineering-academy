@@ -1,4 +1,5 @@
 """Alembic environment configured for async PostgreSQL drivers."""
+
 import asyncio
 from logging.config import fileConfig
 

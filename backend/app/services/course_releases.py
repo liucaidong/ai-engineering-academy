@@ -1,4 +1,5 @@
 """Domain operations for immutable course release snapshots."""
+
 from __future__ import annotations
 
 import hashlib
@@ -10,7 +11,9 @@ from typing import Any
 
 from app.models.course_release import CourseRelease
 
-_SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$")
+_SEMVER = re.compile(
+    r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$"
+)
 
 
 def canonical_course_json(content: Mapping[str, Any]) -> bytes:

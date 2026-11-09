@@ -1,5 +1,7 @@
 """Self-scoped learner progress API; instructor access is intentionally absent."""
+
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
@@ -10,7 +12,12 @@ from sqlalchemy.exc import IntegrityError
 from app.api.dependencies import learner_transaction
 from app.models.course_release import CourseRelease
 from app.models.learning import LearningProgress
-from app.services.learning_records import complete_progress, reopen_progress, start_progress, touch_progress
+from app.services.learning_records import (
+    complete_progress,
+    reopen_progress,
+    start_progress,
+    touch_progress,
+)
 
 router = APIRouter(prefix="/learning", tags=["learning"])
 
@@ -42,11 +49,13 @@ def _contains_module(release: CourseRelease, module_key: str) -> bool:
 
 async def _owned_progress(db, progress_id: UUID, user_id: UUID, tenant_id: UUID):
     result = await db.execute(
-        select(LearningProgress).where(
+        select(LearningProgress)
+        .where(
             LearningProgress.id == progress_id,
             LearningProgress.user_id == user_id,
             LearningProgress.tenant_id == tenant_id,
-        ).with_for_update()
+        )
+        .with_for_update()
     )
     progress = result.scalar_one_or_none()
     if progress is None:
@@ -57,18 +66,22 @@ async def _owned_progress(db, progress_id: UUID, user_id: UUID, tenant_id: UUID)
 @router.get("/progress", response_model=list[ProgressRead])
 async def list_progress(
     request: Request,
-    tenant_id: UUID = Header(alias="X-Tenant-ID"),
-    course_release_id: UUID | None = Query(default=None),
-    limit: int = Query(default=50, ge=1, le=100),
+    tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
+    course_release_id: Annotated[UUID | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ):
-    async with learner_transaction(request, tenant_id=tenant_id, permission="learning:read:self") as (db, principal):
+    async with learner_transaction(
+        request, tenant_id=tenant_id, permission="learning:read:self"
+    ) as (db, principal):
         query = select(LearningProgress).where(
             LearningProgress.tenant_id == principal.tenant_id,
             LearningProgress.user_id == principal.user_id,
         )
         if course_release_id is not None:
             query = query.where(LearningProgress.course_release_id == course_release_id)
-        result = await db.execute(query.order_by(LearningProgress.last_accessed_at.desc()).limit(limit))
+        result = await db.execute(
+            query.order_by(LearningProgress.last_accessed_at.desc()).limit(limit)
+        )
         return list(result.scalars().all())
 
 
@@ -76,30 +89,40 @@ async def list_progress(
 async def begin_progress(
     body: ProgressCreate,
     request: Request,
-    tenant_id: UUID = Header(alias="X-Tenant-ID"),
+    tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
 ):
     key = body.module_key.strip()
     if not key:
         raise HTTPException(status_code=422, detail="module_key must not be blank")
     try:
-        async with learner_transaction(request, tenant_id=tenant_id, permission="learning:write:self") as (db, principal):
-            result = await db.execute(select(CourseRelease).where(
-                CourseRelease.id == body.course_release_id, CourseRelease.status == "published"
-            ))
+        async with learner_transaction(
+            request, tenant_id=tenant_id, permission="learning:write:self"
+        ) as (db, principal):
+            result = await db.execute(
+                select(CourseRelease).where(
+                    CourseRelease.id == body.course_release_id, CourseRelease.status == "published"
+                )
+            )
             release = result.scalar_one_or_none()
             if release is None or not _contains_module(release, key):
                 raise HTTPException(status_code=404, detail="Published course module not found")
-            existing = await db.execute(select(LearningProgress).where(
-                LearningProgress.tenant_id == principal.tenant_id,
-                LearningProgress.user_id == principal.user_id,
-                LearningProgress.course_release_id == body.course_release_id,
-                LearningProgress.module_key == key,
-            ).with_for_update())
+            existing = await db.execute(
+                select(LearningProgress)
+                .where(
+                    LearningProgress.tenant_id == principal.tenant_id,
+                    LearningProgress.user_id == principal.user_id,
+                    LearningProgress.course_release_id == body.course_release_id,
+                    LearningProgress.module_key == key,
+                )
+                .with_for_update()
+            )
             progress = existing.scalar_one_or_none()
             if progress is None:
                 progress = start_progress(
-                    tenant_id=principal.tenant_id, user_id=principal.user_id,
-                    course_release_id=body.course_release_id, module_key=key,
+                    tenant_id=principal.tenant_id,
+                    user_id=principal.user_id,
+                    course_release_id=body.course_release_id,
+                    module_key=key,
                 )
                 db.add(progress)
             else:
@@ -107,14 +130,18 @@ async def begin_progress(
             await db.flush()
             return progress
     except IntegrityError as error:
-        raise HTTPException(status_code=409, detail="Progress record already exists; retry") from error
+        raise HTTPException(
+            status_code=409, detail="Progress record already exists; retry"
+        ) from error
 
 
 @router.post("/progress/{progress_id}/complete", response_model=ProgressRead)
 async def mark_progress_complete(
-    progress_id: UUID, request: Request, tenant_id: UUID = Header(alias="X-Tenant-ID")
+    progress_id: UUID, request: Request, tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")]
 ):
-    async with learner_transaction(request, tenant_id=tenant_id, permission="learning:write:self") as (db, principal):
+    async with learner_transaction(
+        request, tenant_id=tenant_id, permission="learning:write:self"
+    ) as (db, principal):
         progress = await _owned_progress(db, progress_id, principal.user_id, principal.tenant_id)
         try:
             complete_progress(progress)
@@ -126,9 +153,11 @@ async def mark_progress_complete(
 
 @router.post("/progress/{progress_id}/reopen", response_model=ProgressRead)
 async def reopen_completed_progress(
-    progress_id: UUID, request: Request, tenant_id: UUID = Header(alias="X-Tenant-ID")
+    progress_id: UUID, request: Request, tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")]
 ):
-    async with learner_transaction(request, tenant_id=tenant_id, permission="learning:write:self") as (db, principal):
+    async with learner_transaction(
+        request, tenant_id=tenant_id, permission="learning:write:self"
+    ) as (db, principal):
         progress = await _owned_progress(db, progress_id, principal.user_id, principal.tenant_id)
         try:
             reopen_progress(progress)

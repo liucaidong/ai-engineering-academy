@@ -1,15 +1,17 @@
 """Prevent learner-owned assessment rows from self-grading.
 
-Revision ID: 0009_assessment_self_grading_guard
+Revision ID: 0009_assessment_grade_guard
 Revises: 0008_oidc_identity_provisioning
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
+
 from alembic import op
 
-revision: str = "0009_assessment_self_grading_guard"
-down_revision: Union[str, None] = "0008_oidc_identity_provisioning"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "0009_assessment_grade_guard"
+down_revision: str | None = "0008_oidc_identity_provisioning"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

@@ -4,12 +4,14 @@ Operational health endpoints are always available. OIDC routes are mounted
 but return 503 until a complete provider/database/security configuration is
 explicitly supplied through environment settings.
 """
+
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.assessments import router as assessments_router
 from app.api.auth import router as auth_router
@@ -71,7 +73,8 @@ async def liveness() -> dict[str, str]:
 @app.get("/health/ready", tags=["health"])
 async def readiness(request: Request) -> JSONResponse:
     """Verify configured critical dependencies before accepting traffic."""
-    if not settings.database_required:
+    current_settings = get_settings()
+    if not current_settings.database_required:
         return JSONResponse(
             status_code=200,
             content={"status": "ready", "dependencies": {"database": "not-required"}},
@@ -80,9 +83,9 @@ async def readiness(request: Request) -> JSONResponse:
     database: Database = request.app.state.database
     try:
         await database.check()
-        if settings.oidc_login_enabled:
-            await database.check_schema_revision("0010_tenant_membership_discovery")
-    except Exception:
+        if current_settings.oidc_login_enabled:
+            await database.check_schema_revision("0011_personal_tenant_bootstrap")
+    except (SQLAlchemyError, RuntimeError, ValueError):
         return JSONResponse(
             status_code=503,
             content={"status": "not-ready", "dependencies": {"database": "unavailable"}},

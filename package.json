@@ -4,7 +4,7 @@
   "version": "0.3.1",
   "type": "module",
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=26.0.0 <27"
   },
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,32 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "validate:course": "vitest run src/lib/validateCourse.test.ts"
+    "validate:course": "vitest run src/lib/validateCourse.test.ts",
+    "test:examples:m04": "python3 -m unittest discover -s examples/m04 -p test_examples.py",
+    "test:examples:m05": "python3 -m unittest discover -s examples/m05 -p test_examples.py",
+    "test:examples:m06": "python3 -m unittest discover -s examples/m06 -p test_examples.py",
+    "test:examples:m07": "python3 -m unittest discover -s examples/m07 -p test_examples.py",
+    "test:examples:m08": "python3 -m unittest discover -s examples/m08 -p test_examples.py",
+    "test:examples:m09": "python3 -m unittest discover -s examples/m09 -p test_examples.py",
+    "test:examples:m10": "python3 -m unittest discover -s examples/m10 -p test_examples.py",
+    "test:examples:m11": "python3 -m unittest discover -s examples/m11 -p test_examples.py",
+    "test:examples:m12": "python3 -m unittest discover -s examples/m12 -p test_examples.py",
+    "test:examples:m13": "python3 -m unittest discover -s examples/m13 -p test_examples.py",
+    "test:examples:m14": "python3 -m unittest discover -s examples/m14 -p test_examples.py",
+    "test:examples:m15": "python3 -m unittest discover -s examples/m15 -p test_examples.py",
+    "test:examples:m16": "python3 -m unittest discover -s examples/m16 -p test_examples.py",
+    "test:examples:m17": "python3 -m unittest discover -s examples/m17 -p test_examples.py",
+    "test:examples:m18": "python3 -m unittest discover -s examples/m18 -p test_examples.py",
+    "test:examples:m19": "python3 -m unittest discover -s examples/m19 -p test_examples.py",
+    "test:examples:m20": "python3 -m unittest discover -s examples/m20 -p test_examples.py",
+    "typecheck": "tsc --noEmit",
+    "acceptance:local": "bash scripts/acceptance-local.sh",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm api:check",
+    "api:generate": "PYTHONPATH=backend uv run --project backend --locked --python 3.12.14 --default-index https://pypi.org/simple python backend/scripts/export_openapi.py && openapi-typescript openapi/openapi.json --output src/api/generated.ts",
+    "api:check": "node scripts/check-openapi.mjs"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -23,13 +48,16 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@biomejs/biome": "2.6.6",
+    "@playwright/test": "^1.64.1",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^4.7.0",
+    "openapi-typescript": "7.13.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
-    "vitest": "^3.2.4",
-    "@playwright/test": "^1.64.1",
-    "@axe-core/playwright": "^4.14.0"
-  }
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "pnpm@12.7.0"
 }

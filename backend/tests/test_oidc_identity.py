@@ -1,6 +1,5 @@
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
-from uuid import uuid4
 
 import pytest
 
@@ -39,6 +38,8 @@ async def test_first_oidc_login_provisions_only_learner_personal_workspace() -> 
                 result_one(None),  # no personal tenant
                 None,  # set user + tenant context
                 result_one(None),  # no active membership
+                None,  # set exact personal-tenant bootstrap context
+                None,  # clear personal-tenant bootstrap context
                 result_scalars([]),  # no existing role grants
             ]
         ),
@@ -99,6 +100,8 @@ async def test_unverified_email_is_not_persisted() -> None:
                 result_one(None),
                 None,
                 result_one(None),
+                None,
+                None,
                 result_scalars([]),
             ]
         ),
@@ -117,9 +120,7 @@ async def test_unverified_email_is_not_persisted() -> None:
         },
         request_id="request-456",
     )
-    user = next(
-        call.args[0] for call in db.add.call_args_list if isinstance(call.args[0], User)
-    )
+    user = next(call.args[0] for call in db.add.call_args_list if isinstance(call.args[0], User))
     assert user.email is None
     assert user.email_verified_at is None
 

@@ -1,11 +1,11 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 from urllib.parse import parse_qs, urlsplit
 from uuid import uuid4
 
-from cryptography.fernet import Fernet
 import pytest
+from cryptography.fernet import Fernet
 
 from app.models.identity import OIDCLoginTransaction
 from app.security.oidc import sha256_hex
@@ -15,7 +15,6 @@ from app.security.oidc_transactions import (
     consume_login_transaction,
     create_login_transaction,
 )
-
 
 KEY = Fernet.generate_key()
 REDIRECT_URI = "https://academy.example.test/auth/callback"
@@ -32,7 +31,7 @@ def fake_db(*results):
 
 @pytest.mark.asyncio
 async def test_login_transaction_stores_only_hashes_and_encrypted_verifier() -> None:
-    now = datetime(2026, 11, 5, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 5, tzinfo=UTC)
     db = fake_db(None, None)
 
     login = await create_login_transaction(
@@ -58,7 +57,7 @@ async def test_login_transaction_stores_only_hashes_and_encrypted_verifier() -> 
 
 @pytest.mark.asyncio
 async def test_login_transaction_is_consumed_once_under_transaction_lock() -> None:
-    now = datetime(2026, 11, 5, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 5, tzinfo=UTC)
     verifier = "a" * 43
     state = "c" * 43
     record = OIDCLoginTransaction(
@@ -104,7 +103,7 @@ async def test_login_transaction_replay_or_unknown_state_is_rejected() -> None:
 
 @pytest.mark.asyncio
 async def test_invalid_verifier_ciphertext_fails_without_consuming_record() -> None:
-    now = datetime(2026, 11, 5, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 5, tzinfo=UTC)
     state = "g" * 43
     record = OIDCLoginTransaction(
         id=uuid4(),

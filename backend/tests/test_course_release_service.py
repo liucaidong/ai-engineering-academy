@@ -32,10 +32,22 @@ def test_build_course_release_creates_draft_with_digest() -> None:
 @pytest.mark.parametrize(
     ("kwargs", "message"),
     [
-        ({"course_key": " ", "version": "1.0.0", "schema_version": 1, "content": {"x": 1}}, "course_key"),
-        ({"course_key": "course", "version": "v1", "schema_version": 1, "content": {"x": 1}}, "semantic"),
-        ({"course_key": "course", "version": "1.0.0", "schema_version": 0, "content": {"x": 1}}, "schema_version"),
-        ({"course_key": "course", "version": "1.0.0", "schema_version": 1, "content": {}}, "non-empty"),
+        (
+            {"course_key": " ", "version": "1.0.0", "schema_version": 1, "content": {"x": 1}},
+            "course_key",
+        ),
+        (
+            {"course_key": "course", "version": "v1", "schema_version": 1, "content": {"x": 1}},
+            "semantic",
+        ),
+        (
+            {"course_key": "course", "version": "1.0.0", "schema_version": 0, "content": {"x": 1}},
+            "schema_version",
+        ),
+        (
+            {"course_key": "course", "version": "1.0.0", "schema_version": 1, "content": {}},
+            "non-empty",
+        ),
     ],
 )
 def test_build_course_release_rejects_invalid_metadata(kwargs, message: str) -> None:

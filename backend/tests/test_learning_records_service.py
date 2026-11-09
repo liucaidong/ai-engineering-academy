@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -13,8 +13,7 @@ from app.services.learning_records import (
     submit_assessment,
 )
 
-
-NOW = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 11, 5, 12, 0, tzinfo=UTC)
 
 
 def test_start_progress_trims_module_key_and_sets_aware_timestamps() -> None:
@@ -212,7 +211,7 @@ def test_non_instructor_grade_rejects_reviewer_identity() -> None:
     )
     submit_assessment(result, now=NOW)
 
-    with pytest.raises(ValueError, match="only instructor"):
+    with pytest.raises(ValueError, match="automated grading cannot record a reviewer identity"):
         grade_assessment(result, score=90, graded_by_user_id=uuid4(), now=NOW)
 
 

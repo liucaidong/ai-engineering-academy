@@ -1,15 +1,17 @@
 """Allow authenticated users to discover only their own active tenant memberships.
 
 Revision ID: 0010_tenant_membership_discovery
-Revises: 0009_assessment_self_grading_guard
+Revises: 0009_assessment_grade_guard
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
+
 from alembic import op
 
 revision: str = "0010_tenant_membership_discovery"
-down_revision: Union[str, None] = "0009_assessment_self_grading_guard"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "0009_assessment_grade_guard"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -21,6 +23,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute(
-        "DROP POLICY IF EXISTS tenant_memberships_self_discovery ON tenant_memberships"
-    )
+    op.execute("DROP POLICY IF EXISTS tenant_memberships_self_discovery ON tenant_memberships")

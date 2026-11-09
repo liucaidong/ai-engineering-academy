@@ -103,7 +103,7 @@ export const flagshipM02Lessons: Course["modules"][number]["lessons"] = [
     sources: [
       { title: "Attention Is All You Need", url: "https://arxiv.org/abs/1706.03762", publisher: "Vaswani et al., NeurIPS 2017", note: "Multi-Head Attention 与 Encoder–Decoder Attention 结构" },
       { title: "The Annotated Transformer", url: "https://nlp.seas.harvard.edu/annotated-transformer/", publisher: "Harvard NLP", note: "多头 reshape、transpose、mask 和输出投影实现" },
-      { title: "PyTorch MultiheadAttention", url: "https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html", publisher: "PyTorch", note: "多头注意力接口、维度约定和 mask 参数说明" }
+      { title: "PyTorch MultiheadAttention", url: "https://docs.pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html", publisher: "PyTorch", note: "多头注意力接口、维度约定和 mask 参数说明" }
     ]
   },
   {
@@ -203,8 +203,8 @@ export const flagshipM02Lessons: Course["modules"][number]["lessons"] = [
     }],
     sources: [
       { title: "Attention Is All You Need", url: "https://arxiv.org/abs/1706.03762", publisher: "Vaswani et al., NeurIPS 2017", note: "Encoder、Decoder、FFN、残差与 LayerNorm 的原始架构" },
-      { title: "On Layer Normalization in the Transformer Architecture", url: "https://arxiv.org/abs/2002.04745", publisher: "Xiong et al.", note: "Pre-LN 与 Post-LN 梯度和训练稳定性分析" },
-      { title: "Root Mean Square Layer Normalization", url: "https://arxiv.org/abs/1910.07467", publisher: "Zhang and Sennrich", note: "RMSNorm 的动机与归一化方式" }
+      { title: "On Layer Normalization in the Transformer Architecture", url: "https://arxiv.org/abs/2002.04745", publisher: "Xiong et al.", note: "分析 Post-LN 与 Pre-LN 的梯度行为和深层训练稳定性；结论与具体初始化、深度和训练配置相关" },
+      { title: "Root Mean Square Layer Normalization", url: "https://arxiv.org/abs/1910.07467", publisher: "Zhang and Sennrich", note: "RMSNorm 移除 LayerNorm 的 re-centering 操作、保留 rescaling；是架构变体，不等于所有 Transformer 的默认实现" }
     ]
   },
   {
@@ -262,7 +262,7 @@ export const flagshipM02Lessons: Course["modules"][number]["lessons"] = [
       { title: "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness", url: "https://arxiv.org/abs/2205.14135", publisher: "Dao et al., NeurIPS 2022", note: "IO-aware exact attention、分块和在线 Softmax" },
       { title: "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning", url: "https://arxiv.org/abs/2307.08691", publisher: "Dao", note: "FlashAttention 的并行化与工作划分优化" },
       { title: "Efficient Memory Management for Large Language Model Serving with PagedAttention", url: "https://arxiv.org/abs/2309.06180", publisher: "Kwon et al., SOSP 2023", note: "PagedAttention 与 KV Cache 服务内存管理" },
-      { title: "Grouped-Query Attention", url: "https://arxiv.org/abs/2305.13245", publisher: "Ainslie et al.", note: "通过 KV Head 共享降低缓存和推理成本" }
+      { title: "GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints", url: "https://arxiv.org/abs/2305.13245", publisher: "Ainslie et al.", note: "在 MHA 与 MQA 之间使用多个 KV Head 的折中；论文报告 uptraining 可接近 MHA 质量并获得接近 MQA 的推理速度，结果受模型/任务设置限制" }
     ]
   }
 ];

@@ -30,48 +30,54 @@ AI Engineering Academy 将以工程能力为主线，覆盖 AI 基础认知、�
 - [ADR-0001：独立平台决策](docs/adr/0001-independent-platform.md)
 - [ADR-0002：后端模块化单体决策](docs/adr/0002-backend-modular-monolith.md)
 - [ADR-0003：身份认证与租户隔离基线](docs/adr/0003-identity-and-tenant-isolation.md)
+- [ADR-0004：双语言技术栈与依赖治理](docs/adr/0004-tech-stack-governance.md)
+- [OpenAPI 契约与生成规则](openapi/README.md)
 
 ## 技术栈
 
-### Frontend
-- React + TypeScript + Vite
-- Zod 课程数据运行时校验
-- Vitest 单元测试、Playwright 浏览器 E2E
-- 浏览器本地交互实验与学习草稿
+项目采用 TypeScript 前端 + Python 后端的分层架构，不做语言统一迁移。
 
-### Backend foundation
-- Python 3.11+、FastAPI、Pydantic Settings
-- SQLAlchemy Async + asyncpg + Alembic
-- PostgreSQL course-release, identity, tenant, learning-progress and assessment schemas with RLS policies
+- 前端：React 19、TypeScript 5、Vite 6、Zod、Vitest、Playwright、Biome；Node.js 26 LTS + pnpm。
+- API 类型：FastAPI OpenAPI 3.1 → `openapi-typescript` → `src/api/generated.ts`；契约漂移由 `pnpm api:check` 检查。
+- 教材加载：课程目录首屏加载，M01–M20 正文独立动态加载；全文搜索与课程编辑器按需加载完整课程数据。
+- 后端：Python 3.12 基线、FastAPI、Pydantic、SQLAlchemy Async、asyncpg、Alembic、Ruff；uv 管理依赖。
+- 数据：PostgreSQL + RLS。
+- 详细职责边界、版本和治理规则：[技术栈治理基线](docs/TECH_STACK.md)、[ADR-0004](docs/adr/0004-tech-stack-governance.md)。
 - Backend implementation notes: [backend/README.md](backend/README.md)
 
 ## 前端本地开发
 
 ```bash
-npm install
-npm run dev
-npm test
-npm run validate:course
-npm run build
-npx playwright install chromium
-npm run test:e2e
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm test
+pnpm validate:course
+pnpm check
+pnpm build
+pnpm exec playwright install chromium
+pnpm test:e2e
+
+# 单独生成或校验 OpenAPI 契约
+pnpm api:generate
+pnpm api:check
+
+# 一键执行前后端本地质量门禁
+pnpm acceptance:local
 ```
 
 ## 后端本地开发
 
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev]"
+uv sync --locked --default-index https://pypi.org/simple --extra dev
 cp .env.example .env
-uvicorn app.main:app --reload
+uv run --locked --default-index https://pypi.org/simple uvicorn app.main:app --reload
 ```
 
 数据库迁移需在 PostgreSQL 可访问且已配置 `ACADEMY_DATABASE_URL` 后，从 `backend/` 目录执行：
 
 ```bash
-alembic -c alembic.ini upgrade head
+uv run --locked --default-index https://pypi.org/simple alembic -c alembic.ini upgrade head
 ```
 
 本地开发默认不强制 PostgreSQL。设置 `ACADEMY_DATABASE_REQUIRED=true` 与 `ACADEMY_DATABASE_URL` 后，readiness 会执行数据库连通性探测。生产环境配置缺失数据库依赖时会 fail closed。
@@ -86,9 +92,9 @@ alembic -c alembic.ini upgrade head
 - 浏览器本地课程编辑工作区：JSON 导入、严格 Schema 校验、UTF-8 字节限制、草稿自动保存与校验通过后导出；
 - Tokenizer、Transformer、RAG、Tool Calling、Agent Runtime、MCP、Multi-Agent 和 Evaluation 八个本地教学实验；
 - FastAPI 后端运行骨架、liveness/readiness、生产配置 fail-closed；
-- SQLAlchemy 异步 session/transaction、Alembic 五阶段迁移、课程发布生命周期、身份/租户/学习进度/测评记录基础表和 transaction-local RLS context；OIDC 登录、教师授权和学习数据 API 尚未开放。
+- SQLAlchemy 异步 session/transaction、Alembic 11 个迁移版本、课程发布生命周期、身份/租户/学习进度/测评记录基础表和 transaction-local RLS context；OIDC 登录与首登个人租户 provisioning 已实现，但依赖外部 Provider 配置；教师资源范围授权和学习数据 API 仍未开放。
 
-上述实验均为教学级实现，不代表真实模型推理、生产向量检索或服务端沙箱。浏览器本地进度不等同于账户级云端同步。后端当前不提供学习者数据 API，也不执行任意用户代码。数据库迁移与测试代码尚未在受控运行环境执行。
+上述实验均为教学级实现，不代表真实模型推理、生产向量检索或服务端沙箱。浏览器本地进度不等同于账户级云端同步。后端当前不执行任意用户代码，学习者数据 API 默认关闭。迁移与测试已有本机验收证据；生产 OIDC Provider、生产密钥、正式部署拓扑和独立 runtime-role 集成测试仍需单独验收。
 
 ## 工程原则
 
