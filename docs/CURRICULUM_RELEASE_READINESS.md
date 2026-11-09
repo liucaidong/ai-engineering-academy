@@ -178,3 +178,17 @@ HTTP 403 是本地抓取器对原始 URL 的访问结果，不是来源无效的
 ## 9. 冻结决策记录
 
 当前决策为 **Freeze Candidate / Not Yet Released**。满足第 7 节清单、重新执行最终本机验收、核对差异清单并由项目负责人确认后，方可将状态升级为课程冻结版本。不得将候选冻结、课程完成、测试通过、来源可访问和生产就绪视为同一结论。
+
+
+## 10. Post-commit baseline revalidation (2026-11-10)
+
+本节是对 §6.7、§7 和 §8 中历史工作区快照的后续补充；不改写当时的审计记录。
+
+- 当前分支：`develop`；本地 HEAD：`80bf7ab5f06bd9ff5802e43e814ed507479ee352`（`chore: finalize curriculum and engineering baseline`）。
+- 远程核对基线：`origin/develop` 与本地 HEAD 一致；`main` 保留为稳定基线，未删除或改写。
+- 本次复核开始时工作区干净：`git status --short --branch` 仅显示 `## develop...origin/develop`。
+- 在上述提交基线上重新执行 `pnpm acceptance:local`，退出码 0：Biome lint 57 files、Biome format 56 files、TypeScript、OpenAPI 3.1.0（12 paths）、Vitest 73 passed、Course Schema 19 passed、Vite production build、Playwright 41 passed、M04–M20 Python examples 88 passed、Ruff 63 files、Backend pytest 122 passed / 1 skipped。
+- 唯一跳过项仍为需专用 PostgreSQL RLS 环境配置的可选集成测试；不得将其描述为已通过。
+- 本次验收未调用 GitHub Actions。验收脚本生成的构建产物和临时测试输出须按仓库忽略规则处理；本节不宣称已进行生产部署或外部同行评审。
+
+**更新后的状态：** M01–M20 教材候选冻结清单已完成，且最新 `develop` 提交基线的本机验收再次通过。课程内容可提交项目负责人作冻结决策；本报告仍不把候选冻结自动等同于正式发布、生产就绪或外部认证。

@@ -756,3 +756,13 @@ Completed a first-pass module-by-module technical review of M04–M20. The revie
 - Branch `main`, HEAD `7dcfe7a`; worktree remains mixed (190 status entries). No reset/clean, branch switch, commit, push or GitHub Actions run.
 
 Local acceptance does not imply external peer review, real GPU/provider validation, production deployment or a passing optional PostgreSQL RLS integration test.
+
+
+## 52. Post-commit curriculum baseline revalidation (2026-11-10)
+
+- Development baseline: `develop` at `80bf7ab5f06bd9ff5802e43e814ed507479ee352`; `origin/develop` matched local HEAD at the start of this revalidation. `main` remains preserved as the stable baseline.
+- Worktree was clean before acceptance; this supersedes earlier sections that describe the pre-governance mixed worktree as the current state. Those earlier sections remain historical snapshots.
+- Re-ran `pnpm acceptance:local` against the committed baseline; exit code 0.
+- Results: Biome lint 57 files; Biome format 56 files; TypeScript passed; OpenAPI 3.1.0 with 12 paths in sync; Vitest 73 passed; Course Schema 19 passed; Vite production build passed; Playwright 41 passed; M04–M20 Python examples 88 passed; Ruff format 63 files and lint passed; backend pytest 122 passed, 1 optional PostgreSQL RLS integration test skipped because its dedicated environment was not configured.
+- No GitHub Actions workflow was run. This revalidation does not establish production deployment, external peer review, real provider/GPU validation, or PostgreSQL RLS integration acceptance.
+- Curriculum source matching remains 398/398 occurrences with scoped verification notes; this is traceability closure, not independent certification of every source claim.
