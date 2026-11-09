@@ -32,6 +32,8 @@ AI Engineering Academy 是从模型原理到工程系统交付的学习路径。
 
 每个模块有五项正式评分作业，每项满分 10 分。提交前检查：是否回答原题全部要求；是否提供公式、输入、假设、单位和中间计算；架构图是否标出信任边界、权限、数据来源和失败处理；评测是否定义样本、分母、指标、阈值和版本；是否区分设计、模拟、真实测试和生产验证；是否说明替代方案、成本、限制和未验证项。
 
+课程页面的作业工作区用于记录文本草稿和 Rubric 自评；草稿保存在当前浏览器，自评不是教师评分，也不代表正式提交。代码、图表、数据文件、测试日志和其他完整工件，应按教师或课程指定的提交渠道另行提交，并保留可复现证据。
+
 教师指南提供参考解答和评分说明。它们是学习对照，不是可以复制后当作个人实验结果的模板。
 
 ## 5. 教学实验能做什么
@@ -67,6 +69,8 @@ AI Engineering Academy 是从模型原理到工程系统交付的学习路径。
 - [课程术语表](./GLOSSARY.md)
 - [课程来源审计](./CURRICULUM_SOURCE_AUDIT.md)
 - [学习者质量验证协议](./LEARNER_VALIDATION_PROTOCOL.md)
+- [M04–M20 先修能力地图](./LEARNER_PREREQUISITE_MAP.md)
+- [正式作业静态审查报告](./ASSESSMENT_STATIC_AUDIT.md)
 - [入门诊断题与补救路径](./LEARNER_ENTRY_DIAGNOSTIC.md)
 - [学习时间记录模板](./LEARNER_TIME_LOG_TEMPLATE.csv)
 - [正式作业可完成性审查模板](./ASSESSMENT_FEASIBILITY_REVIEW_TEMPLATE.md)
