@@ -41,7 +41,7 @@ The live PostgreSQL test verifies:
 7. Cross-tenant UPDATE affects zero rows.
 8. Cross-tenant INSERT is rejected by the RLS `WITH CHECK` policy.
 9. Same-tenant learner INSERT and permitted UPDATE operations succeed.
-10. DELETE remains denied for learner progress and assessment records because no DELETE policy is defined.
+10. DELETE remains denied for learner progress and assessment records because no DELETE policy is currently defined. This is the present deny-by-default behavior; any deletion workflow requires a separate retention and authorization decision.
 11. Suspended membership immediately removes tenant and learner-record visibility.
 12. The narrowly scoped first-personal-tenant bootstrap path succeeds, while a mismatched bootstrap tenant is rejected.
 13. Transaction-local identity and tenant settings do not leak when a pooled connection is reused after commit.
