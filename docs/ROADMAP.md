@@ -79,7 +79,7 @@
 - [x] Execute real PostgreSQL 18.6 RLS acceptance with an unprivileged non-owner / non-superuser / non-BYPASSRLS runtime role.
 - [x] Document risk-based code-quality and system-functionalization backlog in [ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11](./ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11.md).
 - [x] Expose authenticated `GET /tenants/me` using migration 0010's self-only RLS policy; verify actual query service on PostgreSQL 18.6.
-- [ ] Implement the frontend API transport with Cookie credentials, session-bound CSRF, tenant context and structured errors.
+- [x] Implement typed frontend API transport with Cookie credentials, session-bound CSRF, explicit tenant context, structured errors, timeout/cancellation and 13 regression tests; full local acceptance passed (86 Vitest, 42 Playwright, 135 backend pytest + 1 optional skip). UI integration remains pending.
 - [ ] Integrate learner progress and assessment attempts with backend persistence and local-state reconciliation.
 - [ ] Complete provider-backed OIDC E2E and privacy/retention review before enabling learner APIs.
 - [ ] Define and implement published course-release consumption in the learner UI.

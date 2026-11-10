@@ -167,6 +167,24 @@ Every implementation task must:
 
 Do not trigger or wait for GitHub Actions. Never mark an external provider, production deployment, privacy review or manual acceptance as complete without evidence.
 
-## 6. Immediate next implementation slice
+## 6. Implementation progress and next slice
 
-**SF-01: typed frontend API transport**, including Cookie credentials, session-bound CSRF acquisition, tenant header handling, structured errors and tests. Then add the session/tenant UI and connect learner progress. Keep OIDC and learner API defaults disabled until the separate provider/privacy gates are accepted.
+### SF-01 — Typed frontend API transport (implemented locally)
+
+Added `src/api/client.ts` and exported the runtime through `src/api/index.ts`. The client currently provides typed methods for current session, tenant discovery, learner progress, assessment attempts and logout. It implements:
+
+- `credentials: include` for opaque HttpOnly session cookies; no token is read from browser storage. All API requests use `cache: no-store` to avoid browser HTTP caching of learner/session data.
+- Session-bound CSRF acquisition from `GET /auth/csrf`, cached only in memory and invalidated after session rejection or an explicit CSRF validation failure. Mutations are not automatically replayed after a 403.
+- Explicit `X-Tenant-ID` for tenant-scoped learner/assessment operations; the client does not infer or invent the active tenant.
+- Structured error categories for 401/403/409/422/5xx, request correlation ID capture, network failures, timeout and caller cancellation.
+- Query serialization, JSON request/response handling, 204 responses and configurable API base URL/fetch implementation.
+
+Regression coverage: `src/api/client.test.ts` (13 tests). The full `pnpm acceptance:local` gate passed after implementation: Biome lint/format, strict TypeScript, OpenAPI 3.1 drift check (13 paths), Vitest (86 passed), Playwright Chromium (42 passed), all M04–M20 Python example suites, Ruff, backend pytest (135 passed, 1 optional PostgreSQL harness skip) and production build. The client is deliberately not wired into the learner UI yet; no OIDC or learner-data feature flag has been enabled. Browser-backed provider E2E remains pending. A separate local dependency security audit also passed: no known npm or Python dependency vulnerabilities; the unpublished first-party Python package was skipped by pip-audit because it is not on PyPI. GitHub Actions were not triggered.
+
+### SF-02 — Session and tenant context UI (next)
+
+Implement a feature-bound session/tenant state layer and user-visible loading, unauthenticated, unavailable and permission-denied states. Tenant selection must be explicit, persisted only as a non-authoritative preference, and revalidated against `GET /tenants/me` on every session bootstrap. The backend remains the authorization source of truth.
+
+After that, connect learner progress to the selected tenant and a published course release, then reconcile existing browser-local progress without silently overwriting either side.
+
+Keep OIDC and learner API defaults disabled until provider-backed E2E, runtime DB least-privilege and privacy/retention gates are accepted.
