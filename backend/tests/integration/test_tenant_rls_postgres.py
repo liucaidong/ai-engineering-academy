@@ -5,6 +5,7 @@ and ACADEMY_TEST_RUNTIME_DATABASE_URL to the actual non-owner application role.
 The database must already be migrated to head.
 """
 
+import asyncio
 import os
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
@@ -22,6 +23,7 @@ from app.api.tenants import _list_active_tenants
 from app.db.session import set_security_context
 from app.security.oidc import generate_session_token
 from app.security.sessions import SESSION_COOKIE_NAME
+from app.services.learning_records import lock_record_identity
 
 
 @pytest.mark.asyncio
@@ -650,3 +652,36 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                 # retained as a stable fixture in reusable test databases.
         await runtime_engine.dispose()
         await admin_engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_postgres_transaction_lock_serializes_concurrent_record_creation() -> None:
+    runtime_url = os.getenv("ACADEMY_TEST_RUNTIME_DATABASE_URL")
+    if not runtime_url:
+        pytest.skip("PostgreSQL runtime integration URL is not configured")
+
+    engine = create_async_engine(runtime_url)
+    sessions = async_sessionmaker(engine, expire_on_commit=False)
+    identity = (str(uuid4()), str(uuid4()), str(uuid4()), f"A-{uuid4()}")
+    second_started = asyncio.Event()
+
+    async def acquire_second_lock() -> bool:
+        async with sessions() as session, session.begin():
+            second_started.set()
+            await lock_record_identity(session, namespace="assessment-attempt", identity=identity)
+        return True
+
+    try:
+        async with sessions() as first_session:
+            async with first_session.begin():
+                await lock_record_identity(
+                    first_session, namespace="assessment-attempt", identity=identity
+                )
+                second_task = asyncio.create_task(acquire_second_lock())
+                await asyncio.wait_for(second_started.wait(), timeout=2)
+                await asyncio.sleep(0.05)
+                assert not second_task.done(), "second creator must wait for the first transaction"
+
+            assert await asyncio.wait_for(second_task, timeout=2)
+    finally:
+        await engine.dispose()

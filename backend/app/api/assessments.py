@@ -14,7 +14,11 @@ from sqlalchemy.exc import IntegrityError
 from app.api.dependencies import learner_transaction
 from app.models.course_release import CourseRelease
 from app.models.learning import AssessmentResult
-from app.services.learning_records import create_assessment_attempt, submit_assessment
+from app.services.learning_records import (
+    create_assessment_attempt,
+    lock_record_identity,
+    submit_assessment,
+)
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
@@ -129,6 +133,16 @@ async def create_attempt(
             release = result.scalar_one_or_none()
             if release is None or not _assessment_exists(release, body.assessment_key.strip()):
                 raise HTTPException(status_code=404, detail="Published assessment not found")
+            await lock_record_identity(
+                db,
+                namespace="assessment-attempt",
+                identity=(
+                    str(principal.tenant_id),
+                    str(principal.user_id),
+                    str(body.course_release_id),
+                    body.assessment_key.strip(),
+                ),
+            )
             latest = await db.execute(
                 select(func.max(AssessmentResult.attempt_number)).where(
                     AssessmentResult.tenant_id == principal.tenant_id,

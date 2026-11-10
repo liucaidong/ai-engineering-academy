@@ -8,6 +8,7 @@ from app.services.learning_records import (
     complete_progress,
     create_assessment_attempt,
     grade_assessment,
+    lock_record_identity,
     reopen_progress,
     start_progress,
     submit_assessment,
@@ -292,3 +293,43 @@ def test_instructor_grading_records_reviewer_identity() -> None:
     assert result.status == "graded"
     assert result.graded_by_user_id == reviewer_id
     assert result.score == Decimal("91.125")
+
+
+@pytest.mark.asyncio
+async def test_record_identity_lock_uses_stable_parameterized_transaction_lock() -> None:
+    class FakeSession:
+        def __init__(self) -> None:
+            self.statement = None
+            self.parameters = None
+
+        async def execute(self, statement, parameters):
+            self.statement = str(statement)
+            self.parameters = parameters
+
+    session = FakeSession()
+    identity = (str(uuid4()), str(uuid4()), str(uuid4()), "M01-A01")
+
+    await lock_record_identity(
+        session,
+        namespace="assessment-attempt",
+        identity=identity,  # type: ignore[arg-type]
+    )
+
+    assert "pg_advisory_xact_lock(hashtextextended(:lock_key, 0))" in session.statement
+    assert session.parameters == {
+        "lock_key": '["assessment-attempt",' + ",".join(f'"{part}"' for part in identity) + "]"
+    }
+
+
+@pytest.mark.asyncio
+async def test_record_identity_lock_rejects_empty_identity_parts() -> None:
+    class FakeSession:
+        async def execute(self, *_args, **_kwargs):
+            raise AssertionError("invalid lock identity must not reach the database")
+
+    with pytest.raises(ValueError, match="non-empty"):
+        await lock_record_identity(
+            FakeSession(),
+            namespace="learning-progress",
+            identity=("tenant", ""),  # type: ignore[arg-type]
+        )

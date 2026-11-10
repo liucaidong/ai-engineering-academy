@@ -14,6 +14,7 @@ from app.models.course_release import CourseRelease
 from app.models.learning import LearningProgress
 from app.services.learning_records import (
     complete_progress,
+    lock_record_identity,
     reopen_progress,
     start_progress,
     touch_progress,
@@ -106,6 +107,16 @@ async def begin_progress(
             release = result.scalar_one_or_none()
             if release is None or not _contains_module(release, key):
                 raise HTTPException(status_code=404, detail="Published course module not found")
+            await lock_record_identity(
+                db,
+                namespace="learning-progress",
+                identity=(
+                    str(principal.tenant_id),
+                    str(principal.user_id),
+                    str(body.course_release_id),
+                    key,
+                ),
+            )
             existing = await db.execute(
                 select(LearningProgress)
                 .where(

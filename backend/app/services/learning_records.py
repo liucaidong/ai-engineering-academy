@@ -12,7 +12,32 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.learning import AssessmentResult, LearningProgress
+
+
+async def lock_record_identity(
+    db: AsyncSession,
+    *,
+    namespace: str,
+    identity: tuple[str, ...],
+) -> None:
+    """Serialize creation for one logical learner record within this transaction.
+
+    PostgreSQL transaction-scoped advisory locks close the absent-row gap that
+    SELECT ... FOR UPDATE cannot protect. Database unique constraints remain the
+    final integrity boundary; the lock makes normal concurrent requests orderly.
+    """
+    if not namespace or not identity or any(not part for part in identity):
+        raise ValueError("record lock identity must contain non-empty values")
+    lock_key = json.dumps([namespace, *identity], ensure_ascii=True, separators=(",", ":"))
+    await db.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:lock_key, 0))"),
+        {"lock_key": lock_key},
+    )
+
 
 VALID_GRADING_MODES = {"self_review", "automated", "instructor"}
 

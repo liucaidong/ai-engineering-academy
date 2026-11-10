@@ -152,3 +152,22 @@
 - 修复方式：课程加载 effect 依赖模块缓存映射对象；retry 创建新的映射对象并删除当前模块缓存项，触发一次新的加载请求。失败的动态 import 仍由 moduleLessons 缓存层清除。
 - 新增 Playwright 回归：拦截并中止首次 M01 动态模块加载，确认错误状态可见，点击重试后确认课程正文正常显示。
 - 全量本地验收通过：90 Vitest、47 Playwright、152 backend pytest + 1 optional skip、Biome、TypeScript、OpenAPI drift、M04–M20 示例及生产构建。
+
+
+## 11. Learner record creation concurrency review（2026-11-10）
+
+发现并修复两个“目标行尚不存在时 `SELECT ... FOR UPDATE` 无法提供互斥”的创建竞态：
+
+- `POST /assessments/attempts` 原先通过 `MAX(attempt_number) + 1` 分配编号。并发请求可能读到同一最大值，其中一个最终被唯一约束拒绝。
+- `POST /learning/progress` 原先先查询并锁定已有进度行；首次并发创建时双方都可能观察到空结果，导致一个请求以 409 结束。
+
+修复：在各自的 learner transaction 内，按 tenant、user、course release 和 assessment/module key 获取 PostgreSQL `pg_advisory_xact_lock(hashtextextended(...))` 事务级锁，然后再读取或创建记录。锁在事务提交/回滚时自动释放。唯一约束保持不变，仍是最终完整性防线；hash 冲突最多导致无关身份短暂串行，不会放宽数据隔离。锁 key 通过 JSON 数组编码并作为 SQL 参数传递，不拼接 SQL。
+
+回归验证：
+- 单元测试验证锁 key 稳定、参数化以及空 identity 拒绝。
+- 新增真实 PostgreSQL 双连接验收：第一个事务持有同一 identity 锁时，第二个事务必须等待；首事务提交后第二个事务才能继续。
+- `backend` pytest：154 passed，2 optional PostgreSQL skips（普通测试未配置专用 DB URL）。
+- `scripts/acceptance-postgres-rls.sh`：2 passed；包含现有 RLS/HTTP acceptance 和新增事务锁并发测试；runtime role `superuser=false`、`bypassrls=false`。
+- `pnpm acceptance:local`：Biome、TypeScript、OpenAPI drift、Vitest 90、Playwright 47、M04–M20 示例、Ruff、Backend pytest 154 passed / 2 skipped、Vite production build 全部通过。
+
+剩余风险：该锁只在 PostgreSQL 内生效；SQLite 或其他数据库不具备等价语义。本项目当前 learner API 的目标数据库为 PostgreSQL，部署不得将该事务锁替换为进程内 mutex。

@@ -241,3 +241,10 @@ Keep OIDC and learner API defaults disabled until provider-backed E2E, runtime D
 - Full local acceptance passed after the refactor: 90 Vitest, 47 Playwright, 152 backend pytest + 1 optional skip, TypeScript, Biome, OpenAPI drift, M04–M20 examples and production build.
 
 Regression coverage now forces the first M01 dynamic import to fail and verifies that the retry control successfully reloads the lesson payload; this caught and fixed a retry effect that previously did not re-run when the lesson cache entry remained undefined. Next extraction should target course-authoring orchestration only if its lifecycle and validation boundary can be isolated cleanly. Avoid splitting files solely to reduce line count.
+
+
+### CQ-02 — Learner record creation serialization（implemented 2026-11-10）
+
+The first-write race in both assessment attempt numbering and learning-progress creation is closed with PostgreSQL transaction-scoped advisory locks keyed by the complete logical record identity. The database unique constraints remain authoritative. The lock helper uses a parameterized `hashtextextended` key; lock lifetime is bounded by the authenticated learner transaction. A two-connection PostgreSQL integration test proves that a second creator blocks until the first transaction ends.
+
+Acceptance: 154 backend tests passed (2 optional DB-only skips in the ordinary run); disposable PostgreSQL RLS/concurrency acceptance passed 2 tests with a non-owner, non-superuser, non-BYPASSRLS runtime role; full `pnpm acceptance:local` passed with 90 Vitest and 47 Playwright tests.
