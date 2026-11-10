@@ -309,3 +309,8 @@ Acceptance: OpenAPI 17 paths in sync; backend 159 passed / 3 optional DB-only sk
 Added an explicit import control after authentication and tenant selection. Guest/legacy local bookmarks and completions merge by set union; guest assessment drafts are copied only when the account has no draft for that assessment. Conflicts preserve the account value and keep the guest source unchanged, with a visible conflict count. A scope-specific fingerprint marker makes repeated imports idempotent and allows later guest changes to be imported. The migration never fabricates identity, tenant authorization or course release IDs.
 
 Four focused tests cover key scope and guest-import merge/idempotency/conflict behavior. Cloud synchronization remains independently feature-gated.
+
+
+### CQ-06 — Account and learner-control feature boundary（implemented 2026-11-10）
+
+Extracted session/tenant presentation, guest import, learner progress sync and assessment draft sync orchestration from `src/App.tsx` into `LearningAccountControls`. App retains the authoritative session and learning state; the component receives explicit state/setter props and does not instantiate a second session or make authorization decisions. App composition is reduced by roughly 90 lines without changing default feature gates.

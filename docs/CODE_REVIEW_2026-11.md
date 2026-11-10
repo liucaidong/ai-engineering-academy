@@ -279,3 +279,9 @@
 - 迁移只复制浏览器本地内容，不伪造用户身份、tenant、role 或 release ID；之后的云端同步仍受精确课程发布版本和服务端 RLS 约束。
 
 新增单元测试验证并集、测评草稿冲突保留、来源不变和重复导入幂等。
+
+## 20. App account/learner-control composition boundary（2026-11-10）
+
+将账户、租户、guest import、learner progress sync 和 assessment draft sync 的 UI/side-effect orchestration 从 `src/App.tsx` 提取到 `LearningAccountControls` feature boundary。App 仍拥有权威 session 与学习状态，组件通过显式 props 接收状态和 setter，不复制 session、不把授权判断下沉到浏览器，也不改变 feature flag 默认值。
+
+结果：App 去除约 90 行账户/同步控制细节，账户 UI 和学习数据副作用集中在同一 feature boundary，后续可独立测试/演进。
