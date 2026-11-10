@@ -270,3 +270,10 @@ Session lifecycle follow-up: the PostgreSQL integration test now proves concurre
 Caller cancellation now applies while an unsafe request waits for the shared session-bound CSRF token, not only after the business request starts. Cancellation rejects only that caller's wait and does not abort the shared token bootstrap used by concurrent requests. A post-bootstrap abort check prevents the mutation from being sent after cancellation. No automatic mutation replay was introduced.
 
 Regression: cancel a progress mutation while the CSRF endpoint is pending; assert no mutation request is sent; resolve the shared token and verify a subsequent mutation succeeds. API client tests: 16 passed. Full local acceptance: 91 Vitest, 47 Playwright, 154 backend pytest / 3 optional DB-only skips, Biome, TypeScript, OpenAPI drift, M04–M20 examples, Ruff and production build all passed. GitHub Actions were not triggered.
+
+
+### CQ-04 — Publisher schema-head preflight（implemented 2026-11-10）
+
+The platform publisher now reads `alembic_version` before any write and requires exactly one revision: `0012_platform_publisher_audit`. Missing, stale or multi-head schema state fails closed. The dedicated publisher role receives SELECT-only access to `alembic_version`; its provisioning SQL and ADR document the purpose, and no migration-state write privilege is granted.
+
+Disposable PostgreSQL publisher acceptance now downgrades to 0011 and proves publication is rejected before restoring 0012. The full `pnpm acceptance:course-publisher` gate passed, including the existing strict snapshot, concurrency/idempotency, audit atomicity, least-privilege, RLS, immutability and migration downgrade/re-upgrade checks. The temporary database was removed; its release UUID is not a persistent course identity.

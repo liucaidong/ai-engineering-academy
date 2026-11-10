@@ -218,3 +218,15 @@
 新增回归测试：在 CSRF fetch pending 时取消 mutation，断言业务请求没有发送；随后完成 token bootstrap，再发起正常请求并复用已取得的 token。
 
 验收：API client tests 16 passed；完整 `pnpm acceptance:local` 通过：Vitest 91、Playwright Chromium 47、backend pytest 154 passed / 3 optional DB-only skips，Biome、TypeScript、OpenAPI drift、M04–M20 示例、Ruff 和 Vite production build 全部通过。GitHub Actions 未触发。
+
+## 15. Platform publisher migration-head fail-closed guard（2026-11-10）
+
+发布 CLI 原先核验数据库连接身份，但未主动核验 Alembic schema revision。若 DBA 漏跑 migration 0012，后续可能因缺失 policy/trigger 而失败；更重要的是，发布前置条件应由 CLI 明确拒绝，而非依赖写入时偶然报错。
+
+修复：
+- publisher 在执行任何 release/audit 写入前读取 `alembic_version`，要求唯一 revision 精确等于 `0012_platform_publisher_audit`；无表、无记录、多 head 或旧 revision 均 fail closed。
+- publisher 获得 `alembic_version` 的 SELECT 权限，不获得 UPDATE 权限。
+- 更新 DBA provisioning SQL、ADR 与 backend runbook，明确该权限仅用于 schema-head preflight。
+- disposable acceptance 将数据库临时 downgrade 至 0011，确认 publisher 明确拒绝发布，再 upgrade 至 0012 并恢复 migration downgrade 会撤销的 tenant_memberships 辅助 SELECT grant。
+
+验收：`pnpm acceptance:course-publisher` 通过。覆盖 stale migration head rejection、完整课程快照校验、双进程并发幂等发布、重复 no-op、冲突内容拒绝、digest mismatch、audit 写入失败事务回滚、publisher 最小权限、RLS membership 零行可见、draft 插入拒绝、已发布快照 update/delete 拒绝，以及 migration downgrade/re-upgrade。该测试只使用 disposable PostgreSQL；生成的 UUID 不得用于持久化环境。

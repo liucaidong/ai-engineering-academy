@@ -69,6 +69,7 @@ GRANT USAGE ON SCHEMA public TO academy_course_publisher;
 GRANT SELECT, INSERT ON TABLE course_releases TO academy_course_publisher;
 GRANT INSERT ON TABLE audit_events TO academy_course_publisher;
 GRANT SELECT ON TABLE tenant_memberships TO academy_course_publisher;
+GRANT SELECT ON TABLE alembic_version TO academy_course_publisher;
 INSERT INTO users (id, status) VALUES
   ('00000000-0000-4000-8000-000000000001', 'active');
 INSERT INTO tenants (id, tenant_type, name, status, personal_owner_user_id) VALUES
@@ -99,6 +100,26 @@ uv run --locked --python "$EXPECTED_PYTHON" --default-index https://pypi.org/sim
   > "$TEMP_DIR/dry-run.json"
 cat "$TEMP_DIR/dry-run.json"
 DIGEST="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["content_sha256"])' "$TEMP_DIR/dry-run.json")"
+
+echo "== Refuse publication when the database migration head is stale =="
+cd "$ROOT_DIR/backend"
+uv run --locked --python "$EXPECTED_PYTHON" --default-index https://pypi.org/simple \
+  alembic downgrade 0011_personal_tenant_bootstrap
+if uv run --locked --python "$EXPECTED_PYTHON" --default-index https://pypi.org/simple \
+  python scripts/publish_course_release.py \
+  --content "$TEMP_DIR/course.json" \
+  --course-key stale-schema-test --version 0.40.9 --schema-version 1 \
+  --expected-sha256 "$DIGEST"; then
+  echo "Publisher unexpectedly accepted a stale migration head." >&2
+  exit 1
+fi
+uv run --locked --python "$EXPECTED_PYTHON" --default-index https://pypi.org/simple \
+  alembic upgrade head
+# Migration downgrade intentionally revokes this out-of-band role grant; restore it
+# after the stale-schema guard test to mirror the DBA provisioning procedure.
+docker exec --env "PGPASSWORD=$ADMIN_PASSWORD" "$CONTAINER_NAME" \
+  psql -h 127.0.0.1 -U postgres -d "$DATABASE_NAME" -v ON_ERROR_STOP=1 \
+  -c "GRANT SELECT ON TABLE tenant_memberships TO academy_course_publisher"
 
 echo "== Race two publishers: one insert and one idempotent conflict result =="
 uv run --locked --python "$EXPECTED_PYTHON" --default-index https://pypi.org/simple \
@@ -215,6 +236,8 @@ BEGIN
     AND has_table_privilege('academy_course_publisher', 'audit_events', 'INSERT')
     AND NOT has_table_privilege('academy_course_publisher', 'audit_events', 'SELECT')
     AND has_table_privilege('academy_course_publisher', 'tenant_memberships', 'SELECT')
+    AND has_table_privilege('academy_course_publisher', 'alembic_version', 'SELECT')
+    AND NOT has_table_privilege('academy_course_publisher', 'alembic_version', 'UPDATE')
     INTO privileges_ok;
   IF release_count <> 1 OR audit_count <> 1 OR atomicity_release_count <> 0
      OR NOT role_ok OR NOT privileges_ok THEN

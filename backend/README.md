@@ -101,8 +101,10 @@ create the login role and apply the least-privilege grants in
 `backend/scripts/provision_course_publisher_role.sql`. The role must be
 `NOSUPERUSER`, `NOBYPASSRLS`, `NOINHERIT`, and must not be granted membership
 in any other role. It receives SELECT/INSERT on `course_releases` and
-INSERT on `audit_events`; it cannot update or delete published snapshots. It also receives SELECT on
-tenant_memberships only because the existing tenant-user audit insert policy
+INSERT on `audit_events`; SELECT on `alembic_version` is limited to checking
+that the database is exactly at migration head `0012_platform_publisher_audit`.
+It cannot modify migration state or update/delete published snapshots. It also receives SELECT on
+`tenant_memberships` only because the existing tenant-user audit insert policy
 contains an EXISTS subquery; migration 0012 adds a restrictive RLS policy
 that makes this role see zero membership rows even if it sets custom GUC
 values. The database trigger prevents publisher draft inserts and

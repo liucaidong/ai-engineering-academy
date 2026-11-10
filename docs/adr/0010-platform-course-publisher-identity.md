@@ -36,6 +36,8 @@ a browser-generated artifact.
    policy evaluates a membership EXISTS subquery, so the role receives SELECT
    on tenant_memberships solely for policy evaluation; a restrictive RLS policy
    denies it every row, including when the role sets arbitrary custom GUC values.
+   It also receives SELECT on alembic_version solely for the publisher CLI's
+   fail-closed migration-head check; it cannot modify migration state.
 4. Migration 0012_platform_publisher_audit adds a narrow FORCE-RLS-compatible
    audit insert policy. It accepts only the dedicated database role with
    actor_user_id IS NULL and tenant_id IS NULL. It does not weaken or

@@ -70,6 +70,16 @@ async def publish(args: argparse.Namespace, content: dict) -> dict:
                 )
             role = current_user
 
+            revisions = list(
+                (await session.execute(text("SELECT version_num FROM alembic_version"))).scalars()
+            )
+            if revisions != ["0012_platform_publisher_audit"]:
+                raise RuntimeError(
+                    "Publisher requires the exact database migration head "
+                    "0012_platform_publisher_audit; "
+                    f"found {revisions!r}"
+                )
+
             release = build_course_release(
                 course_key=args.course_key,
                 version=args.version,
