@@ -59,6 +59,9 @@ M=2\times32\times4\times16384\times8\times128\times2
 - 解释分页分配如何缓解外部碎片，及其不能消除的开销。
 
 ### 正式作业参考解答
+
+**原始作业：** 计算 32 层、8 KV heads、head_dim=128、BF16、batch=4、每请求 16k token 的理论 KV 容量，并说明分页分配和共享前缀如何改变实际占用。
+
 8 GiB 总 KV，2 GiB/sequence。Paged allocation 以 block 分配可减少连续大块预留和外部碎片；共享前缀在语义与实现允许时可复用共同前缀的 KV，降低重复存储。实际值仍需加上 block rounding、metadata、workspace 和运行时预留。评估必须区分理论容量与引擎报告的 allocated/reserved/used memory。
 
 **评分对照（10 分）：** 公式单位 4；GQA/MQA 影响 3；生命周期、隔离、回收或共享 3。
@@ -107,6 +110,9 @@ p_i=\frac{\exp(z_i/\tau)}{\sum_j\exp(z_j/\tau)}
 - 区分 stop sequence、EOS、max_new_tokens 和业务层截断。
 
 ### 正式作业参考解答
+
+**原始作业：** 计算 logits=[2,1,0] 在 τ=1 和 τ=2 时的近似 Softmax 概率；说明 top-k=2 与 top-p=0.8 的候选集及其差异。
+
 τ=1 的概率约 [0.665,0.245,0.090]；τ=2 约 [0.506,0.307,0.186]。top-k=2 保留最大两项，不考虑累计概率；top-p=0.8 根据排序累计概率选择候选集，以上两个温度例子均保留前两项，但原因是累计和分别达到 0.910、0.813。随后在保留集合内重新归一化并采样。
 
 **评分对照（10 分）：** 概率计算 4；截断规则 3；复现配置 3。
@@ -139,6 +145,9 @@ p_i=\frac{\exp(z_i/\tau)}{\sum_j\exp(z_j/\tau)}
 设计三个租户：交互、批量摘要、低优先级后台任务。定义权重、并发上限、队列上限、deadline 和抢占/取消规则。
 
 ### 正式作业参考解答
+
+**原始作业：** 设计三租户 continuous batching 策略，在提升输出 token 吞吐的同时为交互请求设定 P95 TTFT 目标。
+
 建议采用分层队列与 token-aware continuous batching：
 - Interactive：较高优先级、严格并发/排队上限、TTFT SLO；超限快速拒绝或降级。
 - Batch：较低优先级、较大 batch，允许延后执行。
@@ -187,6 +196,9 @@ Draft model 先提出若干候选 token，target model 对候选序列并行验�
 - 说明 speculative acceptance rate 与端到端速度提升并非线性等价。
 
 ### 正式作业参考解答
+
+**原始作业：** 对 13B 参数模型比较 FP16、INT8、INT4 理论权重存储，并设计 32k context 多并发服务的量化评估计划。
+
 13B 权重理论 payload 为 FP16 26GB、INT8 13GB、INT4 6.5GB。报告需同时列出量化算法、group size、scale/zero-point、异常层处理、激活/KV 精度、硬件 kernel 支持和质量回归。公平对照固定任务集、采样配置、batch、context、并发和硬件；指标至少含任务质量、P95 TTFT、TPOT、吞吐、峰值显存。Speculative decoding 需单独评估 draft 接受率和验证开销。
 
 **评分对照（10 分）：** 存储估算 3；机制区分 3；验证计划 4。
@@ -220,6 +232,9 @@ Draft model 先提出若干候选 token，target model 对候选序列并行验�
 为一个多 GPU 服务画出 API、scheduler、worker、metrics、logs 和 model registry 的依赖关系；标出单点故障和降级路径。
 
 ### 正式作业参考解答
+
+**原始作业：** 为 70B 模型设计多 GPU 推理服务，提交并行策略、内存预算、API 数据路径、SLO、监控和 OOM/模型不可用降级方案。
+
 70B 模型设计需先确定精度和设备内存，再拆分权重、KV、激活、workspace、通信 buffer 与余量。根据单卡容量和互联选择 TP/PP/DP 组合；不要只用参数量决定 GPU 数量。服务路径包括鉴权/配额、队列、scheduler、worker、streaming、取消、计量和 tracing。定义 TTFT/TPOT、tokens/s、P95/P99、错误率、OOM、KV occupancy 和成本 SLO。模型不可用时可进入有界队列、切换已评估 fallback、降低最大输出/上下文或返回明确暂不可用；fallback 必须保持租户数据政策与模型质量门槛。
 
 **评分对照（10 分）：** 并行架构 3；容量模型 3；可靠性 4。

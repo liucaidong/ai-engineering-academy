@@ -53,6 +53,9 @@
 
 ### 正式作业参考解答
 
+
+**原始作业：** 为一组中英混合、含代码、空白和 emoji 的输入设计 tokenizer 审计记录。说明从字符串到 token ID 的处理层次，比较至少两种子词算法，并列出复现切分结果所需的配置。
+
 **课程原题：** 为一组中英混合、含代码、空白和 emoji 的输入设计 tokenizer 审计记录。说明从字符串到 token ID 的处理层次，比较至少两种子词算法，并列出复现切分结果所需的配置。
 
 **参考答案与推理：** 记录原始输入字节/Unicode、规范化、预分词、算法/词表、特殊 token、输出 token 字符片段与 ID、解码回文本。比较 BPE 的迭代相邻符号对合并、WordPiece 的词片段评分/选择机制，或 Unigram 的子词概率模型；注明 byte-level 覆盖策略。复现必须固定模型/tokenizer 名称与版本、词表/merges 文件、normalizer、pre-tokenizer、特殊 token、add_prefix_space/截断/填充参数、Chat Template 版本和输入字节。字符数不能代替 token 数，emoji/代码/中英混合尤其如此。
@@ -98,6 +101,9 @@
 - 将结论改写为至少一条可判定通过/失败的验收条件。
 
 ### 正式作业参考解答
+
+
+**原始作业：** 给定词表 V=48,000、embedding 维度 d=3,072、BF16 权重，计算 embedding 参数量和原始权重存储量；再画出 token ID、embedding lookup、Transformer hidden state 和输出 logits 的数据流，并解释 weight tying。
 
 **课程原题：** 给定词表 V=48,000、embedding 维度 d=3,072、BF16 权重，计算 embedding 参数量和原始权重存储量；再画出 token ID、embedding lookup、Transformer hidden state 和输出 logits 的数据流，并解释 weight tying。
 
@@ -145,6 +151,9 @@
 
 ### 正式作业参考解答
 
+
+**原始作业：** 为一个标称上下文上限 32,000 tokens 的模型请求设计预算表。必须纳入 system/developer、工具契约、用户消息、历史、RAG、工具返回、输出预留和安全余量；提供一次超限计算及压缩方案，并说明如何验证摘要/检索没有破坏关键约束。
+
 **课程原题：** 为一个标称上下文上限 32,000 tokens 的模型请求设计预算表。必须纳入 system/developer、工具契约、用户消息、历史、RAG、工具返回、输出预留和安全余量；提供一次超限计算及压缩方案，并说明如何验证摘要/检索没有破坏关键约束。
 
 **参考答案与推理：** 32,000-token 上限示例：system 1,000；developer 800；tool schema 2,000；user 1,200；history 10,000；RAG 12,000；tool return 4,000；output reserve 2,000；safety margin 1,000，总计34,000，超出2,000。先按任务重要性压缩历史1,500、RAG 1,000，再校验 tool contract 和用户约束，得到31,500，保留500额外余量。不能先删除系统/开发约束或授权信息。摘要质量用关键事实/实体/数字/约束覆盖测试；RAG 用证据 Recall@k、引用支持率和权限过滤回归验证。
@@ -191,6 +200,9 @@
 
 ### 正式作业参考解答
 
+
+**原始作业：** 为企业知识助手设计 Context Assembly Pipeline。必须包含消息序列化、来源标注、权限过滤、RAG、token 预算、模板版本、冲突处理和审计字段；说明哪些内容属于不可信数据。
+
 **课程原题：** 为企业知识助手设计 Context Assembly Pipeline。必须包含消息序列化、来源标注、权限过滤、RAG、token 预算、模板版本、冲突处理和审计字段；说明哪些内容属于不可信数据。
 
 **参考答案与推理：** Pipeline：可信身份→消息规范化/模板版本→来源登记→租户/对象 ACL 过滤→查询改写→稀疏/向量召回→融合/重排→去重和冲突标注→token 预算→按信任等级序列化→模型生成→引用/格式校验→审计。每个片段保留 source_ref、document/version、page/offset、timestamp、ACL、trust_level。用户上传文件、网页、检索片段和工具结果默认是不可信数据，其中的指令不能覆盖 system/developer policy；ACL 必须在服务端执行，不能让模型决定。
@@ -236,6 +248,9 @@
 - 将结论改写为至少一条可判定通过/失败的验收条件。
 
 ### 正式作业参考解答
+
+
+**原始作业：** 提交一份 Token 与 Context 综合审计报告：记录 Tokenizer 实验、真实 tokenizer 核验计划、embedding 参数估算、24,000-token 请求预算、超限调整和压缩前后质量验证。
 
 **课程原题：** 提交一份 Token 与 Context 综合审计报告：记录 Tokenizer 实验、真实 tokenizer 核验计划、embedding 参数估算、24,000-token 请求预算、超限调整和压缩前后质量验证。
 

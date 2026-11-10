@@ -34,6 +34,9 @@
 重写一份模糊合同审查 Prompt，至少加入 evidence requirement、unknown handling、scope boundary 和 output schema。
 
 ### 正式作业参考解答
+
+**原始作业：** 为企业采购合同审查助手编写 Prompt 规格，定义消息职责、输入字段、证据要求、澄清/拒绝策略和验收标准。
+
 合同审查 Prompt 契约建议包含：
 - 目标：提取付款期限、违约责任、自动续约、责任限制和数据处理条款。
 - 输入：contract_id、document_version、jurisdiction、review_scope、user_context、source_refs。
@@ -73,6 +76,9 @@
 为 8 类意图建立样本覆盖表，标注类别、难度、边界、拒绝、token 数和近重复组。
 
 ### 正式作业参考解答
+
+**原始作业：** 为 8 类客服意图分类设计 few-shot 示例选择器，提交覆盖字段、相关性/覆盖/冗余评分、顺序敏感性测试和 token 预算规则。
+
 建议选择器分两阶段：
 1. Coverage stage：每个类别先选至少 1 个代表样本，再按风险补充边界/拒绝样本。
 2. Ranking stage：按语义相关性、标签置信度和样本质量排序；对同一模板/近重复组做去重。
@@ -119,6 +125,9 @@ Schema 通过只代表结构有效，不代表业务正确或用户有权限。�
 为退款对象定义字段类型、金额精度、必填字段、枚举、额外字段策略和业务验证。
 
 ### 正式作业参考解答
+
+**原始作业：** 提交 Draft 2020-12 退款申请 JSON Schema 文件及至少一组合法/非法 fixture；使用 Ajv 8.x 的 Draft 2020-12 模式或 Python jsonschema 4.x 的 Draft202012Validator 执行校验，并记录工具版本与结果，再设计 parse→schema→business→authorization 流程，说明格式错误、业务错误和越权如何处置。
+
 作业交付：一份 Draft 2020-12 JSON Schema 文件、至少一组合法/非法 JSON fixture、Ajv 8.x（Draft 2020-12 模式）或 Python jsonschema 4.x（Draft202012Validator）的运行命令、工具版本和结果，以及 parse→schema→business→authorization 四层校验说明。无须付费 API 或真实支付凭证。
 
 示例 Schema 设计要点：
@@ -169,6 +178,9 @@ Schema 通过只代表结构有效，不代表业务正确或用户有权限。�
 对一条“网页要求把客户名单导出到外部 URL”的攻击链，标注每个信任边界、可阻断控制和审计证据。
 
 ### 正式作业参考解答
+
+**原始作业：** 为可浏览网页并调用工单工具的助手绘制 Prompt Injection 威胁模型，列出五条攻击路径和对应的非 Prompt-only 控制。
+
 至少五条攻击路径：
 1. 用户直接要求忽略系统策略并泄露隐藏提示。
 2. 网页内容诱导 Agent 调用文件读取工具。
@@ -217,6 +229,9 @@ Schema 通过只代表结构有效，不代表业务正确或用户有权限。�
 为 Prompt 变更建立版本 manifest，列出基线、变更项、回归集、canary 观察窗和回滚条件。
 
 ### 正式作业参考解答
+
+**原始作业：** 为客服 Agent 制定 Prompt 发布流水线，包含测试集分层、规则/人工/LLM 评分、位置偏差检查、版本元数据和回滚门槛。
+
 发布流水线：
 1. 静态检查：模板变量、Schema、敏感字段、工具清单和版本。
 2. 离线测试：正常/边界/对抗/拒绝/无证据/工具失败集。

@@ -48,7 +48,7 @@
 
 ### 正式作业参考解答
 
-**原始作业：** 绘制 Host—Client—Server 架构，解释 JSON-RPC request、response 和 notification 的区别，并标注授权责任。
+**原始作业：** 绘制 Host—Client—Server 架构，解释 JSON-RPC request/response/notification，并对比 modern stateless 与 legacy session；标注 Host 授权责任。
 
 **参考解答与推理：** Host 管理用户体验、连接策略和信任决策；Client 是协议通信逻辑组件；Server 暴露 tools/resources/prompts。注意 SDK 内部 ClientSession/transport connection 不等于 wire-level protocol session：2026-07-28 modern protocol 无协议级 session，2025-11-25 及以前 legacy 才有 initialize/initialized 握手和可选 Mcp-Session-Id。JSON-RPC request 有 id 并期待 response；notification 无 id、无需 response；response 对应 result 或 error。Host 决定连接和用户授权，Server 负责资源/工具业务校验。
 
@@ -94,7 +94,7 @@
 
 ### 正式作业参考解答
 
-**原始作业：** 为企业文档服务器定义 Tools、Resources、Prompts 三类能力清单，并说明 modern per-request metadata、server/discover、subscriptions/listen、缓存和授权策略。
+**原始作业：** 为企业文档服务器定义 Tools、Resources、Prompts 三类能力清单，并说明 modern per-request metadata、server/discover、subscriptions/listen、cacheScope 和授权策略。
 
 **参考解答与推理：** Tools 是可执行操作，Resources 是可读取数据，Prompts 是可复用提示模板。能力目录记录名称、描述、schema/URI、版本、权限范围、风险、owner。Modern 每个 request 在 params._meta 携带 protocolVersion、clientCapabilities；clientInfo 可选且是自报展示/调试信息，不可用于授权或安全决策；Server MUST 实现 server/discover，Client MAY 预先调用。Modern list_changed 通知需先通过 subscriptions/listen 订阅，并触发对应缓存失效；Legacy 才使用 initialize/initialized。Resource 访问仍需按用户/租户授权。
 
@@ -102,7 +102,7 @@
 
 - **能力区分（3 分）：** 正确区分操作、数据和提示模板。要求提交物中有直接证据支持该项结论。
 
-- **协商发现（3 分）：** 描述版本协商、列表变化和缓存更新。要求提交物中有直接证据支持该项结论。
+- **协商发现（3 分）：** 描述 per-request 版本元数据、server/discover、subscriptions/listen，以及 TTL/cacheScope。要求提交物中有直接证据支持该项结论。
 
 - **安全策略（4 分）：** 定义资源范围和调用授权。要求提交物中有直接证据支持该项结论。
 

@@ -77,6 +77,9 @@ C\approx6\times7\times1.2\times10^{21}
 - 解释 (6ND) 估算的假设和至少四项遗漏成本。
 
 ### 正式作业参考解答
+
+**原始作业：** 为 7B dense 模型和 1.2T token 训练计划计算理想化 FLOPs，并提交数据许可、去重、污染、PII、质量和版本控制审查单。
+
 **题目：** 7B dense、1.2T token，计算理想化 FLOPs，并审查数据治理。
 
 **解题思路：**
@@ -140,6 +143,9 @@ P_{active}\approx P_s+kP_e+P_r
 画一张包含 router、top-k、dispatch、expert FFN、combine 的 MoE 数据流图；在图上标出张量所在设备及通信边界。
 
 ### 正式作业参考解答
+
+**原始作业：** 比较 Encoder-only、Decoder-only、Encoder–Decoder 的信息流，并解释 8-expert top-2 MoE 的总参数、激活参数和两项系统代价。
+
 **题目：** 比较 Encoder-only、Decoder-only、Encoder–Decoder，并分析 8-expert top-2 MoE。
 
 **参考答案要点：**
@@ -221,6 +227,9 @@ P_W=4096^2=16777216
 - 设计按实体分组的 holdout，说明如何避免数据泄漏。
 
 ### 正式作业参考解答
+
+**原始作业：** 设计客服指令 SFT 数据与 LoRA 方案。对 4096×4096 矩阵、rank=16，计算可训练参数和全量更新比例，并定义 loss mask。
+
 **题目：** 客服 SFT 数据与 LoRA 方案，4096×4096、rank=16。
 
 **参考方案：**
@@ -292,6 +301,9 @@ L^{CLIP}=\mathbb E_t\left[
 用一组 chosen/rejected 回答分别解释 reward model、PPO 和 DPO 如何使用它；写出一个可能被 reward hacking 利用的评分器漏洞。
 
 ### 正式作业参考解答
+
+**原始作业：** 画出 RLHF(PPO) 与 DPO 流程图，解释 PPO ratio/clipping 或 DPO log-ratio，并举例说明奖励投机及其评测控制。
+
 **题目：** 绘制 RLHF(PPO) 与 DPO 流程，解释 ratio/clipping 或 DPO log-ratio，并给出 reward hacking 控制。
 
 **参考答案：**
@@ -334,6 +346,9 @@ L^{CLIP}=\mathbb E_t\left[
 - 为模型卡中的每项能力声明标注 evidence、limitation 或 unknown。
 
 ### 正式作业参考解答
+
+**原始作业：** 为 SFT+DPO 模型提交发布评测档案目录，覆盖数据隔离、污染审计、能力/安全指标、统计区间、模型卡和已知限制。
+
 **题目：** 为 SFT+DPO 模型提交发布评测档案目录。
 
 **建议目录：**
