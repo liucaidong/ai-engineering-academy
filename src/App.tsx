@@ -5,6 +5,7 @@ import { courseCatalog } from "./data/courseCatalog";
 import { loadFullCourse } from "./data/loadFullCourse";
 import { loadModuleLessons } from "./data/moduleLessons";
 import { useLearningState } from "./features/learning/useLearningState";
+import SessionTenantControl from "./features/session/SessionTenantControl";
 import { toggleBookmark } from "./lib/bookmarks";
 import { getNextRecommendedModule } from "./lib/learningPath";
 import { toggleModuleProgress } from "./lib/progress";
@@ -168,6 +169,7 @@ export default function App() {
         <div className="topbar-meta">
           <span className="version-pill">CURRICULUM v{courseCatalog.version}</span>
           <span className="status-dot" /> 学习环境
+          <SessionTenantControl />
         </div>
       </header>
       <div className="workspace">

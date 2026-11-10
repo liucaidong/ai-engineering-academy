@@ -181,10 +181,18 @@ Added `src/api/client.ts` and exported the runtime through `src/api/index.ts`. T
 
 Regression coverage: `src/api/client.test.ts` (13 tests). The full `pnpm acceptance:local` gate passed after implementation: Biome lint/format, strict TypeScript, OpenAPI 3.1 drift check (13 paths), Vitest (86 passed), Playwright Chromium (42 passed), all M04–M20 Python example suites, Ruff, backend pytest (135 passed, 1 optional PostgreSQL harness skip) and production build. The client is deliberately not wired into the learner UI yet; no OIDC or learner-data feature flag has been enabled. Browser-backed provider E2E remains pending. A separate local dependency security audit also passed: no known npm or Python dependency vulnerabilities; the unpublished first-party Python package was skipped by pip-audit because it is not on PyPI. GitHub Actions were not triggered.
 
-### SF-02 — Session and tenant context UI (next)
+### SF-02 — Session and tenant context UI (implemented locally)
 
-Implement a feature-bound session/tenant state layer and user-visible loading, unauthenticated, unavailable and permission-denied states. Tenant selection must be explicit, persisted only as a non-authoritative preference, and revalidated against `GET /tenants/me` on every session bootstrap. The backend remains the authorization source of truth.
+Added `src/features/session/useAcademySession.ts` and `SessionTenantControl.tsx`, mounted in the application header. The flow performs a server-authoritative `GET /auth/me` bootstrap followed by `GET /tenants/me`, and supports loading, unauthenticated, authenticated, unavailable, tenant-unavailable, empty-membership, retry and logout states. Logout uses the API client's CSRF-protected `POST /auth/logout` path.
 
-After that, connect learner progress to the selected tenant and a published course release, then reconcile existing browser-local progress without silently overwriting either side.
+Tenant selection is explicit. The browser stores only a tenant ID preference (no user ID, credential or role); each bootstrap revalidates that preference against the authenticated user's current tenant memberships and clears it if no longer authorized. The preference is not an authorization grant, is not sent as proof of access, and does not yet drive learner data calls. The backend remains the authorization source of truth.
+
+The account shell is gated by `VITE_ACADEMY_AUTH_UI_ENABLED`, which defaults to false. This is a frontend presentation flag only; it does not enable backend OIDC, learner APIs or production data access. The Playwright test server sets it to true to exercise the UI. No secret is exposed through this variable.
+
+Regression coverage: four dedicated Playwright scenarios verify authorized tenant preference revalidation and selection, expired-session login affordance, tenant API unavailability, and CSRF-protected logout. The full local acceptance gate passed: Biome, TypeScript, OpenAPI drift check, Vitest (86 passed), Playwright Chromium (46 passed), all M04–M20 Python example suites, Ruff, backend pytest (135 passed, 1 optional PostgreSQL harness skip), and production build. The independent dependency audit found no known npm/Python dependency vulnerabilities; the unpublished first-party Python package remains outside pip-audit's PyPI coverage. Provider-backed OIDC remains untested; tenant selection is not yet integrated into learning/assessment requests. GitHub Actions were not triggered.
+
+### SF-03 — Learner data synchronization (next)
+
+Connect learner progress to the selected tenant and a published course release, then reconcile existing browser-local progress without silently overwriting either side. Define conflict policy, idempotency, deletion semantics and recovery before enabling writes.
 
 Keep OIDC and learner API defaults disabled until provider-backed E2E, runtime DB least-privilege and privacy/retention gates are accepted.
