@@ -17,7 +17,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.api import tenants
+from app.api import course_releases, tenants
 from app.api.tenants import _list_active_tenants
 from app.db.session import set_security_context
 from app.security.oidc import generate_session_token
@@ -131,9 +131,9 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
             await connection.execute(
                 text(
                     "INSERT INTO course_releases "
-                    "(id, course_key, version, schema_version, content_sha256, content, status) "
+                    "(id, course_key, version, schema_version, content_sha256, content, status, published_at) "
                     "VALUES (:release_id, 'rls-test', '1.0.0', 1, :digest, "
-                    """'{"title":"RLS test"}'::jsonb, 'draft')"""
+                    """'{"title":"RLS test"}'::jsonb, 'published', now())"""
                 ),
                 {"release_id": release_id, "digest": "0" * 64},
             )
@@ -214,6 +214,13 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
             "get_settings",
             lambda: SimpleNamespace(oidc_login_enabled=True, learner_data_api_enabled=True),
         )
+        from app.api import dependencies
+
+        monkeypatch.setattr(
+            dependencies,
+            "get_settings",
+            lambda: SimpleNamespace(oidc_login_enabled=True, learner_data_api_enabled=True),
+        )
 
         class RuntimeDatabase:
             session_factory = runtime_sessions
@@ -224,12 +231,25 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
         app = FastAPI()
         app.state.database = RuntimeDatabase()
         app.include_router(tenants.router)
+        app.include_router(course_releases.router)
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app),
             base_url="https://academy.example.test",
             cookies={SESSION_COOKIE_NAME: session_token.raw_token},
         ) as client:
             response = await client.get("/tenants/me")
+            release_list = await client.get(
+                "/courses/releases?course_key=rls-test",
+                headers={"X-Tenant-ID": str(tenant_a)},
+            )
+            release_detail = await client.get(
+                f"/courses/releases/{release_id}",
+                headers={"X-Tenant-ID": str(tenant_a)},
+            )
+            unauthorized_release_list = await client.get(
+                "/courses/releases?course_key=rls-test",
+                headers={"X-Tenant-ID": str(bootstrap_tenant)},
+            )
 
         assert response.status_code == 200
         assert response.headers["cache-control"] == "no-store"
@@ -239,6 +259,12 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
             str(tenant_a): "Tenant A",
             str(tenant_b): "Tenant B",
         }
+        assert release_list.status_code == 200
+        assert release_list.headers["cache-control"] == "no-store"
+        assert [item["id"] for item in release_list.json()] == [str(release_id)]
+        assert release_detail.status_code == 200
+        assert release_detail.json()["content"] == {"title": "RLS test"}
+        assert unauthorized_release_list.status_code == 403
         assert all(item["roles"] == ["learner"] for item in payload)
 
         async with runtime_engine.connect() as connection:

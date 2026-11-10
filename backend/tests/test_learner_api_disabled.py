@@ -2,7 +2,7 @@ import httpx
 import pytest
 from fastapi import FastAPI
 
-from app.api import assessments, learning
+from app.api import assessments, course_releases, learning
 from app.core.config import Settings
 
 
@@ -18,6 +18,7 @@ async def test_learner_data_routes_are_disabled_by_default(monkeypatch):
     app = FastAPI()
     app.include_router(learning.router)
     app.include_router(assessments.router)
+    app.include_router(course_releases.router)
     tenant = "00000000-0000-0000-0000-000000000001"
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app),
@@ -26,6 +27,7 @@ async def test_learner_data_routes_are_disabled_by_default(monkeypatch):
         responses = [
             await client.get("/learning/progress", headers={"X-Tenant-ID": tenant}),
             await client.get("/assessments/attempts", headers={"X-Tenant-ID": tenant}),
+            await client.get("/courses/releases", headers={"X-Tenant-ID": tenant}),
             await client.post(
                 "/assessments/attempts",
                 headers={"X-Tenant-ID": tenant},
@@ -35,4 +37,4 @@ async def test_learner_data_routes_are_disabled_by_default(monkeypatch):
                 },
             ),
         ]
-    assert [response.status_code for response in responses] == [503, 503, 503]
+    assert [response.status_code for response in responses] == [503, 503, 503, 503]

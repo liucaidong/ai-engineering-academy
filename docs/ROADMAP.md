@@ -81,7 +81,10 @@
 - [x] Expose authenticated `GET /tenants/me` using migration 0010's self-only RLS policy; verify actual query service on PostgreSQL 18.6.
 - [x] Implement typed frontend API transport with Cookie credentials, session-bound CSRF, explicit tenant context, structured errors, timeout/cancellation and 13 regression tests; full local acceptance passed (86 Vitest, 42 Playwright, 135 backend pytest + 1 optional skip).
 - [x] Add feature-gated session bootstrap, tenant discovery/selection, stale-preference revalidation and CSRF-protected logout UI (4 dedicated scenarios; full Playwright suite 46 passed); frontend auth UI flag defaults off.
-- [ ] Integrate learner progress and assessment attempts with backend persistence and local-state reconciliation.
+- [ ] Integrate learner progress and assessment attempts with backend persistence and local-state reconciliation (blocked on a real published release UUID and explicit legacy-data import).
 - [ ] Complete provider-backed OIDC E2E and privacy/retention review before enabling learner APIs.
-- [ ] Define and implement published course-release consumption in the learner UI.
+- [x] Add authenticated, tenant-authorized published course-release metadata/content read APIs; drafts remain hidden (15 OpenAPI paths; PostgreSQL 18.6 RLS route acceptance passed).
+- [x] Add ADR-0009 defining immutable release consumption, platform-scoped publication and explicit legacy-data import boundaries.
+- [ ] Implement platform-scoped course publication and bootstrap the first immutable release.
+- [ ] Bind the learner UI to a real published course-release UUID.
 - [ ] Define instructor/course-authoring authorization and publishing workflow before exposing authoring APIs.

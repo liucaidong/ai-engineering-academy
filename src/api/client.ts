@@ -3,6 +3,8 @@ import type { components } from "./generated";
 type ApiSchemas = components["schemas"];
 
 export type TenantMembership = ApiSchemas["TenantMembershipRead"];
+export type CourseReleaseSummary = ApiSchemas["CourseReleaseSummaryRead"];
+export type CourseRelease = ApiSchemas["CourseReleaseRead"];
 export type LearningProgress = ApiSchemas["ProgressRead"];
 export type LearningProgressCreate = ApiSchemas["ProgressCreate"];
 export type AssessmentAttempt = ApiSchemas["AttemptRead"];
@@ -299,6 +301,25 @@ export class AcademyApiClient {
 
   getMyTenants(signal?: AbortSignal): Promise<TenantMembership[]> {
     return this.request("/tenants/me", { signal });
+  }
+
+  listPublishedCourseReleases(
+    tenantId: string,
+    query: { course_key?: string; limit?: number } = {},
+    signal?: AbortSignal,
+  ): Promise<CourseReleaseSummary[]> {
+    return this.request("/courses/releases", { tenantId, query, signal });
+  }
+
+  getCourseRelease(
+    tenantId: string,
+    releaseId: string,
+    signal?: AbortSignal,
+  ): Promise<CourseRelease> {
+    return this.request(`/courses/releases/${encodeURIComponent(releaseId)}`, {
+      tenantId,
+      signal,
+    });
   }
 
   listLearningProgress(

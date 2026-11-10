@@ -120,6 +120,35 @@ describe("AcademyApiClient", () => {
     expect(new Headers(fetcher.mock.calls[0]?.[1]?.headers).get("X-Tenant-ID")).toBe("tenant-1");
   });
 
+  it("lists published course releases within the authenticated tenant context", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([]));
+    const api = client(fetcher);
+
+    await api.listPublishedCourseReleases("tenant-1", {
+      course_key: "ai-engineering-foundations",
+      limit: 10,
+    });
+
+    expect(fetcher.mock.calls[0]?.[0]).toBe(
+      "/courses/releases?course_key=ai-engineering-foundations&limit=10",
+    );
+    expect(new Headers(fetcher.mock.calls[0]?.[1]?.headers).get("X-Tenant-ID")).toBe("tenant-1");
+    expect(fetcher.mock.calls[0]?.[1]?.credentials).toBe("include");
+    expect(fetcher.mock.calls[0]?.[1]?.cache).toBe("no-store");
+  });
+
+  it("URL-encodes immutable course release identifiers", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ id: "release-1", status: "published", content: {} }));
+    const api = client(fetcher);
+
+    await api.getCourseRelease("tenant-1", "release/with/slashes");
+
+    expect(fetcher.mock.calls[0]?.[0]).toBe("/courses/releases/release%2Fwith%2Fslashes");
+    expect(new Headers(fetcher.mock.calls[0]?.[1]?.headers).get("X-Tenant-ID")).toBe("tenant-1");
+  });
+
   it("returns void for a successful 204 logout and clears the CSRF cache", async () => {
     const fetcher = vi
       .fn<typeof fetch>()

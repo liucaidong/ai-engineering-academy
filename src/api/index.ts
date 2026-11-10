@@ -5,6 +5,8 @@ export type {
   ApiErrorCategory,
   AssessmentAttempt,
   AssessmentAttemptCreate,
+  CourseRelease,
+  CourseReleaseSummary,
   CurrentSession,
   LearningProgress,
   LearningProgressCreate,
