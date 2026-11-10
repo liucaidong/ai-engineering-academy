@@ -109,7 +109,7 @@ async def test_login_sets_short_lived_httponly_browser_state_cookie(monkeypatch)
             return OIDCDiscovery(
                 issuer=settings.oidc_issuer,
                 authorization_endpoint="https://identity.example.test/authorize",
-                token_endpoint="https://identity.example.test/token",
+                token_endpoint="https://identity.example.test/token",  # noqa: S106 - fixed fake provider URL in a test fixture
                 jwks_uri="https://identity.example.test/jwks",
             )
 

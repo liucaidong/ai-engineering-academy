@@ -7,7 +7,7 @@ from app.security.oidc import derive_csrf_token, generate_session_token
 from app.security.request_protection import CSRFSecurityMiddleware, normalize_origin
 from app.security.sessions import CSRF_COOKIE_NAME, SESSION_COOKIE_NAME
 
-SECRET = "0123456789abcdef0123456789abcdef"
+SECRET = "0123456789abcdef0123456789abcdef"  # noqa: S105 - deterministic test-only secret
 ORIGIN = "https://academy.example.test"
 
 

@@ -73,7 +73,7 @@ def upgrade() -> None:
         op.execute(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY")
 
     op.execute(
-        f"CREATE POLICY tenants_member_select ON tenants FOR SELECT USING ("
+        f"CREATE POLICY tenants_member_select ON tenants FOR SELECT USING ("  # noqa: S608 - SQL identifiers and expressions are module constants, never request data.
         f"id = {_TENANT} AND EXISTS ("
         f"SELECT 1 FROM tenant_memberships m "
         f"WHERE m.tenant_id = tenants.id AND m.user_id = {_USER} AND m.status = 'active'"
@@ -84,7 +84,7 @@ def upgrade() -> None:
         f"FOR SELECT USING (tenant_id = {_TENANT} AND user_id = {_USER} AND status = 'active')"
     )
     op.execute(
-        f"CREATE POLICY tenant_membership_roles_self_select ON tenant_membership_roles "
+        f"CREATE POLICY tenant_membership_roles_self_select ON tenant_membership_roles "  # noqa: S608 - SQL identifiers and expressions are module constants, never request data.
         f"FOR SELECT USING (tenant_id = {_TENANT} AND EXISTS ("
         f"SELECT 1 FROM tenant_memberships m "
         f"WHERE m.id = tenant_membership_roles.membership_id "
@@ -93,14 +93,14 @@ def upgrade() -> None:
         f"))"
     )
     op.execute(
-        f"CREATE POLICY tenant_invitations_creator_select ON tenant_invitations "
+        f"CREATE POLICY tenant_invitations_creator_select ON tenant_invitations "  # noqa: S608 - SQL identifiers and expressions are module constants, never request data.
         f"FOR SELECT USING (tenant_id = {_TENANT} AND created_by_user_id = {_USER} "
         f"AND EXISTS (SELECT 1 FROM tenant_memberships m "
         f"WHERE m.tenant_id = tenant_invitations.tenant_id "
         f"AND m.user_id = {_USER} AND m.status = 'active'))"
     )
     op.execute(
-        f"CREATE POLICY audit_events_actor_select ON audit_events FOR SELECT USING ("
+        f"CREATE POLICY audit_events_actor_select ON audit_events FOR SELECT USING ("  # noqa: S608 - SQL identifiers and expressions are module constants, never request data.
         f"actor_user_id = {_USER} AND (tenant_id IS NULL OR (tenant_id = {_TENANT} "
         f"AND EXISTS (SELECT 1 FROM tenant_memberships m "
         f"WHERE m.tenant_id = audit_events.tenant_id "
@@ -108,7 +108,7 @@ def upgrade() -> None:
         f")"
     )
     op.execute(
-        f"CREATE POLICY audit_events_actor_insert ON audit_events FOR INSERT WITH CHECK ("
+        f"CREATE POLICY audit_events_actor_insert ON audit_events FOR INSERT WITH CHECK ("  # noqa: S608 - SQL identifiers and expressions are module constants, never request data.
         f"actor_user_id = {_USER} AND (tenant_id IS NULL OR (tenant_id = {_TENANT} "
         f"AND EXISTS (SELECT 1 FROM tenant_memberships m "
         f"WHERE m.tenant_id = audit_events.tenant_id "

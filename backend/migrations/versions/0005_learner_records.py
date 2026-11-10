@@ -201,7 +201,7 @@ def upgrade() -> None:
 
     for table in ("learning_progress", "assessment_results"):
         scope = (
-            f"tenant_id = {_TENANT} AND user_id = {_USER} AND EXISTS ("
+            f"tenant_id = {_TENANT} AND user_id = {_USER} AND EXISTS ("  # noqa: S608 - SQL identifiers and expressions are module constants, never request data.
             f"SELECT 1 FROM tenant_memberships m "
             f"WHERE m.tenant_id = {table}.tenant_id "
             f"AND m.user_id = {table}.user_id AND m.status = 'active')"

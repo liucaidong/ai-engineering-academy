@@ -16,7 +16,7 @@
 Learner / Instructor Browser
   |
   v
-React 19 + TypeScript 5 + Vite 6
+React 19 + TypeScript 5.9 + Vite 8 (Rolldown)
   ├─ Course Shell / Navigation / Search
   ├─ Markdown/GFM Content Renderer
   ├─ Browser Learning Labs
@@ -44,7 +44,7 @@ PostgreSQL
 
 ### 前端
 
-- React 19、TypeScript 5、Vite 6；
+- React 19、TypeScript 5.9、Vite 8（Rolldown）；
 - Markdown/GFM 内容渲染，Zod 课程数据运行时校验；
 - Vitest 单元测试，Playwright 浏览器 E2E；
 - pnpm 管理依赖，根目录 `pnpm-lock.yaml` 是唯一前端锁文件。

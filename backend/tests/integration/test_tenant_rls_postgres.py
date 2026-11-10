@@ -264,8 +264,11 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                 )
                 assert tenant_rows == [tenant_a]
                 for table in ("learning_progress", "assessment_results"):
+                    # Table names come from the fixed tuple above, never from external input.
                     rows = (
-                        (await connection.execute(text(f"SELECT id FROM {table}"))).scalars().all()
+                        (await connection.execute(text(f"SELECT id FROM {table}")))  # noqa: S608
+                        .scalars()
+                        .all()
                     )
                     assert rows == [], f"unexpected rows visible in {table}: {rows}"
 
@@ -276,8 +279,11 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                     "learning_progress",
                     "assessment_results",
                 ):
+                    # Table names come from the fixed tuple above, never from external input.
                     rows = (
-                        (await connection.execute(text(f"SELECT id FROM {table}"))).scalars().all()
+                        (await connection.execute(text(f"SELECT id FROM {table}")))  # noqa: S608
+                        .scalars()
+                        .all()
                     )
                     assert rows == []
 

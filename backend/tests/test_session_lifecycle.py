@@ -17,7 +17,7 @@ from app.security.sessions import (
     set_session_cookies,
 )
 
-SECRET = "0123456789abcdef0123456789abcdef"
+SECRET = "0123456789abcdef0123456789abcdef"  # noqa: S105 - deterministic test-only secret
 
 
 @pytest.mark.asyncio

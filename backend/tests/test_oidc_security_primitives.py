@@ -11,7 +11,7 @@ from app.security.oidc import (
     verify_oidc_state,
 )
 
-CSRF_SECRET = "0123456789abcdef0123456789abcdef"
+CSRF_SECRET = "0123456789abcdef0123456789abcdef"  # noqa: S105 - deterministic test-only secret
 
 
 def test_session_token_is_random_and_only_hash_is_database_safe() -> None:

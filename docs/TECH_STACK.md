@@ -9,14 +9,14 @@
 
 | 层              | 标准技术                                | 职责                                               |
 | --------------- | --------------------------------------- | -------------------------------------------------- |
-| Web UI          | React 19、TypeScript 5、Vite 6          | 课程界面、交互实验、浏览器状态、可访问性           |
-| 内容与前端契约  | Markdown/GFM、Zod 3                     | 教材渲染、课程数据运行时校验                       |
+| Web UI          | React 19、TypeScript 5.9、Vite 8 / Rolldown | 课程界面、交互实验、浏览器状态、可访问性           |
+| 内容与前端契约  | Markdown/GFM、Zod 4                     | 教材渲染、课程数据运行时校验                       |
 | API             | Python、FastAPI、Pydantic               | HTTP API、输入输出校验、业务编排                   |
 | 持久化          | PostgreSQL、SQLAlchemy 2 Async、asyncpg | 事务数据、身份/租户/学习记录                       |
 | 数据库演进      | Alembic                                 | 可审计、可回滚的 schema migration                  |
-| 前端质量        | Biome 2.6.6、TypeScript 5 strict        | 统一 lint、格式化、导入排序与类型检查             |
-| 前端测试        | Vitest、Playwright                      | 单元/模块测试、浏览器 E2E                         |
-| 后端质量        | pytest、pytest-asyncio、Ruff            | 测试、lint、导入排序与格式化                       |
+| 前端质量        | Biome 2.6.6、TypeScript 5.9 strict      | 统一 lint、格式化、导入排序与类型检查             |
+| 前端测试        | Vitest 5.1、Playwright                  | 单元/模块测试、浏览器 E2E                         |
+| 后端质量        | pytest 9、pytest-asyncio 1、Ruff（含 Bandit S 规则） | 测试、安全 lint、导入排序与格式化                 |
 | API 类型生成    | openapi-typescript 7.13.0               | 从 FastAPI OpenAPI 生成 TypeScript 类型           |
 | 前端依赖管理    | pnpm                                    | 依赖安装与唯一 lockfile                            |
 | Python 依赖管理 | uv                                      | 环境同步与唯一 lockfile                            |
@@ -61,7 +61,7 @@
 | ---------- | --------------------------------- | -------------------------------------------------------------------- |
 | Node.js    | 26 Active LTS（项目基线 26.13.0） | 由 `.node-version` 指定；使用 Active LTS 版本                        |
 | pnpm       | 12.7.0                            | 由 `packageManager` 固定；只提交 `pnpm-lock.yaml`                    |
-| TypeScript | 5.x，严格模式                     | `strict`、`noUnusedLocals`、`noUnusedParameters` 保持开启            |
+| TypeScript | 5.9.x，严格模式                   | `strict`、`noUnusedLocals`、`noUnusedParameters` 保持开启；TypeScript 7 待 OpenAPI 工具链声明兼容后再升级 |
 | Python     | 3.12（项目标准开发版本）          | 由 `.python-version` 指定；兼容范围见 `pyproject.toml`               |
 | uv         | 0.13.x 或兼容新版本               | 通过 `uv.lock` 锁定依赖解析结果                                      |
 | PostgreSQL | PostgreSQL 16+                    | 当前本地验收容器为 18.6；生产/验收环境版本必须显式记录               |
@@ -94,7 +94,8 @@
 ## 6. 测试与质量门禁
 
 - Biome 是前端唯一 lint + formatter，负责 TypeScript/TSX、工程配置与导入排序；不并行维护 ESLint、Prettier。
-- Ruff 是 Python 唯一 lint + formatter，启用 pycodestyle、Pyflakes 与 import sorting（I）；后端验收同时执行 `ruff format --check` 和 `ruff check`。
+- Ruff 是 Python 唯一 lint + formatter，启用 pycodestyle、Pyflakes、import sorting（I）与 Bandit 安全规则（S）；测试中的 S101 断言仅在 tests 路径豁免，其他误报必须逐行附理由。后端验收同时执行 `ruff format --check` 和 `ruff check`。
+- `pnpm security:audit` 使用 npm 官方 registry 和 pip-audit 分别检查前端生产依赖、Python 环境依赖；不依赖 GitHub Actions。
 - TypeScript `strict` 类型检查独立运行，Biome 不替代编译器类型检查。
 - Biome 不格式化课程数据源、教材 Markdown、CSS 和生成的 OpenAPI TypeScript；这些文件分别由课程校验、内容审阅、现有样式治理和生成器管理。
 - `pnpm check` 汇总 Biome lint、格式检查、TypeScript typecheck 和 OpenAPI 契约漂移检查。

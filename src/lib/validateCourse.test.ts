@@ -220,9 +220,9 @@ describe("course content contract", () => {
   });
   it("rejects unknown fields instead of silently stripping imported data", () => {
     const invalid = { ...course, unexpected: "must-not-be-discarded" };
-    expect(
-      getCourseValidationErrors(invalid).some((error) => error.includes("Unrecognized key(s)")),
-    ).toBe(true);
+    expect(getCourseValidationErrors(invalid).some((error) => error.includes("unexpected"))).toBe(
+      true,
+    );
   });
 
   it("rejects unknown fields inside modules and lesson sections", () => {
