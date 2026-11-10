@@ -16,7 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.api.assessments import router as assessments_router
 from app.api.auth import router as auth_router
 from app.api.learning import router as learning_router
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 from app.core.database import Database
 from app.security.oidc_provider import OIDCVerifier
 from app.security.request_protection import CSRFSecurityMiddleware
@@ -37,6 +37,24 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await database.dispose()
 
 
+def configure_browser_security(app: FastAPI, settings: Settings) -> None:
+    """Install cookie CSRF and credentialed CORS policy for configured browser clients."""
+    if not settings.oidc_login_enabled:
+        return
+    app.add_middleware(
+        CSRFSecurityMiddleware,
+        allowed_origins=set(settings.oidc_allowed_origins),
+        csrf_secret=settings.csrf_secret_value,
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.oidc_allowed_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Content-Type", "X-CSRF-Token", "X-Tenant-ID"],
+    )
+
+
 settings = get_settings()
 app = FastAPI(
     title="AI Engineering Academy API",
@@ -49,19 +67,7 @@ app.include_router(auth_router)
 app.include_router(learning_router)
 app.include_router(assessments_router)
 
-if settings.oidc_login_enabled:
-    app.add_middleware(
-        CSRFSecurityMiddleware,
-        allowed_origins=set(settings.oidc_allowed_origins),
-        csrf_secret=settings.csrf_secret_value,
-    )
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.oidc_allowed_origins,
-        allow_credentials=True,
-        allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "X-CSRF-Token"],
-    )
+configure_browser_security(app, settings)
 
 
 @app.get("/health/live", tags=["health"])

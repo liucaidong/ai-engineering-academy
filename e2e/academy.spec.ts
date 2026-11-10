@@ -395,9 +395,24 @@ test("persists course authoring drafts locally across reloads", async ({ page })
   await expect(page.getByText("Schema 校验通过")).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "课程编辑" }).click();
+  await expect(page.getByRole("heading", { name: "课程内容编辑器" })).toBeVisible({
+    timeout: 15000,
+  });
   await expect(page.getByLabel("课程 JSON（最大 2 MiB UTF-8）")).toHaveValue(
     /AI Engineering Academy Draft/,
+    { timeout: 15000 },
   );
+});
+
+test("reports and retries a failed full-course authoring load", async ({ page }) => {
+  await page.route("**/src/data/flagshipM20.ts*", (route) => route.abort());
+  await page.getByRole("button", { name: "课程编辑" }).click();
+  await expect(page.getByRole("alert")).toContainText("完整课程数据加载失败");
+  await page.unroute("**/src/data/flagshipM20.ts*");
+  await page.getByRole("button", { name: "重试加载" }).click();
+  await expect(page.getByRole("heading", { name: "课程内容编辑器" })).toBeVisible({
+    timeout: 15000,
+  });
 });
 
 test("keeps the course authoring view accessible", async ({ page }) => {

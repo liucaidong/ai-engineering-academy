@@ -4,14 +4,10 @@ import type { CourseModuleSummary } from "./data/courseCatalog";
 import { courseCatalog } from "./data/courseCatalog";
 import { loadFullCourse } from "./data/loadFullCourse";
 import { loadModuleLessons } from "./data/moduleLessons";
-import {
-  type AssessmentResponse,
-  loadAssessmentProgress,
-  serializeAssessmentProgress,
-} from "./lib/assessmentProgress";
-import { loadBookmarks, serializeBookmarks, toggleBookmark } from "./lib/bookmarks";
+import { useLearningState } from "./features/learning/useLearningState";
+import { toggleBookmark } from "./lib/bookmarks";
 import { getNextRecommendedModule } from "./lib/learningPath";
-import { loadProgress, serializeProgress, toggleModuleProgress } from "./lib/progress";
+import { toggleModuleProgress } from "./lib/progress";
 import { searchModules } from "./lib/searchModules";
 import { getModuleValidationErrors } from "./lib/validateCourse";
 import { type Course, type CourseModule, EXECUTION_MODE_LABELS, type Lesson } from "./types/course";
@@ -46,80 +42,21 @@ export default function App() {
   const [lessonsByModule, setLessonsByModule] = useState<Record<string, Lesson[]>>({});
   const [lessonLoadError, setLessonLoadError] = useState<string | null>(null);
   const [authoringCourse, setAuthoringCourse] = useState<Course | null>(null);
+  const [authoringLoadError, setAuthoringLoadError] = useState<string | null>(null);
+  const [authoringLoadAttempt, setAuthoringLoadAttempt] = useState(0);
   const [fullTextSearchModules, setFullTextSearchModules] = useState<CourseModule[] | null>(null);
   const [searchIndexLoading, setSearchIndexLoading] = useState(false);
   const [searchIndexError, setSearchIndexError] = useState(false);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
-  const [bookmarkedModuleIds, setBookmarkedModuleIds] = useState<string[]>(() => {
-    try {
-      return loadBookmarks(
-        typeof window === "undefined"
-          ? null
-          : window.localStorage.getItem("ai-engineering-academy:bookmarks:v1"),
-        courseCatalog.modules.map((module) => module.id),
-      );
-    } catch {
-      return [];
-    }
-  });
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(
-        "ai-engineering-academy:bookmarks:v1",
-        serializeBookmarks(bookmarkedModuleIds),
-      );
-    } catch {
-      /* Storage restrictions must not block learning. */
-    }
-  }, [bookmarkedModuleIds]);
-  const [completedModules, setCompletedModules] = useState<string[]>(() => {
-    try {
-      return loadProgress(
-        typeof window === "undefined"
-          ? null
-          : window.localStorage.getItem("ai-engineering-academy:progress:v1"),
-        courseCatalog.modules.map((module) => module.id),
-      );
-    } catch {
-      return [];
-    }
-  });
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(
-        "ai-engineering-academy:progress:v1",
-        serializeProgress(completedModules),
-      );
-    } catch {
-      /* Private browsing or storage restrictions must not block learning. */
-    }
-  }, [completedModules]);
-  const [assessmentResponses, setAssessmentResponses] = useState<
-    Record<string, AssessmentResponse>
-  >(() => {
-    try {
-      return loadAssessmentProgress(
-        typeof window === "undefined"
-          ? null
-          : window.localStorage.getItem("ai-engineering-academy:assessments:v1"),
-      );
-    } catch {
-      return {};
-    }
-  });
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(
-        "ai-engineering-academy:assessments:v1",
-        serializeAssessmentProgress(assessmentResponses),
-      );
-    } catch {
-      /* Storage restrictions must not block assessment work. */
-    }
-  }, [assessmentResponses]);
-  const progressPercent = Math.round(
-    (completedModules.length / courseCatalog.modules.length) * 100,
-  );
+  const {
+    assessmentResponses,
+    bookmarkedModuleIds,
+    completedModules,
+    progressPercent,
+    setAssessmentResponses,
+    setBookmarkedModuleIds,
+    setCompletedModules,
+  } = useLearningState();
   const selectedModule =
     courseCatalog.modules.find((item) => item.id === selectedModuleId) ?? courseCatalog.modules[0];
   const selectedLessons = lessonsByModule[selectedModule.id];
@@ -149,13 +86,23 @@ export default function App() {
   useEffect(() => {
     if (activeView !== "authoring" || authoringCourse) return;
     let cancelled = false;
-    void loadFullCourse().then((course) => {
-      if (!cancelled) setAuthoringCourse(course);
-    });
+    setAuthoringLoadError(null);
+    void loadFullCourse().then(
+      (course) => {
+        if (!cancelled) setAuthoringCourse(course);
+      },
+      () => {
+        if (!cancelled) {
+          setAuthoringLoadError(
+            `完整课程数据加载失败（第 ${authoringLoadAttempt + 1} 次），请重试。`,
+          );
+        }
+      },
+    );
     return () => {
       cancelled = true;
     };
-  }, [activeView, authoringCourse]);
+  }, [activeView, authoringCourse, authoringLoadAttempt]);
   useEffect(() => {
     if (!moduleQuery.trim() || fullTextSearchModules) return;
     let cancelled = false;
@@ -426,6 +373,17 @@ export default function App() {
             {activeView === "authoring" ? (
               authoringCourse ? (
                 <CourseAuthoringWorkspace initialCourse={authoringCourse} />
+              ) : authoringLoadError ? (
+                <div className="lesson-card" role="alert">
+                  <p>{authoringLoadError}</p>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => setAuthoringLoadAttempt((attempt) => attempt + 1)}
+                  >
+                    重试加载
+                  </button>
+                </div>
               ) : (
                 <div className="lesson-card" role="status" aria-live="polite">
                   正在加载完整课程数据以打开编辑器…

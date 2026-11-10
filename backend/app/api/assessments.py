@@ -20,7 +20,7 @@ router = APIRouter(prefix="/assessments", tags=["assessments"])
 
 
 class AttemptCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     course_release_id: UUID
     assessment_key: str = Field(min_length=1, max_length=120)
     response: dict[str, Any] = Field(default_factory=dict)
