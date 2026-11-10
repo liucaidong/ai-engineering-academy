@@ -64,7 +64,7 @@ M=2\times32\times4\times16384\times8\times128\times2
 
 8 GiB 总 KV，2 GiB/sequence。Paged allocation 以 block 分配可减少连续大块预留和外部碎片；共享前缀在语义与实现允许时可复用共同前缀的 KV，降低重复存储。实际值仍需加上 block rounding、metadata、workspace 和运行时预留。评估必须区分理论容量与引擎报告的 allocated/reserved/used memory。
 
-**评分对照（10 分）：** 公式单位 4；GQA/MQA 影响 3；生命周期、隔离、回收或共享 3。
+**评分对照（10 分）：** 公式单位 4；架构影响 3；生命周期 3。
 
 **常见错误：**
 - 忘记 K 和 V 的系数 2。
@@ -237,7 +237,7 @@ Draft model 先提出若干候选 token，target model 对候选序列并行验�
 
 70B 模型设计需先确定精度和设备内存，再拆分权重、KV、激活、workspace、通信 buffer 与余量。根据单卡容量和互联选择 TP/PP/DP 组合；不要只用参数量决定 GPU 数量。服务路径包括鉴权/配额、队列、scheduler、worker、streaming、取消、计量和 tracing。定义 TTFT/TPOT、tokens/s、P95/P99、错误率、OOM、KV occupancy 和成本 SLO。模型不可用时可进入有界队列、切换已评估 fallback、降低最大输出/上下文或返回明确暂不可用；fallback 必须保持租户数据政策与模型质量门槛。
 
-**评分对照（10 分）：** 并行架构 3；容量模型 3；可靠性 4。
+**评分对照（10 分）：** 架构并行 3；容量模型 3；可靠性 4。
 
 **常见错误：**
 - 未说明模型精度就给出 GPU 数量。
