@@ -197,7 +197,7 @@
 **参考答案与推理：** Encoder Layer 常见为双向 Self-Attention→残差/归一化→逐 token FFN→残差/归一化；不需要自回归 causal mask（但可有 padding mask）。Decoder-only Block 使用 causal Self-Attention，阻止读取未来 token，再经 FFN；现代模型常见 Pre-LN/RMSNorm 等变体。若 X=[B,T,d_model]，每个子层输入输出通常保持 [B,T,d_model]；Attention 内部头维度为 [B,H,T,d_k]。图中需明确 residual 加法两侧维度相同。
 
 **原始 Rubric 对照（总分 10 分）：**
-- **架构组成（3 分）：** 正确列出 Encoder、Decoder 和 Decoder-only 的主要子层。批改时检查提交物是否有可直接复核的证据。
+- **架构组成（3 分）：** 正确列出 Encoder Layer 与 Decoder-only Block 的主要子层及其注意力差异。批改时检查提交物是否有可直接复核的证据。
 - **FFN 职责（2 分）：** 说明 FFN 在特征维变换且通常不混合 token 位置。批改时检查提交物是否有可直接复核的证据。
 - **残差与归一化（3 分）：** 正确区分残差路径、LayerNorm 和 Pre-LN/Post-LN。批改时检查提交物是否有可直接复核的证据。
 - **结构表达（2 分）：** 图示数据流、mask 和张量维度清晰。批改时检查提交物是否有可直接复核的证据。

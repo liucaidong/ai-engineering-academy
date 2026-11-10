@@ -195,7 +195,7 @@ export const flagshipM02Lessons: Course["modules"][number]["lessons"] = [
       type: "design-review",
       prompt: "绘制一个 Transformer Encoder Layer 和一个 Decoder-only Block 的结构图。标注 Attention、FFN、残差、归一化、mask 和每个子层的输入输出形状，并说明两种架构的差异。",
       rubric: [
-        { criterion: "架构组成", description: "正确列出 Encoder、Decoder 和 Decoder-only 的主要子层", points: 3 },
+        { criterion: "架构组成", description: "正确列出 Encoder Layer 与 Decoder-only Block 的主要子层及其注意力差异", points: 3 },
         { criterion: "FFN 职责", description: "说明 FFN 在特征维变换且通常不混合 token 位置", points: 2 },
         { criterion: "残差与归一化", description: "正确区分残差路径、LayerNorm 和 Pre-LN/Post-LN", points: 3 },
         { criterion: "结构表达", description: "图示数据流、mask 和张量维度清晰", points: 2 }

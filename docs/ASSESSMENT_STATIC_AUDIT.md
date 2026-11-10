@@ -101,6 +101,18 @@ M18/M19 的计算题和教师答案使用美元金额，但题面原先只写“
 
 **最小修复**：两题统一标记为课程假设价目（USD），并明确仅用于练习、不代表当前供应商报价；M18 Rubric 与 M19 题面同步标注 USD。价格版本仍作为成本治理练习的必填信息。分值不变。
 
+### A-08 — M02 Transformer 结构图作业的 Rubric 超出题目范围（P2，已修复）
+
+`m02-04-transformer-block-review` 要求绘制 Encoder Layer 与 Decoder-only Block；原 Rubric 却要求列出 Encoder、Decoder 和 Decoder-only 的主要子层，额外引入题目未要求的 Encoder–Decoder Decoder 结构，可能造成扣分标准与交付要求不一致。
+
+**最小修复**：将课程数据与教师指南中的 Rubric 统一为检查 Encoder Layer、Decoder-only Block 的主要子层及注意力差异。分值不变。
+
+### A-09 — M03 综合 Context 审计的教师答案未沿用讲次预算案例（P2，已修复）
+
+`m03-05-integrated-context-audit` 要求提交 24,000-token 请求预算与超限调整。讲次练习给出 22,000-token 分项预算、2,000 动态余量和 26,500-token 超限情景；教师指南原答案另用一组 27,000-token 案例，虽然计算本身可成立，但不利于学习者按同一组数据核对课程练习。
+
+**最小修复**：教师参考答案改为复用讲次的 22,000 + 2,000 动态余量，以及 26,500 超限场景；给出减少 2,500 tokens 的示例策略，并强调不得丢弃权限、否定约束和关键证据。Rubric 分值不变。
+
 ### P-01 — M04–M20 先修模块依赖存在且在应用页面可见，但学习者能力清单不够具体（P1，文档已补充）
 
 课程目录 `src/data/courseCatalog.ts` 为 M04–M20 定义了模块依赖；`src/App.tsx` 的模块侧栏会显示“先修模块”并提供跳转。因此，先修模块 ID 并非仅存在于教师指南。
