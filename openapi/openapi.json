@@ -245,6 +245,48 @@
         "title": "ProgressRead",
         "type": "object"
       },
+      "TenantMembershipRead": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "enum": [
+                "learner",
+                "instructor",
+                "tenant_admin"
+              ],
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "tenant_id": {
+            "format": "uuid",
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "tenant_type": {
+            "enum": [
+              "personal",
+              "organization"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "name",
+          "tenant_type",
+          "roles"
+        ],
+        "title": "TenantMembershipRead",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -900,6 +942,32 @@
         "summary": "Reopen Completed Progress",
         "tags": [
           "learning"
+        ]
+      }
+    },
+    "/tenants/me": {
+      "get": {
+        "description": "Return only active tenants and roles belonging to the current session user.",
+        "operationId": "list_my_tenants_tenants_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TenantMembershipRead"
+                  },
+                  "title": "Response List My Tenants Tenants Me Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List My Tenants",
+        "tags": [
+          "tenants"
         ]
       }
     }

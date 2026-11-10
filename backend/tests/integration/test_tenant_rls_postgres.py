@@ -6,16 +6,26 @@ The database must already be migrated to head.
 """
 
 import os
+from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 from uuid import uuid4
 
+import httpx
 import pytest
+from fastapi import FastAPI
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from app.api import tenants
+from app.api.tenants import _list_active_tenants
+from app.db.session import set_security_context
+from app.security.oidc import generate_session_token
+from app.security.sessions import SESSION_COOKIE_NAME
 
 
 @pytest.mark.asyncio
-async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() -> None:
+async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(monkeypatch) -> None:
     admin_url = os.getenv("ACADEMY_TEST_ADMIN_DATABASE_URL")
     runtime_url = os.getenv("ACADEMY_TEST_RUNTIME_DATABASE_URL")
     if not admin_url or not runtime_url:
@@ -26,7 +36,12 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
 
     user_a, user_b, user_c, bootstrap_user = uuid4(), uuid4(), uuid4(), uuid4()
     tenant_a, tenant_b, bootstrap_tenant = uuid4(), uuid4(), uuid4()
-    membership_a, membership_b, membership_c = uuid4(), uuid4(), uuid4()
+    membership_a, membership_b, membership_c, membership_d = (
+        uuid4(),
+        uuid4(),
+        uuid4(),
+        uuid4(),
+    )
     bootstrap_membership = uuid4()
     progress_a, progress_b, progress_c, progress_new = uuid4(), uuid4(), uuid4(), uuid4()
     result_a, result_b, result_c, result_new = uuid4(), uuid4(), uuid4(), uuid4()
@@ -80,12 +95,14 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                     "INSERT INTO tenant_memberships (id, tenant_id, user_id, status) VALUES "
                     "(:membership_a, :tenant_a, :user_a, 'active'), "
                     "(:membership_b, :tenant_b, :user_b, 'active'), "
-                    "(:membership_c, :tenant_a, :user_c, 'active')"
+                    "(:membership_c, :tenant_a, :user_c, 'active'), "
+                    "(:membership_d, :tenant_b, :user_a, 'active')"
                 ),
                 {
                     "membership_a": membership_a,
                     "membership_b": membership_b,
                     "membership_c": membership_c,
+                    "membership_d": membership_d,
                     "tenant_a": tenant_a,
                     "tenant_b": tenant_b,
                     "user_a": user_a,
@@ -99,7 +116,8 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                     "(tenant_id, membership_id, role) VALUES "
                     "(:tenant_a, :membership_a, 'learner'), "
                     "(:tenant_b, :membership_b, 'learner'), "
-                    "(:tenant_a, :membership_c, 'learner')"
+                    "(:tenant_a, :membership_c, 'learner'), "
+                    "(:tenant_b, :membership_d, 'learner')"
                 ),
                 {
                     "tenant_a": tenant_a,
@@ -107,6 +125,7 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                     "membership_a": membership_a,
                     "membership_b": membership_b,
                     "membership_c": membership_c,
+                    "membership_d": membership_d,
                 },
             )
             await connection.execute(
@@ -159,6 +178,68 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                     "release_id": release_id,
                 },
             )
+
+        # Exercise the actual tenant-discovery query service using the unprivileged
+        # runtime role and the real PostgreSQL RLS policies.
+        runtime_sessions = async_sessionmaker(runtime_engine, expire_on_commit=False)
+        async with runtime_sessions() as session, session.begin():
+            await set_security_context(session, user_id=user_a)
+            discovered_tenants = await _list_active_tenants(session, user_id=user_a)
+            assert {item.tenant_id for item in discovered_tenants} == {tenant_a, tenant_b}
+            assert {item.tenant_id: item.name for item in discovered_tenants} == {
+                tenant_a: "Tenant A",
+                tenant_b: "Tenant B",
+            }
+            assert all(item.roles == ["learner"] for item in discovered_tenants)
+
+        # Authenticate through the actual HTTP route using a real opaque session
+        # and the non-owner runtime role; no identity or tenant is supplied by the caller.
+        session_token = generate_session_token()
+        async with admin_engine.begin() as connection:
+            await connection.execute(
+                text(
+                    "INSERT INTO auth_sessions (id, user_id, token_hash, expires_at) "
+                    "VALUES (:id, :user_id, :token_hash, :expires_at)"
+                ),
+                {
+                    "id": uuid4(),
+                    "user_id": user_a,
+                    "token_hash": session_token.token_hash,
+                    "expires_at": datetime.now(UTC) + timedelta(hours=1),
+                },
+            )
+
+        monkeypatch.setattr(
+            tenants,
+            "get_settings",
+            lambda: SimpleNamespace(oidc_login_enabled=True, learner_data_api_enabled=True),
+        )
+
+        class RuntimeDatabase:
+            session_factory = runtime_sessions
+
+            async def check_schema_revision(self, revision):
+                assert revision == "0011_personal_tenant_bootstrap"
+
+        app = FastAPI()
+        app.state.database = RuntimeDatabase()
+        app.include_router(tenants.router)
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app),
+            base_url="https://academy.example.test",
+            cookies={SESSION_COOKIE_NAME: session_token.raw_token},
+        ) as client:
+            response = await client.get("/tenants/me")
+
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "no-store"
+        payload = response.json()
+        assert {item["tenant_id"] for item in payload} == {str(tenant_a), str(tenant_b)}
+        assert {item["tenant_id"]: item["name"] for item in payload} == {
+            str(tenant_a): "Tenant A",
+            str(tenant_b): "Tenant B",
+        }
+        assert all(item["roles"] == ["learner"] for item in payload)
 
         async with runtime_engine.connect() as connection:
             role_flags = (
@@ -219,7 +300,10 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                     await connection.execute(text("SELECT id FROM tenants"))
                 ).scalars().all() == [tenant_a]
                 assert (
-                    await connection.execute(text("SELECT id FROM tenant_memberships"))
+                    await connection.execute(
+                        text("SELECT id FROM tenant_memberships WHERE tenant_id = :tenant_id"),
+                        {"tenant_id": tenant_a},
+                    )
                 ).scalars().all() == [membership_a]
                 assert (
                     await connection.execute(text("SELECT id FROM learning_progress"))
@@ -357,20 +441,28 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                         "SELECT set_config('app.user_id', :user_id, true), "
                         "set_config('app.tenant_id', :tenant_id, true)"
                     ),
-                    {"user_id": str(user_a), "tenant_id": str(tenant_b)},
+                    {"user_id": str(user_c), "tenant_id": str(tenant_b)},
                 )
                 # The self-discovery policy intentionally allows a user to list
                 # their own active memberships before choosing a tenant context.
                 membership_rows = (
-                    (await connection.execute(text("SELECT id FROM tenant_memberships")))
+                    (
+                        await connection.execute(
+                            text(
+                                "SELECT id FROM tenant_memberships "
+                                "WHERE user_id = :user_id ORDER BY id"
+                            ),
+                            {"user_id": user_c},
+                        )
+                    )
                     .scalars()
                     .all()
                 )
-                assert membership_rows == [membership_a]
+                assert membership_rows == [membership_c]
                 tenant_rows = (
                     (await connection.execute(text("SELECT id FROM tenants"))).scalars().all()
                 )
-                assert tenant_rows == [tenant_a]
+                assert tenant_rows == []
                 for table in ("learning_progress", "assessment_results"):
                     # Table names come from the fixed tuple above, never from external input.
                     rows = (
@@ -413,7 +505,10 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
             )
             assert (await connection.execute(text("SELECT id FROM tenants"))).scalars().all() == []
             assert (
-                await connection.execute(text("SELECT id FROM tenant_memberships"))
+                await connection.execute(
+                    text("SELECT id FROM tenant_memberships WHERE tenant_id = :tenant_id"),
+                    {"tenant_id": tenant_a},
+                )
             ).scalars().all() == []
             assert (
                 await connection.execute(text("SELECT id FROM learning_progress"))

@@ -16,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.api.assessments import router as assessments_router
 from app.api.auth import router as auth_router
 from app.api.learning import router as learning_router
+from app.api.tenants import router as tenants_router
 from app.core.config import Settings, get_settings
 from app.core.database import Database
 from app.security.oidc_provider import OIDCVerifier
@@ -65,6 +66,7 @@ app = FastAPI(
 )
 app.include_router(auth_router)
 app.include_router(learning_router)
+app.include_router(tenants_router)
 app.include_router(assessments_router)
 
 configure_browser_security(app, settings)

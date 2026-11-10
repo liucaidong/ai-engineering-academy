@@ -1,7 +1,8 @@
 """Identity, tenant membership and security-audit persistence models.
 
-These tables are not exposed through HTTP routes. Learner-data writes remain
-disabled until OIDC, authorization and PostgreSQL RLS gates are implemented.
+Identity and tenant tables have no general CRUD HTTP exposure. The only tenant
+read route is a session-scoped active-membership discovery endpoint. Learner-data
+writes remain disabled until OIDC, authorization and PostgreSQL RLS gates are accepted.
 """
 
 from datetime import datetime

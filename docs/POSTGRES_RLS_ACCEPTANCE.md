@@ -45,6 +45,7 @@ The live PostgreSQL test verifies:
 11. Suspended membership immediately removes tenant and learner-record visibility.
 12. The narrowly scoped first-personal-tenant bootstrap path succeeds, while a mismatched bootstrap tenant is rejected.
 13. Transaction-local identity and tenant settings do not leak when a pooled connection is reused after commit.
+14. The real `GET /tenants/me` HTTP route resolves an opaque session cookie, discovers multiple active memberships, returns only their database-assigned roles and metadata, and executes under the non-owner/non-superuser/non-BYPASSRLS runtime role. The test does not claim that an external OIDC provider was exercised.
 
 The protected table set currently includes `users`, `external_identities`, `auth_sessions`, `oidc_login_transactions`, `tenants`, `tenant_memberships`, `tenant_membership_roles`, `tenant_invitations`, `audit_events`, `learning_progress`, and `assessment_results`.
 

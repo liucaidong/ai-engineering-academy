@@ -12,10 +12,10 @@
 |---|---|---|
 | Frontend lint/format | Biome | Pass |
 | Type safety | TypeScript strict check | Pass |
-| API contract | OpenAPI 3.1 export + generated type drift check | Pass; 12 paths |
+| API contract | OpenAPI 3.1 export + generated type drift check | Pass; 13 paths |
 | Frontend unit tests | Vitest | 73 passed / 16 files |
 | Browser E2E | Playwright Chromium | 42 passed |
-| Backend tests | pytest | 131 passed, 1 skipped |
+| Backend tests | pytest | 135 passed, 1 skipped |
 | Backend lint/format | Ruff | Pass; 67 Python files formatted |
 | Production build | Vite 8.3.6 | Pass; 414 modules transformed |
 | PostgreSQL RLS | Disposable PostgreSQL 18.6, full Alembic chain, unprivileged runtime role | 1 integration test passed |
@@ -38,13 +38,13 @@ The current main entry chunk is 40.29 kB raw / 15.27 kB gzip. React Runtime is 2
 
 **Target:** one typed API transport with credentialed cookies, session-bound CSRF handling, tenant header handling, structured HTTP errors, abort/timeout behavior and tests. Do not implement a second authentication scheme.
 
-### SF-02 — Tenant discovery HTTP endpoint is absent
+### SF-02 — Tenant discovery HTTP endpoint (implemented 2026-11-10)
 
 - Migration `0010_tenant_membership_discovery` permits a signed-in user to discover only their own active tenant memberships.
-- `GET /auth/tenants` is intentionally absent (a test asserts 404).
-- The frontend therefore has no supported way to obtain the tenant IDs required by `X-Tenant-ID` on learner APIs.
+- `GET /auth/tenants` remains intentionally absent (a test asserts 404); the supported route is `GET /tenants/me`.
+- The route is gated by complete OIDC configuration and `ACADEMY_LEARNER_DATA_API_ENABLED=true`.
 
-**Target:** expose a narrowly scoped authenticated tenant-discovery endpoint, use the transaction-local user context and existing RLS policy, return only active memberships and their authorized roles, and verify it against real PostgreSQL. Never accept a client-supplied user ID or role claim.
+**Delivered:** `GET /tenants/me` uses the authenticated HttpOnly session, the transaction-local user context and migration 0010 self-discovery policy; it switches into each tenant context before reading tenant metadata and assigned roles, omits memberships suspended during the read, returns `Cache-Control: no-store`, and never accepts a caller-supplied user ID or role. Unit tests and the complete `GET /tenants/me` HTTP route (including real opaque-session resolution) pass against disposable PostgreSQL 18.6 with the non-owner/non-BYPASSRLS runtime role. The OpenAPI contract now contains 13 paths. This does not exercise an external OIDC provider.
 
 ### SF-03 — Learner API remains disabled by default
 
@@ -169,4 +169,4 @@ Do not trigger or wait for GitHub Actions. Never mark an external provider, prod
 
 ## 6. Immediate next implementation slice
 
-**SF-02: authenticated active-tenant discovery endpoint**, followed by its OpenAPI contract and real PostgreSQL RLS integration test. This unblocks a safe frontend tenant context and is a prerequisite for connecting the existing learner APIs. Keep OIDC and learner API defaults disabled until the separate provider/privacy gates are accepted.
+**SF-01: typed frontend API transport**, including Cookie credentials, session-bound CSRF acquisition, tenant header handling, structured errors and tests. Then add the session/tenant UI and connect learner progress. Keep OIDC and learner API defaults disabled until the separate provider/privacy gates are accepted.

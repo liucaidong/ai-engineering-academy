@@ -75,10 +75,10 @@
 
 ## P5 — Code quality and system functionalization (2026-11-10)
 
-- [x] Establish current local quality baseline: 73 Vitest, 42 Playwright, 131 backend pytest passed / 1 optional RLS skip, Biome, Ruff, TypeScript, OpenAPI drift and production build passed.
+- [x] Establish current local quality baseline: 73 Vitest, 42 Playwright, 135 backend pytest passed / 1 optional RLS skip, Biome, Ruff, TypeScript, OpenAPI drift and production build passed.
 - [x] Execute real PostgreSQL 18.6 RLS acceptance with an unprivileged non-owner / non-superuser / non-BYPASSRLS runtime role.
 - [x] Document risk-based code-quality and system-functionalization backlog in [ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11](./ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11.md).
-- [ ] Expose authenticated active-tenant discovery over HTTP using migration 0010's self-only RLS policy.
+- [x] Expose authenticated `GET /tenants/me` using migration 0010's self-only RLS policy; verify actual query service on PostgreSQL 18.6.
 - [ ] Implement the frontend API transport with Cookie credentials, session-bound CSRF, tenant context and structured errors.
 - [ ] Integrate learner progress and assessment attempts with backend persistence and local-state reconciliation.
 - [ ] Complete provider-backed OIDC E2E and privacy/retention review before enabling learner APIs.
