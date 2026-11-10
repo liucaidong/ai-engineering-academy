@@ -311,3 +311,24 @@ After learner progress/assessment sync, explicit guest import, account-control e
 - row lock + advisory lock + `expected_updated_at` revision compare 三层共同覆盖同一 attempt 更新竞争、跨 attempt 生命周期竞争和并发新建。
 
 PostgreSQL 18.6 HTTP acceptance 新增旧 attempt update/submit 拒绝，以及新 attempt 创建与旧 draft update 并发竞态测试。并发结果允许旧 draft update 在新 attempt 创建前成功（200）或在创建后被拒绝（409），但最新 attempt 序号必须严格递增且最新 draft 只能指向新 attempt。RLS acceptance 3/3 通过。
+
+
+## 24. Runtime/publisher separation and local persistent release bootstrap（2026-11-11）
+
+Security review of the local role provisioning identified that the generic runtime grant (`CRUD ON ALL TABLES`) also gave the runtime role write privileges on global immutable course releases. Although published rows have database immutability triggers, the runtime role must not be able to create or mutate global release records at all.
+
+Fix: `provision_local_roles.sql` explicitly revokes INSERT/UPDATE/DELETE on `course_releases` from `academy_runtime` and grants SELECT only. The bootstrap role invariant and disposable PostgreSQL RLS harness now assert this boundary. Publisher remains the only role with release INSERT and audit INSERT; no release UPDATE/DELETE grants. Runtime default privileges are explicitly revoked, so future migration-created tables/sequences do not silently become accessible; operators must rerun role provisioning after reviewing each schema migration.
+
+The local bootstrap now supports Docker-hosted `psql` when the Mac has no PostgreSQL client, and verifies role grants after provisioning. A dedicated persistent PostgreSQL 18 container/volume was created without modifying the pre-existing `aea-acceptance-pg` database. Migration head 0012, runtime/publisher role attributes and release read-only permissions were verified. The exact current frontend snapshot was published with reviewed digest `4779e75a5042b4759f011bc2747850e6ad7151657368ba1912574615766b5df0`; persisted release ID `a8c08456-6f6b-4f68-8ec9-40785ca7db71`; 20 modules, 100 lessons and 100 assessments. One global `course_release.publish` audit event references the same release.
+
+Validation: `pnpm acceptance:local` passed (106 Vitest, 47 Playwright, 159 backend pytest / 3 optional DB-only skips); `pnpm acceptance:course-publisher` passed; `scripts/acceptance-postgres-rls.sh` passed 3/3 and verified runtime release grants; `pnpm security:audit` found no known npm/PyPI vulnerabilities (the unpublished first-party API package is not available on PyPI and is skipped). basedpyright analyzed 33 backend files with 0 errors / 301 warnings; this is an exploratory static-analysis result, not yet a repository gate.
+
+
+## 25. OIDC/session static typing and mutation hardening（2026-11-11）
+
+- OIDC settings validation now narrows each required value explicitly after activation; provider configuration fails closed when issuer/client ID is absent. Login and callback routes return 503 rather than constructing redirects with incomplete configuration.
+- ID-token nonce is checked as a string before constant-time hash verification, avoiding unsafe assumptions about untrusted JWT claim types.
+- Session revoke/rotation use SQL `UPDATE ... RETURNING id` instead of driver-dependent `rowcount` semantics; cookie attributes are explicit at each call site.
+- `course_snapshot_dict` now declares its JSON-compatible return type.
+
+Validation: basedpyright analyzed 33 backend files with 0 errors and 301 warnings (mostly pre-existing unknown/incomplete typing; not yet a required gate). Ruff and the complete local acceptance passed: 106 Vitest, 47 Playwright, 159 backend pytest / 3 optional DB-only skips, M04–M20 examples, OpenAPI 17 paths and production build. Publisher acceptance passed; PostgreSQL RLS acceptance passed 3/3 after the runtime release-table privilege restriction. Dependency audits found no known third-party npm/Python vulnerabilities; the unpublished first-party API package cannot be audited via PyPI.

@@ -84,14 +84,14 @@
 - [x] Implement exact-version learner progress sync with full published-snapshot validation, remote/local reconciliation and complete/reopen APIs (feature-gated).
 - [x] Implement assessment draft persistence/sync with latest-draft reads, optimistic concurrency, latest-attempt-only update/submit serialization, conflict-safe attempt creation and no-store responses (feature-gated).
 - [x] Implement explicit idempotent guest-to-account import with set-union and draft-conflict preservation.
-- [ ] Publish the current curriculum snapshot into the intended persistent database and bind live synchronization to its actual release UUID.
+- [x] Publish the current curriculum snapshot into the dedicated persistent local PostgreSQL database and bind live synchronization to its actual release UUID (release `a8c08456-6f6b-4f68-8ec9-40785ca7db71`, version `0.40.9`, 20 modules / 100 lessons / 100 assessments).
 - [ ] Complete provider-backed OIDC E2E and privacy/retention review before enabling learner APIs.
 - [x] Add authenticated, tenant-authorized published course-release metadata/content read APIs; drafts remain hidden (17 OpenAPI paths after learner draft endpoints; PostgreSQL 18.6 RLS route acceptance passed).
 - [x] Add ADR-0009 defining immutable release consumption, platform-scoped publication and explicit legacy-data import boundaries.
 - [x] Implement platform-scoped course publication CLI, strict snapshot validation, reviewed digest, atomic audit, idempotency and immutable database guards (ADR-0010; PostgreSQL 18.6 disposable acceptance passed).
 - [x] Add loopback-only persistent PostgreSQL bootstrap and least-privilege runtime/publisher role provisioning scripts; SQL syntax/role grants validated in a rollback-only PostgreSQL transaction.
 - [x] Add reviewed-digest publisher wrapper; first run is dry-run only and publication requires the exact approved SHA-256.
-- [ ] Upgrade the intended persistent database to migration 0012, provision the dedicated publisher role and publish the first persistent release; the disposable acceptance UUID is not reusable.
+- [x] Upgrade the dedicated persistent local PostgreSQL database to migration 0012, provision runtime/publisher roles and publish the first persistent release; disposable acceptance UUIDs are not reused.
 - [x] Implement runtime release resolution and exact version/schema/module validation; no release UUID is hard-coded.
 - [ ] Define instructor/course-authoring authorization and publishing workflow before exposing authoring APIs.
 

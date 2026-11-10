@@ -52,7 +52,7 @@ async def test_session_ttl_and_naive_timestamps_are_rejected() -> None:
 
 
 @pytest.mark.asyncio
-async def test_revoke_session_uses_hash_and_returns_rowcount() -> None:
+async def test_revoke_session_uses_hash_and_returning_identity() -> None:
     token = generate_session_token()
     now = datetime(2026, 11, 5, tzinfo=UTC)
     record = AuthSession(
@@ -67,7 +67,7 @@ async def test_revoke_session_uses_hash_and_returns_rowcount() -> None:
         SimpleNamespace(scalar_one_or_none=lambda: record),
         None,  # acquire exclusive lifecycle lock
         None,  # switch to authenticated user context
-        SimpleNamespace(rowcount=1),
+        SimpleNamespace(scalar_one_or_none=lambda: record.id),
     ]
     db = SimpleNamespace(
         execute=AsyncMock(side_effect=results),

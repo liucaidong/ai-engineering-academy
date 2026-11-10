@@ -62,6 +62,8 @@ def _verifier(request: Request) -> OIDCVerifier:
 @router.get("/login")
 async def login(request: Request) -> RedirectResponse:
     settings = _settings()
+    if settings.oidc_redirect_uri is None or settings.oidc_client_id is None:
+        raise HTTPException(status_code=503, detail="OIDC sign-in is not configured")
     verifier = _verifier(request)
     database = await _database(request)
     try:
@@ -105,6 +107,9 @@ async def callback(
     error: str | None = None,
 ) -> RedirectResponse:
     settings = _settings()
+    post_login_redirect_url = settings.oidc_post_login_redirect_url
+    if settings.oidc_issuer is None or post_login_redirect_url is None:
+        raise HTTPException(status_code=503, detail="OIDC sign-in is not configured")
     browser_state = request.cookies.get(OIDC_STATE_COOKIE_NAME)
     if (
         not state
@@ -153,7 +158,7 @@ async def callback(
     except OIDCIdentityRejected as exception:
         raise HTTPException(status_code=403, detail="This account cannot sign in") from exception
 
-    response = RedirectResponse(settings.oidc_post_login_redirect_url, status_code=303)
+    response = RedirectResponse(post_login_redirect_url, status_code=303)
     set_session_cookies(
         response,
         raw_session_token=raw_session_token,

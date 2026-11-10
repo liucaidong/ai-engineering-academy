@@ -72,17 +72,28 @@ GRANT CONNECT ON DATABASE academy_rls_acceptance TO academy_runtime;
 GRANT USAGE ON SCHEMA public TO academy_runtime;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO academy_runtime;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO academy_runtime;
+REVOKE INSERT, UPDATE, DELETE ON TABLE course_releases FROM academy_runtime;
+GRANT SELECT ON TABLE course_releases TO academy_runtime;
 SQL
 
 echo "== Run real PostgreSQL RLS integration acceptance =="
 uv run --locked --python "$EXPECTED_PYTHON" --default-index https://pypi.org/simple \
   pytest -q tests/integration/test_tenant_rls_postgres.py -ra
 
-echo "== Verify runtime role security attributes =="
+echo "== Verify runtime role security attributes and immutable release grants =="
 docker exec \
   --env "PGPASSWORD=$ADMIN_PASSWORD" \
   "$CONTAINER_NAME" \
   psql -h 127.0.0.1 -U postgres -d "$DATABASE_NAME" -Atc \
     "SELECT rolname || ': superuser=' || rolsuper || ', bypassrls=' || rolbypassrls FROM pg_roles WHERE rolname='academy_runtime';"
+RELEASE_GRANTS="$(docker exec \
+  --env "PGPASSWORD=$ADMIN_PASSWORD" \
+  "$CONTAINER_NAME" \
+  psql -h 127.0.0.1 -U postgres -d "$DATABASE_NAME" -Atc \
+  "SELECT has_table_privilege('academy_runtime', 'course_releases', 'SELECT') AND NOT has_table_privilege('academy_runtime', 'course_releases', 'INSERT') AND NOT has_table_privilege('academy_runtime', 'course_releases', 'UPDATE') AND NOT has_table_privilege('academy_runtime', 'course_releases', 'DELETE')")"
+if [[ "$RELEASE_GRANTS" != "t" ]]; then
+  echo "Runtime role has unexpected write access to immutable course releases." >&2
+  exit 1
+fi
 
 echo "PostgreSQL RLS acceptance completed. The disposable database will now be removed."

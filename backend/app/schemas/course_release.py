@@ -7,7 +7,7 @@ publication trust boundary and rejects unknown fields.
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from urllib.parse import urlsplit
 
 from pydantic import (
@@ -216,6 +216,6 @@ def validate_course_snapshot(value: object) -> CourseSnapshot:
     return CourseSnapshot.model_validate(value, strict=True)
 
 
-def course_snapshot_dict(snapshot: CourseSnapshot) -> dict:
+def course_snapshot_dict(snapshot: CourseSnapshot) -> dict[str, Any]:
     """Return JSON-compatible content with defaults materialized."""
     return snapshot.model_dump(mode="json", exclude_none=True)

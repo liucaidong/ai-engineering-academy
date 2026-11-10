@@ -55,11 +55,17 @@ REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM academy_runtime;
 REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM academy_runtime;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO academy_runtime;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO academy_runtime;
+-- Course releases are global immutable content: only the platform publisher may create them.
+REVOKE INSERT, UPDATE, DELETE ON TABLE course_releases FROM academy_runtime;
+GRANT SELECT ON TABLE course_releases TO academy_runtime;
 GRANT SELECT ON TABLE alembic_version TO academy_runtime;
+-- Do not grant future migration-created tables by default. Remove any prior
+-- default grants and re-run this script after each schema migration to review
+-- and grant access to newly introduced tables explicitly.
 ALTER DEFAULT PRIVILEGES FOR ROLE :"admin_user" IN SCHEMA public
-  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO academy_runtime;
+  REVOKE ALL ON TABLES FROM academy_runtime;
 ALTER DEFAULT PRIVILEGES FOR ROLE :"admin_user" IN SCHEMA public
-  GRANT USAGE, SELECT ON SEQUENCES TO academy_runtime;
+  REVOKE ALL ON SEQUENCES FROM academy_runtime;
 
 REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM academy_course_publisher;
 REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM academy_course_publisher;

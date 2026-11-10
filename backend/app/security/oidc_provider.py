@@ -328,6 +328,7 @@ class OIDCVerifier:
 
         from app.security.oidc import verify_oidc_nonce
 
-        if not verify_oidc_nonce(claims.get("nonce"), expected_nonce_hash):
+        nonce = claims.get("nonce")
+        if not isinstance(nonce, str) or not verify_oidc_nonce(nonce, expected_nonce_hash):
             raise OIDCProviderError("ID token nonce does not match the login transaction")
         return claims

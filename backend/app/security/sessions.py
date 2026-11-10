@@ -182,8 +182,9 @@ async def revoke_session(
             AuthSession.revoked_at.is_(None),
         )
         .values(revoked_at=current)
+        .returning(AuthSession.id)
     )
-    return result.rowcount == 1
+    return result.scalar_one_or_none() is not None
 
 
 async def rotate_session(
@@ -219,8 +220,9 @@ async def rotate_session(
             AuthSession.revoked_at.is_(None),
         )
         .values(revoked_at=current)
+        .returning(AuthSession.id)
     )
-    if revoked.rowcount != 1:
+    if revoked.scalar_one_or_none() is None:
         return None
     return await create_session(db, user_id=resolved.user_id, ttl=ttl, now=current)
 
@@ -237,23 +239,39 @@ def set_session_cookies(
     if max_age_seconds < 1:
         raise ValueError("cookie max-age must be positive")
     csrf_token = derive_csrf_token(raw_session_token, csrf_secret)
-    common = {"secure": secure, "samesite": "lax", "path": "/", "max_age": max_age_seconds}
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value=raw_session_token,
+        max_age=max_age_seconds,
+        path="/",
+        secure=secure,
         httponly=True,
-        **common,
+        samesite="lax",
     )
     response.set_cookie(
         key=CSRF_COOKIE_NAME,
         value=csrf_token,
+        max_age=max_age_seconds,
+        path="/",
+        secure=secure,
         httponly=False,
-        **common,
+        samesite="lax",
     )
     return csrf_token
 
 
 def clear_session_cookies(response: Response, *, secure: bool = True) -> None:
-    common = {"secure": secure, "samesite": "lax", "path": "/"}
-    response.delete_cookie(SESSION_COOKIE_NAME, httponly=True, **common)
-    response.delete_cookie(CSRF_COOKIE_NAME, httponly=False, **common)
+    response.delete_cookie(
+        SESSION_COOKIE_NAME,
+        path="/",
+        secure=secure,
+        httponly=True,
+        samesite="lax",
+    )
+    response.delete_cookie(
+        CSRF_COOKIE_NAME,
+        path="/",
+        secure=secure,
+        httponly=False,
+        samesite="lax",
+    )

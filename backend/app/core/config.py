@@ -124,6 +124,18 @@ class Settings(BaseSettings):
             raise ValueError("Production OIDC sessions require Secure cookies")
         if not 300 <= self.session_ttl_seconds <= 90 * 24 * 60 * 60:
             raise ValueError("Session TTL must be between 5 minutes and 90 days")
+        if self.csrf_secret is None:
+            raise ValueError("CSRF secret is required for OIDC sign-in")
+        if self.oidc_transaction_encryption_key is None:
+            raise ValueError("OIDC transaction encryption key is required")
+        if self.oidc_issuer is None:
+            raise ValueError("OIDC issuer is required")
+        if self.oidc_client_id is None:
+            raise ValueError("OIDC client ID is required")
+        if self.oidc_redirect_uri is None:
+            raise ValueError("OIDC redirect URI is required")
+        if self.oidc_post_login_redirect_url is None:
+            raise ValueError("OIDC post-login URL is required")
         if len(self.csrf_secret.get_secret_value().encode("utf-8")) < 32:
             raise ValueError("CSRF secret must contain at least 32 bytes")
         try:
@@ -164,7 +176,7 @@ class Settings(BaseSettings):
 
     @property
     def oidc_provider_config(self) -> OIDCProviderConfig:
-        if not self.oidc_login_enabled:
+        if self.oidc_issuer is None or self.oidc_client_id is None:
             raise RuntimeError("OIDC sign-in is not configured")
         return OIDCProviderConfig(
             issuer=self.oidc_issuer,

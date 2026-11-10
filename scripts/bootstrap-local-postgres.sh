@@ -32,11 +32,57 @@ if [[ "$ACADEMY_DB_ADMIN_PASSWORD" == "change-me" || "$ACADEMY_RUNTIME_PASSWORD"
   exit 1
 fi
 
-export PGHOST="$ACADEMY_DB_HOST"
-export PGPORT="$ACADEMY_DB_PORT"
-export PGDATABASE="$ACADEMY_DB_NAME"
-export PGUSER="$ACADEMY_DB_ADMIN_USER"
-export PGPASSWORD="$ACADEMY_DB_ADMIN_PASSWORD"
+if command -v psql >/dev/null 2>&1; then
+  PSQL_MODE=host
+elif [[ -n "${ACADEMY_DB_PSQL_CONTAINER:-}" ]] && command -v docker >/dev/null 2>&1; then
+  PSQL_MODE=container
+else
+  echo "Install the PostgreSQL client or set ACADEMY_DB_PSQL_CONTAINER to a local PostgreSQL container." >&2
+  exit 1
+fi
+
+psql_admin() {
+  if [[ "$PSQL_MODE" == "container" ]]; then
+    local -a args=("$@")
+    local sql_path=""
+    for ((index = 0; index < ${#args[@]}; index++)); do
+      if [[ "${args[$index]}" == "-f" ]]; then
+        sql_path="${args[$((index + 1))]}"
+        local container_sql="/tmp/aea-provision-roles-$$.sql"
+        docker cp "$sql_path" "$ACADEMY_DB_PSQL_CONTAINER:$container_sql" >/dev/null
+        args[$((index + 1))]="$container_sql"
+        break
+      fi
+    done
+    docker exec \
+      --env "PGPASSWORD=$ACADEMY_DB_ADMIN_PASSWORD" \
+      --env "ACADEMY_RUNTIME_PASSWORD=$ACADEMY_RUNTIME_PASSWORD" \
+      --env "ACADEMY_PUBLISHER_PASSWORD=$ACADEMY_PUBLISHER_PASSWORD" \
+      --env "ACADEMY_DB_NAME=$ACADEMY_DB_NAME" \
+      --env "ACADEMY_DB_ADMIN_USER=$ACADEMY_DB_ADMIN_USER" \
+      "$ACADEMY_DB_PSQL_CONTAINER" \
+      psql -X -h 127.0.0.1 -U "$ACADEMY_DB_ADMIN_USER" -d "$ACADEMY_DB_NAME" "${args[@]}"
+    if [[ -n "$sql_path" ]]; then
+      docker exec "$ACADEMY_DB_PSQL_CONTAINER" rm -f "$container_sql"
+    fi
+  else
+    PGPASSWORD="$ACADEMY_DB_ADMIN_PASSWORD" \
+      psql -X -h "$ACADEMY_DB_HOST" -p "$ACADEMY_DB_PORT" \
+      -U "$ACADEMY_DB_ADMIN_USER" -d "$ACADEMY_DB_NAME" "$@"
+  fi
+}
+
+psql_as_role() {
+  local role="$1" password="$2"
+  shift 2
+  if [[ "$PSQL_MODE" == "container" ]]; then
+    docker exec --env "PGPASSWORD=$password" "$ACADEMY_DB_PSQL_CONTAINER" \
+      psql -X -h 127.0.0.1 -U "$role" -d "$ACADEMY_DB_NAME" "$@"
+  else
+    PGPASSWORD="$password" psql -X -h "$ACADEMY_DB_HOST" -p "$ACADEMY_DB_PORT" \
+      -U "$role" -d "$ACADEMY_DB_NAME" "$@"
+  fi
+}
 
 ADMIN_ASYNC_URL="$(python3 - <<'PYURL'
 import os
@@ -58,32 +104,38 @@ echo "== Apply Alembic migrations to the local PostgreSQL database =="
     uv run --locked --python 3.12.14 --default-index https://pypi.org/simple alembic upgrade head
 )
 
-REVISION="$(psql -X -v ON_ERROR_STOP=1 -Atc 'SELECT version_num FROM alembic_version')"
+REVISION="$(psql_admin -v ON_ERROR_STOP=1 -Atc 'SELECT version_num FROM alembic_version')"
 if [[ "$REVISION" != "0012_platform_publisher_audit" ]]; then
   echo "Expected migration head 0012_platform_publisher_audit, found: $REVISION" >&2
   exit 1
 fi
 
 echo "== Provision direct-login runtime and publisher roles =="
-export ACADEMY_RUNTIME_PASSWORD ACADEMY_PUBLISHER_PASSWORD ACADEMY_DB_NAME ACADEMY_DB_ADMIN_USER
-psql -X -v ON_ERROR_STOP=1 -f "$ROOT_DIR/backend/scripts/provision_local_roles.sql"
+psql_admin -v ON_ERROR_STOP=1 -f "$ROOT_DIR/backend/scripts/provision_local_roles.sql"
 
 echo "== Verify role attributes and direct login =="
-PGUSER=academy_runtime PGPASSWORD="$ACADEMY_RUNTIME_PASSWORD" \
-  psql -X -v ON_ERROR_STOP=1 -Atc \
+psql_as_role academy_runtime "$ACADEMY_RUNTIME_PASSWORD" -v ON_ERROR_STOP=1 -Atc \
   "SELECT current_user || ':superuser=' || (SELECT rolsuper FROM pg_roles WHERE rolname=current_user) || ':bypassrls=' || (SELECT rolbypassrls FROM pg_roles WHERE rolname=current_user)"
-PGUSER=academy_runtime PGPASSWORD="$ACADEMY_RUNTIME_PASSWORD" \
-  psql -X -v ON_ERROR_STOP=1 -Atc 'SELECT version_num FROM alembic_version'
-PGUSER=academy_course_publisher PGPASSWORD="$ACADEMY_PUBLISHER_PASSWORD" \
-  psql -X -v ON_ERROR_STOP=1 -Atc \
+psql_as_role academy_runtime "$ACADEMY_RUNTIME_PASSWORD" -v ON_ERROR_STOP=1 -Atc \
+  'SELECT version_num FROM alembic_version'
+psql_as_role academy_course_publisher "$ACADEMY_PUBLISHER_PASSWORD" -v ON_ERROR_STOP=1 -Atc \
   "SELECT current_user || ':superuser=' || (SELECT rolsuper FROM pg_roles WHERE rolname=current_user) || ':bypassrls=' || (SELECT rolbypassrls FROM pg_roles WHERE rolname=current_user)"
-PGUSER=academy_course_publisher PGPASSWORD="$ACADEMY_PUBLISHER_PASSWORD" \
-  psql -X -v ON_ERROR_STOP=1 -Atc 'SELECT version_num FROM alembic_version'
+psql_as_role academy_course_publisher "$ACADEMY_PUBLISHER_PASSWORD" -v ON_ERROR_STOP=1 -Atc \
+  'SELECT version_num FROM alembic_version'
 
-ROLE_CHECK="$(psql -X -v ON_ERROR_STOP=1 -Atc "
+ROLE_CHECK="$(psql_admin -v ON_ERROR_STOP=1 -Atc "
   SELECT
     (SELECT count(*) = 0 FROM pg_auth_members WHERE member IN ('academy_runtime'::regrole, 'academy_course_publisher'::regrole))
     AND (SELECT count(*) = 0 FROM pg_class WHERE relkind IN ('r','p','S') AND relowner IN ('academy_runtime'::regrole, 'academy_course_publisher'::regrole))
+    AND has_table_privilege('academy_runtime', 'course_releases', 'SELECT')
+    AND NOT has_table_privilege('academy_runtime', 'course_releases', 'INSERT')
+    AND NOT has_table_privilege('academy_runtime', 'course_releases', 'UPDATE')
+    AND NOT has_table_privilege('academy_runtime', 'course_releases', 'DELETE')
+    AND NOT EXISTS (
+      SELECT 1 FROM pg_default_acl d
+      CROSS JOIN LATERAL aclexplode(d.defaclacl) a
+      WHERE a.grantee = 'academy_runtime'::regrole
+    )
     AND has_table_privilege('academy_course_publisher', 'course_releases', 'SELECT')
     AND has_table_privilege('academy_course_publisher', 'course_releases', 'INSERT')
     AND NOT has_table_privilege('academy_course_publisher', 'course_releases', 'UPDATE')
