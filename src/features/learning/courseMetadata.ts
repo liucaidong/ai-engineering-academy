@@ -1,5 +1,6 @@
 import { courseCatalog } from "../../data/courseCatalog";
 import type { CourseModule } from "../../types/course";
+import { LAB_COMPONENTS } from "../labs/labRegistry";
 
 export const LEVEL_LABELS: Record<CourseModule["level"], string> = {
   L1: "基础认知",
@@ -11,5 +12,7 @@ export const LEVEL_LABELS: Record<CourseModule["level"], string> = {
 };
 
 export const IMPLEMENTED_LABS = new Set(
-  courseCatalog.labs.filter((lab) => lab.status === "implemented").map((lab) => lab.id),
+  courseCatalog.labs
+    .filter((lab) => lab.status === "implemented" && lab.id in LAB_COMPONENTS)
+    .map((lab) => lab.id),
 );

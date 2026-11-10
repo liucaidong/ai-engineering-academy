@@ -1,43 +1,25 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import type { CourseModuleSummary } from "./data/courseCatalog";
 import { courseCatalog } from "./data/courseCatalog";
-import { loadFullCourse } from "./data/loadFullCourse";
-import { loadModuleLessons } from "./data/moduleLessons";
 import CourseModuleNavigation from "./features/learning/CourseModuleNavigation";
 import LearningContextAside from "./features/learning/LearningContextAside";
 import { IMPLEMENTED_LABS, LEVEL_LABELS } from "./features/learning/courseMetadata";
 import LessonArticle from "./features/learning/LessonArticle";
+import LabWorkspace from "./features/labs/LabWorkspace";
+import { useAcademyCourseData } from "./features/learning/useAcademyCourseData";
 import { useLearningState } from "./features/learning/useLearningState";
 import SessionTenantControl from "./features/session/SessionTenantControl";
 import { toggleBookmark } from "./lib/bookmarks";
 import { getNextRecommendedModule } from "./lib/learningPath";
 import { toggleModuleProgress } from "./lib/progress";
 import { searchModules } from "./lib/searchModules";
-import { getModuleValidationErrors } from "./lib/validateCourse";
-import type { Course, CourseModule, Lesson } from "./types/course";
 
-const AgentRuntimeLab = lazy(() => import("./components/AgentRuntimeLab"));
 const CourseAuthoringWorkspace = lazy(() => import("./components/CourseAuthoringWorkspace"));
-const EvaluationLab = lazy(() => import("./components/EvaluationLab"));
-const McpLab = lazy(() => import("./components/McpLab"));
-const MultiAgentLab = lazy(() => import("./components/MultiAgentLab"));
-const RagLab = lazy(() => import("./components/RagLab"));
-const TokenizerLab = lazy(() => import("./components/TokenizerLab"));
-const ToolCallingLab = lazy(() => import("./components/ToolCallingLab"));
-const TransformerLab = lazy(() => import("./components/TransformerLab"));
 
 export default function App() {
   const [selectedModuleId, setSelectedModuleId] = useState("M01");
   const [activeView, setActiveView] = useState<"lesson" | "lab" | "authoring">("lesson");
   const [moduleQuery, setModuleQuery] = useState("");
-  const [lessonsByModule, setLessonsByModule] = useState<Record<string, Lesson[]>>({});
-  const [lessonLoadError, setLessonLoadError] = useState<string | null>(null);
-  const [authoringCourse, setAuthoringCourse] = useState<Course | null>(null);
-  const [authoringLoadError, setAuthoringLoadError] = useState<string | null>(null);
-  const [authoringLoadAttempt, setAuthoringLoadAttempt] = useState(0);
-  const [fullTextSearchModules, setFullTextSearchModules] = useState<CourseModule[] | null>(null);
-  const [searchIndexLoading, setSearchIndexLoading] = useState(false);
-  const [searchIndexError, setSearchIndexError] = useState(false);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const {
     assessmentResponses,
@@ -48,73 +30,19 @@ export default function App() {
     setBookmarkedModuleIds,
     setCompletedModules,
   } = useLearningState();
-  const selectedModule =
-    courseCatalog.modules.find((item) => item.id === selectedModuleId) ?? courseCatalog.modules[0];
-  const selectedLessons = lessonsByModule[selectedModule.id];
-  const selectedLesson = selectedLessons?.[0];
-  const validationErrors = useMemo(
-    () => (selectedLessons ? getModuleValidationErrors(selectedModule, selectedLessons) : []),
-    [selectedModule, selectedLessons],
-  );
-  useEffect(() => {
-    if (lessonsByModule[selectedModuleId]) return;
-    let cancelled = false;
-    setLessonLoadError(null);
-    void loadModuleLessons(selectedModuleId).then(
-      (lessons) => {
-        if (!cancelled) {
-          setLessonsByModule((current) => ({ ...current, [selectedModuleId]: lessons }));
-        }
-      },
-      () => {
-        if (!cancelled) setLessonLoadError(`课程模块 ${selectedModuleId} 加载失败，请重试。`);
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedModuleId, lessonsByModule]);
-  useEffect(() => {
-    if (activeView !== "authoring" || authoringCourse) return;
-    let cancelled = false;
-    setAuthoringLoadError(null);
-    void loadFullCourse().then(
-      (course) => {
-        if (!cancelled) setAuthoringCourse(course);
-      },
-      () => {
-        if (!cancelled) {
-          setAuthoringLoadError(
-            `完整课程数据加载失败（第 ${authoringLoadAttempt + 1} 次），请重试。`,
-          );
-        }
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [activeView, authoringCourse, authoringLoadAttempt]);
-  useEffect(() => {
-    if (!moduleQuery.trim() || fullTextSearchModules) return;
-    let cancelled = false;
-    setSearchIndexLoading(true);
-    setSearchIndexError(false);
-    void loadFullCourse()
-      .then(
-        (fullCourse) => {
-          if (!cancelled) setFullTextSearchModules(fullCourse.modules);
-        },
-        () => {
-          if (!cancelled) setSearchIndexError(true);
-        },
-      )
-      .finally(() => {
-        if (!cancelled) setSearchIndexLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [moduleQuery, fullTextSearchModules]);
+  const {
+    authoringCourse,
+    authoringLoadError,
+    fullTextSearchModules,
+    lessonLoadError,
+    retryAuthoringLoad,
+    retryLessonLoad,
+    searchIndexError,
+    searchIndexLoading,
+    selectedLesson,
+    selectedModule,
+    validationErrors,
+  } = useAcademyCourseData({ selectedModuleId, activeView, moduleQuery });
   const filteredModules = useMemo(() => {
     const searched = searchModules(fullTextSearchModules ?? courseCatalog.modules, moduleQuery);
     return showBookmarksOnly
@@ -247,11 +175,7 @@ export default function App() {
               ) : authoringLoadError ? (
                 <div className="lesson-card" role="alert">
                   <p>{authoringLoadError}</p>
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() => setAuthoringLoadAttempt((attempt) => attempt + 1)}
-                  >
+                  <button type="button" className="secondary-button" onClick={retryAuthoringLoad}>
                     重试加载
                   </button>
                 </div>
@@ -260,22 +184,8 @@ export default function App() {
                   正在加载完整课程数据以打开编辑器…
                 </div>
               )
-            ) : activeView === "lab" && selectedModule.labId === "tokenizer" ? (
-              <TokenizerLab />
-            ) : activeView === "lab" && selectedModule.labId === "transformer" ? (
-              <TransformerLab />
-            ) : activeView === "lab" && selectedModule.labId === "rag" ? (
-              <RagLab />
-            ) : activeView === "lab" && selectedModule.labId === "tool-calling" ? (
-              <ToolCallingLab />
-            ) : activeView === "lab" && selectedModule.labId === "agent" ? (
-              <AgentRuntimeLab />
-            ) : activeView === "lab" && selectedModule.labId === "mcp" ? (
-              <McpLab />
-            ) : activeView === "lab" && selectedModule.labId === "multi-agent" ? (
-              <MultiAgentLab />
-            ) : activeView === "lab" && selectedModule.labId === "evaluation" ? (
-              <EvaluationLab />
+            ) : activeView === "lab" && selectedModule.labId ? (
+              <LabWorkspace labId={selectedModule.labId} />
             ) : selectedLesson ? (
               <div className="lesson-layout">
                 <LessonArticle
@@ -310,18 +220,7 @@ export default function App() {
               <div className="lesson-card" role="status" aria-live="polite">
                 {lessonLoadError ?? `正在加载 ${selectedModule.id} 课程正文…`}
                 {lessonLoadError && (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() => {
-                      setLessonsByModule((current) => {
-                        const next = { ...current };
-                        delete next[selectedModule.id];
-                        return next;
-                      });
-                      setLessonLoadError(null);
-                    }}
-                  >
+                  <button type="button" className="secondary-button" onClick={retryLessonLoad}>
                     重试
                   </button>
                 )}

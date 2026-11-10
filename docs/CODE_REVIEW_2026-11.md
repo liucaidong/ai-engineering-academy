@@ -135,3 +135,13 @@
 - 与课程导航组件合并计算，App.tsx 从 574 行降至 338 行，减少 236 行（41.1%）。
 - 全量本地验收通过：88 Vitest、46 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、M04–M20 示例和生产构建。
 - 下一步只在边界明确时抽取 lab renderer/registry 与 authoring workflow，不为拆分而拆分。
+
+## 9. 课程数据生命周期与实验注册表 Review（2026-11-10）
+
+- 将模块课程加载、全文搜索索引、完整课程加载、加载错误/重试和课程内容校验从 App.tsx 抽取到 useAcademyCourseData。
+- 该 hook 对模块切换使用取消标记，避免过期异步结果覆盖当前模块；重试通过显式回调清理当前模块缓存或递增 authoring attempt。
+- 将 8 个交互实验的 lazy component 映射集中到 features/labs/labRegistry.tsx，由 LabWorkspace 负责渲染。
+- IMPLEMENTED_LABS 现在要求课程目录状态为 implemented 且存在对应的 lazy component；新增 Vitest 合约测试防止课程目录与组件注册表漂移。
+- App.tsx 从 574 行降至 237 行，减少 337 行（58.7%）；业务状态仍由 useLearningState 管理，持久化语义未变化。
+- 全量验收通过：90 Vitest、46 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、M04–M20 示例和生产构建。
+- 剩余 App 职责主要是页面组合、导航选择和跨 feature 状态协调；下一步只在课程编辑工作流生命周期明确时再拆分。

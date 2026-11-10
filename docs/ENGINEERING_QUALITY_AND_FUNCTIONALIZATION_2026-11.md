@@ -228,14 +228,16 @@ Keep OIDC and learner API defaults disabled until provider-backed E2E, runtime D
 - GitHub Actions were not triggered. No persistent production database publication or external OIDC acceptance is claimed.
 
 
-### SF-06 — Frontend feature-boundary refactor (two slices complete)
+### SF-06 — Frontend feature-boundary refactor (three slices complete)
 
 - Extracted course directory, progress summary, recommendation, search and bookmark filtering into src/features/learning/CourseModuleNavigation.tsx.
 - Centralized course-level labels and implemented-lab metadata in src/features/learning/courseMetadata.ts.
 - Extracted lesson content, learning objectives, completion action, assessment response UI and source references into src/features/learning/LessonArticle.tsx.
 - Extracted prerequisites, learning outcomes and lab execution context into src/features/learning/LearningContextAside.tsx.
-- These components receive explicit data props and callbacks. They do not read/write localStorage, own authentication/tenant state, or introduce global state.
-- src/App.tsx reduced from 574 to 338 lines (236 lines / 41.1% reduction) while retaining application orchestration and view composition.
-- Full local acceptance passed after the refactor: 88 Vitest, 46 Playwright, 152 backend pytest + 1 optional skip, TypeScript, Biome, OpenAPI drift, M04–M20 examples and production build.
+- Extracted module lesson loading, authoring data loading, full-text search indexing, retry handling and course validation into src/features/learning/useAcademyCourseData.ts.
+- Added a lazy lab component registry and LabWorkspace. Catalog labs are marked implemented only when a matching lazy workspace exists; a focused Vitest contract test prevents registry/catalog drift.
+- These components/hooks receive explicit inputs and callbacks. They do not introduce global state, alter localStorage persistence, or change authentication/tenant responsibilities.
+- src/App.tsx reduced from 574 to 237 lines (337 lines / 58.7% reduction) while retaining application orchestration and view composition.
+- Full local acceptance passed after the refactor: 90 Vitest, 46 Playwright, 152 backend pytest + 1 optional skip, TypeScript, Biome, OpenAPI drift, M04–M20 examples and production build.
 
-Next extraction should target the lab renderer/registry and authoring workflow only where their state and lifecycle boundaries are clear. Avoid splitting files solely to reduce line count.
+Next extraction should target course-authoring orchestration only if its lifecycle and validation boundary can be isolated cleanly. Avoid splitting files solely to reduce line count.

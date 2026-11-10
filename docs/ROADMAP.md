@@ -93,6 +93,6 @@
 
 ## Frontend maintainability
 
-- [x] Extract course navigation, lesson article/assessment content and learning-context aside into feature-owned components with explicit props/callbacks; centralize course-level and lab metadata (App.tsx reduced 574 → 338 lines; full local acceptance passed).
-- [ ] Extract lab rendering/registry and authoring workflow into feature-owned components where lifecycle boundaries are clear; preserve current lazy-loading and local-state semantics.
+- [x] Extract course navigation, lesson article/assessment content, learning-context aside, course-data loading hook and lazy lab registry into feature-owned modules with explicit inputs/callbacks; add catalog-to-lab registry contract tests (App.tsx reduced 574 → 237 lines; full local acceptance passed).
+- [ ] Extract course-authoring orchestration into a feature-owned workflow only if its lifecycle boundary is clear; preserve lazy loading, validation and local draft semantics.
 - [ ] Add focused component-level tests where they provide coverage beyond the existing Playwright end-to-end suite.
