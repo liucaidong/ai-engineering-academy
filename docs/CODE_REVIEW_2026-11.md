@@ -243,3 +243,15 @@
 - 浏览器仍不保存身份凭证、服务端角色或授权决策；tenant preference 仍需服务端重新校验。
 
 新增存储分区测试覆盖 guest、不同 user、同一 user 的不同 tenant 以及 key 编码。账户 API 和 learner data API 默认开关保持不变。
+
+## 17. Version-bound learner progress synchronization（2026-11-10）
+
+实现前端完成模块状态与 Learner API 的受控同步：
+- 只有显式设置 `VITE_ACADEMY_AUTH_UI_ENABLED=true` 与 `VITE_ACADEMY_LEARNER_SYNC_ENABLED=true` 才启用；默认关闭。
+- 必须先由服务端确认 session，并由用户选择经服务端重新验证的 tenant。
+- 只匹配 `course_key + exact frontend version + schema_version` 唯一的已发布课程；再读取完整快照并使用当前 Zod CourseSchema 校验，要求课程 ID、版本及模块顺序完全一致。无发布版本、重复版本或内容结构不匹配均 fail closed。
+- 首次连接先合并云端已完成模块与当前账户/租户本地记录，保留两端已有完成状态；后续将用户本地变更收敛到该 release 的进度记录，支持完成与重新打开。
+- 不根据版本字符串猜测 release UUID，不将 guest/legacy 未分区数据自动迁移到账户，不上传收藏和测评草稿。
+- 网络/权限/版本错误显示为显式同步错误并提供重试；取消/切换租户时 abort 当前客户端请求。服务端 mutation 仍依赖现有幂等、事务和 RLS 边界。
+
+新增服务层测试覆盖精确版本解析、无发布版本拒绝、远端快照完整校验、缺失记录创建、完成、重新打开和两端收敛。当前部署仍默认关闭同步；只有真实持久化数据库中存在对应发布快照后才可打开。

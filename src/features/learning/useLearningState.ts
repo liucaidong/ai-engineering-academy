@@ -50,8 +50,8 @@ function writeStorage(key: string, value: string): void {
 }
 
 /**
- * Owns browser-local learning state and its persistence boundary.
- * This state is device-local and is not an account-level synchronization service.
+ * Owns account/tenant-scoped browser learning state and its persistence boundary.
+ * Cloud synchronization is handled separately by useLearnerProgressSync.
  */
 export function useLearningState(scope: LearningStorageScope = "guest") {
   const [activeScope, setActiveScope] = useState(scope);

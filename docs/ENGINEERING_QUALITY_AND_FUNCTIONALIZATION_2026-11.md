@@ -284,3 +284,12 @@ Disposable PostgreSQL publisher acceptance now downgrades to 0011 and proves pub
 Browser-local bookmarks, completion flags and assessment drafts are now stored under a scope derived from the authenticated server session user ID and the currently revalidated tenant ID. Guest state is isolated. Legacy unscoped keys remain readable only as guest data and are not silently copied into an account. App now owns one session hook and passes its authoritative state to both the account control and learning-state boundary. Scope transitions synchronously reset in-memory state before persistence effects can run.
 
 Two unit tests cover user/tenant separation and key encoding. TypeScript, Biome, and focused API/storage tests passed. Authentication and learner data feature flags remain disabled by default.
+
+
+### SF-05 — Exact-version learner progress sync（implemented, feature-gated 2026-11-10）
+
+Added an account/tenant-scoped learner progress sync adapter. It resolves the exact published `course_key + version + schema_version`, fetches the immutable snapshot, validates the full snapshot with the frontend Zod CourseSchema, and requires the exact module ID sequence before using the release UUID. It merges remote completions into local account/tenant state and converges local completion changes through idempotent begin/complete/reopen APIs. It does not infer UUIDs from version labels, import guest/legacy browser state into an account, or upload bookmarks/assessment drafts.
+
+The feature requires both `VITE_ACADEMY_AUTH_UI_ENABLED=true` and `VITE_ACADEMY_LEARNER_SYNC_ENABLED=true`; both remain false by default. No release exists in the durable production database yet, so this capability must not be enabled in production until a real release is published and OIDC/runtime-role/privacy acceptance is complete.
+
+Tests: exact published-version resolution and schema validation, fail-closed missing release, creation/completion/reopening reconciliation. Focused tests and TypeScript passed.

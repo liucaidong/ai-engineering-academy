@@ -7,6 +7,7 @@ import { IMPLEMENTED_LABS, LEVEL_LABELS } from "./features/learning/courseMetada
 import LearningContextAside from "./features/learning/LearningContextAside";
 import LessonArticle from "./features/learning/LessonArticle";
 import { useAcademyCourseData } from "./features/learning/useAcademyCourseData";
+import { useLearnerProgressSync } from "./features/learning/useLearnerProgressSync";
 import { useLearningState } from "./features/learning/useLearningState";
 import SessionTenantControl from "./features/session/SessionTenantControl";
 import { useAcademySession } from "./features/session/useAcademySession";
@@ -18,6 +19,8 @@ import { searchModules } from "./lib/searchModules";
 const CourseAuthoringWorkspace = lazy(() => import("./components/CourseAuthoringWorkspace"));
 
 const AUTH_UI_ENABLED = import.meta.env.VITE_ACADEMY_AUTH_UI_ENABLED === "true";
+const LEARNER_SYNC_ENABLED =
+  AUTH_UI_ENABLED && import.meta.env.VITE_ACADEMY_LEARNER_SYNC_ENABLED === "true";
 
 export default function App() {
   const session = useAcademySession(AUTH_UI_ENABLED);
@@ -38,6 +41,12 @@ export default function App() {
     setBookmarkedModuleIds,
     setCompletedModules,
   } = useLearningState(learningScope);
+  const learnerSync = useLearnerProgressSync({
+    enabled: LEARNER_SYNC_ENABLED,
+    tenantId: session.status === "authenticated" ? session.selectedTenantId : null,
+    completedModules,
+    setCompletedModules,
+  });
   const {
     authoringCourse,
     authoringLoadError,
@@ -86,6 +95,31 @@ export default function App() {
           <span className="version-pill">CURRICULUM v{courseCatalog.version}</span>
           <span className="status-dot" /> 学习环境
           <SessionTenantControl session={session} />
+          {learnerSync.status !== "disabled" && (
+            <div className="account-control" aria-live="polite">
+              <span className="account-state">
+                {learnerSync.status === "waiting-tenant"
+                  ? "选择租户后同步学习记录"
+                  : learnerSync.status === "loading"
+                    ? "正在加载云端学习记录…"
+                    : learnerSync.status === "error"
+                      ? "学习记录同步异常"
+                      : learnerSync.syncing
+                        ? "正在同步学习记录…"
+                        : "学习记录已同步"}
+              </span>
+              {learnerSync.error && (
+                <span className="account-error" role="status">
+                  {learnerSync.error}
+                </span>
+              )}
+              {learnerSync.status === "error" && (
+                <button className="account-action" type="button" onClick={learnerSync.retry}>
+                  重试同步
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </header>
       <div className="workspace">
