@@ -6,7 +6,7 @@ const TENANT_PREFERENCE_KEY = "ai-engineering-academy:tenant-preference:v1";
 type SessionStatus = "disabled" | "loading" | "unauthenticated" | "authenticated" | "unavailable";
 type TenantStatus = "idle" | "loading" | "ready" | "unavailable";
 
-interface AcademySessionState {
+export interface AcademySessionState {
   status: SessionStatus;
   session: CurrentSession | null;
   tenants: TenantMembership[];
@@ -56,6 +56,8 @@ const initialState = (enabled: boolean): AcademySessionState => ({
 });
 
 /** Session identity is server-authoritative; local storage holds only a revalidated tenant preference. */
+export type AcademySession = ReturnType<typeof useAcademySession>;
+
 export function useAcademySession(enabled: boolean) {
   const [state, setState] = useState<AcademySessionState>(() => initialState(enabled));
   const [logoutPending, setLogoutPending] = useState(false);

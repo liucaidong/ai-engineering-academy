@@ -1,10 +1,6 @@
-import { useAcademySession } from "./useAcademySession";
+import type { AcademySession } from "./useAcademySession";
 
-const AUTH_UI_ENABLED = import.meta.env.VITE_ACADEMY_AUTH_UI_ENABLED === "true";
-
-export default function SessionTenantControl() {
-  const session = useAcademySession(AUTH_UI_ENABLED);
-
+export default function SessionTenantControl({ session }: { session: AcademySession }) {
   if (session.status === "disabled") {
     return (
       <span className="account-state" role="status">

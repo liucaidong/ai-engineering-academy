@@ -277,3 +277,10 @@ Regression: cancel a progress mutation while the CSRF endpoint is pending; asser
 The platform publisher now reads `alembic_version` before any write and requires exactly one revision: `0012_platform_publisher_audit`. Missing, stale or multi-head schema state fails closed. The dedicated publisher role receives SELECT-only access to `alembic_version`; its provisioning SQL and ADR document the purpose, and no migration-state write privilege is granted.
 
 Disposable PostgreSQL publisher acceptance now downgrades to 0011 and proves publication is rejected before restoring 0012. The full `pnpm acceptance:course-publisher` gate passed, including the existing strict snapshot, concurrency/idempotency, audit atomicity, least-privilege, RLS, immutability and migration downgrade/re-upgrade checks. The temporary database was removed; its release UUID is not a persistent course identity.
+
+
+### CQ-05 — Account- and tenant-scoped browser learning state（implemented 2026-11-10）
+
+Browser-local bookmarks, completion flags and assessment drafts are now stored under a scope derived from the authenticated server session user ID and the currently revalidated tenant ID. Guest state is isolated. Legacy unscoped keys remain readable only as guest data and are not silently copied into an account. App now owns one session hook and passes its authoritative state to both the account control and learning-state boundary. Scope transitions synchronously reset in-memory state before persistence effects can run.
+
+Two unit tests cover user/tenant separation and key encoding. TypeScript, Biome, and focused API/storage tests passed. Authentication and learner data feature flags remain disabled by default.

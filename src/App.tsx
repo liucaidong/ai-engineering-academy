@@ -1,14 +1,15 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import type { CourseModuleSummary } from "./data/courseCatalog";
 import { courseCatalog } from "./data/courseCatalog";
-import CourseModuleNavigation from "./features/learning/CourseModuleNavigation";
-import LearningContextAside from "./features/learning/LearningContextAside";
-import { IMPLEMENTED_LABS, LEVEL_LABELS } from "./features/learning/courseMetadata";
-import LessonArticle from "./features/learning/LessonArticle";
 import LabWorkspace from "./features/labs/LabWorkspace";
+import CourseModuleNavigation from "./features/learning/CourseModuleNavigation";
+import { IMPLEMENTED_LABS, LEVEL_LABELS } from "./features/learning/courseMetadata";
+import LearningContextAside from "./features/learning/LearningContextAside";
+import LessonArticle from "./features/learning/LessonArticle";
 import { useAcademyCourseData } from "./features/learning/useAcademyCourseData";
 import { useLearningState } from "./features/learning/useLearningState";
 import SessionTenantControl from "./features/session/SessionTenantControl";
+import { useAcademySession } from "./features/session/useAcademySession";
 import { toggleBookmark } from "./lib/bookmarks";
 import { getNextRecommendedModule } from "./lib/learningPath";
 import { toggleModuleProgress } from "./lib/progress";
@@ -16,7 +17,14 @@ import { searchModules } from "./lib/searchModules";
 
 const CourseAuthoringWorkspace = lazy(() => import("./components/CourseAuthoringWorkspace"));
 
+const AUTH_UI_ENABLED = import.meta.env.VITE_ACADEMY_AUTH_UI_ENABLED === "true";
+
 export default function App() {
+  const session = useAcademySession(AUTH_UI_ENABLED);
+  const learningScope =
+    session.status === "authenticated" && session.session
+      ? `user:${session.session.user_id}:tenant:${session.selectedTenantId ?? "unassigned"}`
+      : "guest";
   const [selectedModuleId, setSelectedModuleId] = useState("M01");
   const [activeView, setActiveView] = useState<"lesson" | "lab" | "authoring">("lesson");
   const [moduleQuery, setModuleQuery] = useState("");
@@ -29,7 +37,7 @@ export default function App() {
     setAssessmentResponses,
     setBookmarkedModuleIds,
     setCompletedModules,
-  } = useLearningState();
+  } = useLearningState(learningScope);
   const {
     authoringCourse,
     authoringLoadError,
@@ -77,7 +85,7 @@ export default function App() {
         <div className="topbar-meta">
           <span className="version-pill">CURRICULUM v{courseCatalog.version}</span>
           <span className="status-dot" /> 学习环境
-          <SessionTenantControl />
+          <SessionTenantControl session={session} />
         </div>
       </header>
       <div className="workspace">

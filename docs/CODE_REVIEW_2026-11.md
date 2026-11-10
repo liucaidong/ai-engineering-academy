@@ -230,3 +230,16 @@
 - disposable acceptance 将数据库临时 downgrade 至 0011，确认 publisher 明确拒绝发布，再 upgrade 至 0012 并恢复 migration downgrade 会撤销的 tenant_memberships 辅助 SELECT grant。
 
 验收：`pnpm acceptance:course-publisher` 通过。覆盖 stale migration head rejection、完整课程快照校验、双进程并发幂等发布、重复 no-op、冲突内容拒绝、digest mismatch、audit 写入失败事务回滚、publisher 最小权限、RLS membership 零行可见、draft 插入拒绝、已发布快照 update/delete 拒绝，以及 migration downgrade/re-upgrade。该测试只使用 disposable PostgreSQL；生成的 UUID 不得用于持久化环境。
+
+## 16. Browser learning-state account isolation（2026-11-10）
+
+发现收藏、模块完成状态和测评草稿原先使用全浏览器共享的 localStorage key。若同一浏览器先后登录不同账户，后一账户可能读取前一账户遗留的学习记录；该问题不仅影响数据正确性，也构成共享设备上的跨账户信息暴露。
+
+修复：
+- 将学习状态存储键按服务端确认的 user ID 和当前已验证 tenant ID 分区；未登录状态使用独立 guest scope。
+- App 统一持有账户 session 状态，并将同一权威 session 传递给账户 UI 与学习状态边界，避免两个独立 session hook 产生不一致。
+- scope 改变时，在 effects 执行前同步重置内存状态，避免旧账户数据被写入新账户存储区。
+- 旧版未分区 localStorage 数据仅作为 guest scope 的兼容读取来源；不会自动复制到已登录账户。
+- 浏览器仍不保存身份凭证、服务端角色或授权决策；tenant preference 仍需服务端重新校验。
+
+新增存储分区测试覆盖 guest、不同 user、同一 user 的不同 tenant 以及 key 编码。账户 API 和 learner data API 默认开关保持不变。
