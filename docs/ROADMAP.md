@@ -61,7 +61,9 @@
 - [x] Implement self-scoped learner progress and assessment-attempt routes with session, membership, role and owner filters (disabled by default)
 - [x] Add database trigger preventing learner self-grading and assessment identity mutation
 - [x] Add self-only active-membership discovery so clients can select an authorized tenant context
-- [x] Execute non-owner PostgreSQL RLS acceptance; [ ] complete privacy review before enabling learner APIs
+- [x] Execute non-owner PostgreSQL RLS acceptance.
+- [x] Complete engineering privacy data inventory/control-gap assessment in [PRIVACY_AND_RETENTION_REVIEW_2026-11](./PRIVACY_AND_RETENTION_REVIEW_2026-11.md).
+- [ ] Approve jurisdiction-specific privacy notice/consent, retention schedule, export/deletion workflow and backup deletion semantics before enabling learner APIs.
 - [ ] Add resource-scoped instructor authorization and instructor grading APIs
 - [ ] Sandboxed code execution with quotas and isolation
 - [ ] Model gateway with explicit provider configuration
@@ -85,7 +87,7 @@
 - [x] Implement assessment draft persistence/sync with latest-draft reads, optimistic concurrency, latest-attempt-only update/submit serialization, conflict-safe attempt creation and no-store responses (feature-gated).
 - [x] Implement explicit idempotent guest-to-account import with set-union and draft-conflict preservation.
 - [x] Publish the current curriculum snapshot into the dedicated persistent local PostgreSQL database and bind live synchronization to its actual release UUID (release `a8c08456-6f6b-4f68-8ec9-40785ca7db71`, version `0.40.9`, 20 modules / 100 lessons / 100 assessments).
-- [ ] Complete provider-backed OIDC E2E and privacy/retention review before enabling learner APIs.
+- [ ] Complete real-provider OIDC E2E; the engineering privacy assessment is complete, but accountable-owner privacy/retention and user-rights approvals remain outstanding before enabling learner APIs.
 - [x] Add authenticated, tenant-authorized published course-release metadata/content read APIs; drafts remain hidden (17 OpenAPI paths after learner draft endpoints; PostgreSQL 18.6 RLS route acceptance passed).
 - [x] Add ADR-0009 defining immutable release consumption, platform-scoped publication and explicit legacy-data import boundaries.
 - [x] Implement platform-scoped course publication CLI, strict snapshot validation, reviewed digest, atomic audit, idempotency and immutable database guards (ADR-0010; PostgreSQL 18.6 disposable acceptance passed).

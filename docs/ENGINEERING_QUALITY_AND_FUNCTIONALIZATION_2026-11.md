@@ -318,3 +318,8 @@ Latest full acceptance: 106 Vitest, 47 Playwright, 159 backend pytest / 3 option
 Draft update and submit now acquire the same transaction-scoped advisory lock used by attempt creation, keyed by tenant/user/release/assessment, before checking the latest attempt number. Only the latest attempt may be edited or submitted; older drafts remain historical and return 409. This closes the race where a new attempt could be created while an older draft update was in flight. Row locking and expected `updated_at` revision checks remain in place.
 
 PostgreSQL 18.6 HTTP acceptance now exercises concurrent attempt creation vs update and asserts a serializable outcome: the old update either commits before the new attempt or is rejected after it, and the new attempt remains latest. RLS acceptance: 3/3 passed.
+
+
+### Privacy/retention engineering assessment（completed; policy approval remains open）
+
+Added `docs/PRIVACY_AND_RETENTION_REVIEW_2026-11.md` with a code-grounded inventory of account, OIDC identity/session, tenant, learner progress, assessment, audit, course release and browser-local data; current security controls; gaps in scheduled cleanup, export/erasure, backup deletion and legal/operational retention; and a proposed schedule explicitly marked as unapproved. This completes the engineering inventory/control-gap assessment only. It does not approve a privacy notice, lawful basis, minors' consent, jurisdiction, data-controller roles or retention contract. Production learner APIs remain disabled until an accountable owner approves those decisions and the implementation evidence exists.
