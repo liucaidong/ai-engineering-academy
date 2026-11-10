@@ -1,12 +1,10 @@
 """OIDC Authorization Code + PKCE routes; disabled until explicitly configured."""
 
 import hmac
-from datetime import timedelta
-from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import Settings, get_settings
 from app.db.session import transaction_scope
@@ -21,15 +19,12 @@ from app.security.oidc_transactions import (
 from app.security.sessions import (
     SESSION_COOKIE_NAME,
     clear_session_cookies,
-    create_session,
     resolve_session,
     revoke_session,
     set_session_cookies,
 )
-from app.services.oidc_identity import (
-    OIDCIdentityRejected,
-    resolve_or_provision_oidc_identity,
-)
+from app.services.authentication import provision_oidc_session
+from app.services.oidc_identity import OIDCIdentityRejected
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 OIDC_STATE_COOKIE_NAME = "__Host-academy_oidc_state"
@@ -149,31 +144,12 @@ async def callback(
             status_code=401, detail="Identity provider response was rejected"
         ) from exception
 
-    async def provision_and_create_session():
-        async with transaction_scope(database) as db:
-            identity = await resolve_or_provision_oidc_identity(
-                db,
-                claims=claims,
-                request_id=uuid4().hex,
-            )
-            _session_record, raw_token = await create_session(
-                db,
-                user_id=identity.user_id,
-                ttl=timedelta(seconds=settings.session_ttl_seconds),
-            )
-            return raw_token
-
     try:
-        raw_session_token = await provision_and_create_session()
-    except IntegrityError:
-        # Concurrent first sign-ins can race on issuer/subject or personal-tenant
-        # uniqueness. The failed transaction is rolled back before resolving again.
-        try:
-            raw_session_token = await provision_and_create_session()
-        except OIDCIdentityRejected as exception:
-            raise HTTPException(
-                status_code=403, detail="This account cannot sign in"
-            ) from exception
+        raw_session_token = await provision_oidc_session(
+            database,
+            claims=claims,
+            session_ttl_seconds=settings.session_ttl_seconds,
+        )
     except OIDCIdentityRejected as exception:
         raise HTTPException(status_code=403, detail="This account cannot sign in") from exception
 

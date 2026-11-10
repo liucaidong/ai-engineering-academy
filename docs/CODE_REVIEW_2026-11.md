@@ -69,7 +69,15 @@
 - `Database.check_schema_revision` 原先每次认证或 learner API 请求都查询 `alembic_version`。
 - 已引入 5 秒进程内 TTL，仅缓存精确匹配的成功结果；并发 cache miss 由 `asyncio.Lock` 合并；失败不缓存。
 - 提供显式失效方法，并在 `dispose()` 时清理。
-- 7 项 database tests 覆盖 TTL、失败不缓存、并发合并和失效；全量后端测试 129 passed / 1 skipped。
+- 7 项 database tests 覆盖 TTL、失败不缓存、并发合并和失效；全量后端测试 131 passed / 1 skipped。
+
+## 3.2 第三轮 OIDC 应用服务分层
+
+- 将已验证 OIDC claims 到用户/个人租户 provisioning、Session 创建的用例从 `api/auth.py` 下沉至 `services/authentication.py`。
+- HTTP Adapter 保留 state cookie 校验、一次性 transaction 消费、Token Exchange/验证调用、HTTP 状态码和 Cookie/Redirect。
+- Application Service 管理身份解析与 Session 创建事务；唯一约束冲突时，在原事务退出回滚后最多重试一次，非 IntegrityError 不重试。
+- 新增两个服务层测试验证 fresh transaction retry 和非完整性异常不重试；认证定向测试 9 passed。
+- 该变更不改变 OIDC 协议流程；真实测试 IdP 端到端验收仍未完成。决策见 ADR-0008。
 - 该优化没有真实 PostgreSQL 负载基准数据，不声称有确定百分比的延迟收益。迁移部署必须采用 expand/contract 并滚动重启 worker。
 
 ## 4. 质量门禁

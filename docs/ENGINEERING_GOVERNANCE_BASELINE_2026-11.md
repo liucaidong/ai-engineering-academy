@@ -29,7 +29,7 @@
 
 - **已升级**：Vite 6→8、@vitejs/plugin-react 4→6、Vitest 3→5、Zod 3→4。
 - **暂缓 TypeScript 7**：当前 openapi-typescript 7.13.0 声明 TypeScript peer 范围为 `^5.x`；实测 TS7 还触发 CSS side-effect import 类型声明问题。不能在工具链 peer 不兼容时强行升级。
-- **Python 开发测试依赖**：已升级 pytest 9.2.0 / pytest-asyncio 1.4.1.post1；明确 fixture loop scope，后端 125 项测试通过且无 pytest deprecation warning。
+- **Python 开发测试依赖**：已升级 pytest 9.2.0 / pytest-asyncio 1.4.1.post1；明确 fixture loop scope，后端 131 项测试通过且无 pytest deprecation warning。
 - **依赖安全扫描**：已提供 `pnpm security:audit`，使用 npm 官方 registry 扫描生产依赖，并用 pip-audit 扫描本地 Python 3.12 环境；两者均未发现已知漏洞。pip-audit 跳过未发布到 PyPI 的本项目包，只审计其安装依赖。默认 npmmirror registry 不提供 pnpm audit bulk endpoint，不能把该错误误报为安全扫描通过。
 - **Ruff 安全规则**：已将 Bandit S 规则纳入 Ruff。S608 在迁移和 RLS 集成测试中涉及的动态 SQL 均使用固定模块常量或固定表名白名单，已逐处添加带理由的 noqa；测试中的 S101 断言和假密钥也按测试文件/具体行明确豁免。生产应用代码不豁免 S 规则。
 
@@ -64,12 +64,12 @@
 - [x] 升级 Vite 8 / Rolldown、React 插件 6、Vitest 5。
 - [x] 升级 Zod 4 并修复未知字段错误断言的版本兼容性。
 - [x] npm 官方 registry 生产依赖审计。
-- [x] pytest 9 / pytest-asyncio 1.x 迁移；当前后端 129 项通过、1 项 PostgreSQL RLS 集成测试因专用环境缺失而跳过。
+- [x] pytest 9 / pytest-asyncio 1.x 迁移；当前后端 131 项通过、1 项 PostgreSQL RLS 集成测试因专用环境缺失而跳过。
 - [ ] TypeScript 7 在 OpenAPI 生成工具声明兼容后重新评估。
 - [ ] 建立依赖更新分级、升级窗口和回滚标准。
 
 ### G02 — 安全与代码 Review
-- [ ] 全量审查身份认证、会话、CSRF、OIDC、租户授权、RLS 和 Alembic migrations。
+- [ ] 完成真实 PostgreSQL RLS、真实 OIDC Provider 和部署环境验收；静态代码审查与模拟 IdP 测试不能替代这些证据。
 - [x] 为 Ruff 启用安全规则并逐处处理已识别误报；[ ] 持续扩大安全规则覆盖和修复新发现。
 - [ ] 检查前端 Markdown 渲染、浏览器存储、导入导出和文件处理边界。
 - [x] 建立可重复的本地依赖漏洞扫描：`pnpm security:audit`（npm 生产依赖 + Python 环境依赖）。
@@ -107,7 +107,7 @@ Vite 8 + Vitest 5 + Zod 4 组合完成本机验收：
 - Playwright：42 tests passed。
 - M04–M20 Python 示例：全部通过（88 tests）。
 - Ruff format / lint（含 Bandit S 规则）：65 files 通过，无未豁免安全规则告警。
-- Backend pytest：129 passed / 1 skipped。
+- Backend pytest：131 passed / 1 skipped。
 - 1 项 skipped 是需要专用 PostgreSQL RLS 环境的可选集成测试，不计入通过数。
 - `pnpm security:audit`：npm 生产依赖与 Python 3.12 环境均 No known vulnerabilities found；本项目本身因未发布至 PyPI 被 pip-audit 跳过。
 - 未运行 GitHub Actions。
@@ -118,7 +118,8 @@ Vite 8 + Vitest 5 + Zod 4 组合完成本机验收：
 - 前端状态持久化边界与浏览器安全中间件配置记录：[`ADR-0006`](./adr/0006-learning-state-and-browser-security-boundary.md)。
 - 第一轮修复 3 项 P2：CORS tenant header、assessment key 规范化、全课程编辑器加载错误与重试。
 - 第二轮完成数据库 schema revision readiness 检查优化，增加 5 秒 TTL、并发合并、失败不缓存及显式失效；见 [`ADR-0007`](./adr/0007-database-schema-revision-cache.md)。
-- 当前全量本机验收：42 E2E、129 backend tests passed / 1 skipped；详见本文件第 6 节。
+- 第三轮将 OIDC 身份 provisioning 与 Session 创建下沉到 Application Service，保持事务重试边界；见 [`ADR-0008`](./adr/0008-oidc-authentication-application-service.md)。
+- 当前全量本机验收：42 E2E、131 backend tests passed / 1 skipped；依赖安全审计通过，详见本文件第 6 节。
 
 ## 8. 完成定义
 
