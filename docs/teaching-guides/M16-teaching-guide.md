@@ -157,9 +157,9 @@ M16 以 durable workflow、事件驱动和分布式恢复为工程基线，注�
 
 ### 正式作业参考解答
 
-**原始作业：** 为支付依赖设计 timeout、retry、backoff、circuit breaker 和 bulkhead 参数，说明哪些错误不重试以及如何处理超时后状态未知。
+**原始作业：** 为支付依赖设计 timeout、retry、backoff、circuit breaker 和 bulkhead 参数。重试计算沿用讲次基线：base=0.5s、factor=2、cap=5s、n=0..3、overall deadline=8s；列出各次 Full Jitter 窗口并将排队/执行/退避纳入总预算。另自行声明熔断阈值、半开探测和 bulkhead 并发假设及依据；说明哪些错误不重试，以及超时后如何查询状态、避免重复支付并转人工补偿。
 
-**参考解答与推理：** 错误分不可重试参数/授权错误、可重试限流/暂时5xx、结果未知 timeout。Full Jitter `t_n~Uniform(0,min(cap,base×2^n))`，总重试受 deadline 限制；熔断 closed/open/half-open，bulkhead 隔离资源。timeout 后先查询 operation status，不能把未知当失败重试支付。
+**参考解答与推理：** 错误分不可重试参数/授权错误、可重试限流/暂时 5xx、结果未知 timeout。按 base=0.5s、factor=2、cap=5s，n=0..3 的 Full Jitter 窗口依次为 [0,0.5]、[0,1]、[0,2]、[0,4] 秒；这些是等待窗口上限，不代表必须执行四次重试。所有排队、请求执行和退避都受 8s overall deadline 约束，预算不足时停止而不是重置 deadline。熔断 closed/open/half-open 的阈值和探测策略、bulkhead 并发数由学习者声明负载假设并说明依据。timeout 后先用幂等键查询 operation status，状态未知时不得盲目重试支付，应转人工对账/补偿。
 
 **原始 Rubric 对照（满分 10 分）：**
 
