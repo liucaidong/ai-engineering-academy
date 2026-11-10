@@ -38,7 +38,7 @@ export function useAcademyCourseData({
   );
 
   useEffect(() => {
-    if (selectedLessons) return;
+    if (lessonsByModule[selectedModule.id]) return;
     let cancelled = false;
     setLessonLoadError(null);
     void loadModuleLessons(selectedModule.id).then(
@@ -56,7 +56,7 @@ export function useAcademyCourseData({
     return () => {
       cancelled = true;
     };
-  }, [selectedModule.id, selectedLessons]);
+  }, [selectedModule.id, lessonsByModule]);
 
   useEffect(() => {
     if (activeView !== "authoring" || authoringCourse) return;

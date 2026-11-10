@@ -251,6 +251,24 @@ test("loads only the selected module lesson payload", async ({ page }) => {
   expect((await loadedModuleAssets()).some((name) => /flagshipM20/.test(name))).toBe(false);
 });
 
+test("retries a failed module lesson payload load", async ({ page }) => {
+  let failOnce = true;
+  await page.route("**/src/data/flagshipM01.ts*", async (route) => {
+    if (failOnce) {
+      failOnce = false;
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.reload();
+  await expect(page.getByText("课程模块 M01 加载失败，请重试。")).toBeVisible();
+  await page.unroute("**/src/data/flagshipM01.ts*");
+  await page.locator("#main-content").getByRole("button", { name: "重试" }).click();
+  await expect(page.getByRole("heading", { name: /第一讲：人工智能到底是什么/ })).toBeVisible();
+});
+
 test("persists module completion after reload", async ({ page }) => {
   await page.getByRole("button", { name: "标记本模块为已完成" }).click();
   await expect(page.getByRole("progressbar", { name: "课程模块完成进度" })).toHaveAttribute(

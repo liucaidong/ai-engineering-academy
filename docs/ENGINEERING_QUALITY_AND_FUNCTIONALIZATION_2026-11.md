@@ -14,7 +14,7 @@
 | Type safety | TypeScript strict check | Pass |
 | API contract | OpenAPI 3.1 export + generated type drift check | Pass; 15 paths |
 | Frontend unit tests | Vitest | 88 passed / 17 files |
-| Browser E2E | Playwright Chromium | 46 passed |
+| Browser E2E | Playwright Chromium | 47 passed |
 | Backend tests | pytest | 152 passed, 1 optional PostgreSQL harness skip |
 | Backend lint/format | Ruff | Pass; 77 Python files formatted |
 | Production build | Vite 8.3.6 | Pass; 418 modules transformed |
@@ -238,6 +238,6 @@ Keep OIDC and learner API defaults disabled until provider-backed E2E, runtime D
 - Added a lazy lab component registry and LabWorkspace. Catalog labs are marked implemented only when a matching lazy workspace exists; a focused Vitest contract test prevents registry/catalog drift.
 - These components/hooks receive explicit inputs and callbacks. They do not introduce global state, alter localStorage persistence, or change authentication/tenant responsibilities.
 - src/App.tsx reduced from 574 to 237 lines (337 lines / 58.7% reduction) while retaining application orchestration and view composition.
-- Full local acceptance passed after the refactor: 90 Vitest, 46 Playwright, 152 backend pytest + 1 optional skip, TypeScript, Biome, OpenAPI drift, M04–M20 examples and production build.
+- Full local acceptance passed after the refactor: 90 Vitest, 47 Playwright, 152 backend pytest + 1 optional skip, TypeScript, Biome, OpenAPI drift, M04–M20 examples and production build.
 
-Next extraction should target course-authoring orchestration only if its lifecycle and validation boundary can be isolated cleanly. Avoid splitting files solely to reduce line count.
+Regression coverage now forces the first M01 dynamic import to fail and verifies that the retry control successfully reloads the lesson payload; this caught and fixed a retry effect that previously did not re-run when the lesson cache entry remained undefined. Next extraction should target course-authoring orchestration only if its lifecycle and validation boundary can be isolated cleanly. Avoid splitting files solely to reduce line count.

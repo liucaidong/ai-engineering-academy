@@ -124,7 +124,7 @@
 - 将课程级别标签和已实现实验 ID 集合集中到 features/learning/courseMetadata.ts。
 - 组件通过显式 props 和回调接收状态，不读写 localStorage，不承担会话/租户授权职责，也不引入新的全局状态。
 - App.tsx 从 574 行降至 443 行，减少 131 行（22.8%）；页面交互和 CSS 选择器保持不变。
-- 全量本地验收通过：88 Vitest、46 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、生产构建和 M04–M20 示例。
+- 全量本地验收通过：88 Vitest、47 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、生产构建和 M04–M20 示例。
 - 后续应优先抽取 lesson renderer 与 assessment composition；避免仅为了拆文件而引入过度抽象。
 
 ## 8. 课程正文与学习上下文组件 Review（2026-11-10）
@@ -133,7 +133,7 @@
 - 将先修模块、学习成果和实验执行说明抽取到 features/learning/LearningContextAside.tsx。
 - 组件通过显式 props/callbacks 接收状态；assessment 响应仍由 useLearningState 管理，持久化方式没有变化。
 - 与课程导航组件合并计算，App.tsx 从 574 行降至 338 行，减少 236 行（41.1%）。
-- 全量本地验收通过：88 Vitest、46 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、M04–M20 示例和生产构建。
+- 全量本地验收通过：88 Vitest、47 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、M04–M20 示例和生产构建。
 - 下一步只在边界明确时抽取 lab renderer/registry 与 authoring workflow，不为拆分而拆分。
 
 ## 9. 课程数据生命周期与实验注册表 Review（2026-11-10）
@@ -143,5 +143,12 @@
 - 将 8 个交互实验的 lazy component 映射集中到 features/labs/labRegistry.tsx，由 LabWorkspace 负责渲染。
 - IMPLEMENTED_LABS 现在要求课程目录状态为 implemented 且存在对应的 lazy component；新增 Vitest 合约测试防止课程目录与组件注册表漂移。
 - App.tsx 从 574 行降至 237 行，减少 337 行（58.7%）；业务状态仍由 useLearningState 管理，持久化语义未变化。
-- 全量验收通过：90 Vitest、46 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、M04–M20 示例和生产构建。
+- 全量验收通过：90 Vitest、47 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、M04–M20 示例和生产构建。
 - 剩余 App 职责主要是页面组合、导航选择和跨 feature 状态协调；下一步只在课程编辑工作流生命周期明确时再拆分。
+
+## 10. 课程模块加载重试回归 Review（2026-11-10）
+
+- 在课程数据 hook 拆分后发现 lessonLoadError 出现时，selectedLessons 仍为 undefined；仅依赖 selectedLessons 的 effect 不会因 retry 清理一个本来就不存在的 cache key 而重新执行。
+- 修复方式：课程加载 effect 依赖模块缓存映射对象；retry 创建新的映射对象并删除当前模块缓存项，触发一次新的加载请求。失败的动态 import 仍由 moduleLessons 缓存层清除。
+- 新增 Playwright 回归：拦截并中止首次 M01 动态模块加载，确认错误状态可见，点击重试后确认课程正文正常显示。
+- 全量本地验收通过：90 Vitest、47 Playwright、152 backend pytest + 1 optional skip、Biome、TypeScript、OpenAPI drift、M04–M20 示例及生产构建。
