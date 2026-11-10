@@ -226,3 +226,14 @@ Keep OIDC and learner API defaults disabled until provider-backed E2E, runtime D
 - pnpm acceptance:local: Biome lint/format, TypeScript, OpenAPI drift (15 paths), Vitest 88, Playwright Chromium 46, M04–M20 Python example suites, Ruff, backend pytest 152 passed / 1 optional skip, Vite production build passed.
 - pnpm security:audit: no known npm or Python third-party dependency vulnerabilities; the unpublished first-party Python package was skipped by pip-audit because it is not published on PyPI.
 - GitHub Actions were not triggered. No persistent production database publication or external OIDC acceptance is claimed.
+
+
+### SF-06 — Frontend feature-boundary refactor (first slice complete)
+
+- Extracted the course-directory/sidebar workflow from src/App.tsx into src/features/learning/CourseModuleNavigation.tsx.
+- Moved course-level labels and implemented-lab metadata into src/features/learning/courseMetadata.ts.
+- The navigation component receives filtered modules, current progress, bookmark/search state and explicit callbacks. It no longer reaches into App state or owns persistence.
+- src/App.tsx reduced from 574 to 443 lines (131 lines / 22.8% reduction) while retaining orchestration and page composition.
+- Existing Playwright scenarios continue to cover module search, selection, recommendation, bookmark filtering, completion indicators and narrow viewport behavior.
+
+Next extraction should target lesson rendering and assessment composition as a separate feature boundary. Keep state ownership in the relevant feature hook; do not split files solely to reduce line count.

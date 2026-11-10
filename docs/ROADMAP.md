@@ -89,3 +89,10 @@
 - [ ] Provision the dedicated publisher role in the intended persistent database and publish the first persistent release; the disposable acceptance UUID is not reusable.
 - [ ] Bind the learner UI to that persistent published course-release UUID.
 - [ ] Define instructor/course-authoring authorization and publishing workflow before exposing authoring APIs.
+
+
+## Frontend maintainability
+
+- [x] Extract course module navigation from App.tsx into a feature-owned component with explicit props/callbacks; centralize course level and implemented-lab metadata (App.tsx reduced 574 → 443 lines; full local acceptance passed).
+- [ ] Extract lesson rendering and assessment composition into feature-owned components without changing learner behavior or local-state semantics.
+- [ ] Add focused component-level tests where they provide coverage beyond the existing Playwright end-to-end suite.

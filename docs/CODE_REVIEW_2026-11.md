@@ -117,3 +117,12 @@
 - 该测试数据库是 disposable；其中产生的 release UUID 不得绑定前端。真实持久化数据库的 DBA role provisioning、密钥管理与发布尚未执行。
 
 残余风险：数据库 publisher 凭证仍具有对 course_releases 的 INSERT 权限；拥有该凭证的主体可绕过 CLI 直接提交结构不符合课程 Schema 的 published JSON。生产环境必须将该凭证仅交给受控发布作业/操作员，限制网络访问并保留审批与凭证轮换。当前审计事件可归因到 PostgreSQL publisher role，不能证明具体自然人身份。当前没有 HTTP 发布 API，也没有 Instructor/tenant_admin 发布权限。
+
+## 7. 前端组件边界 Review（2026-11-10）
+
+- 将课程目录、进度摘要、推荐模块、全文搜索状态、收藏过滤和模块列表从 App.tsx 抽取到 features/learning/CourseModuleNavigation.tsx。
+- 将课程级别标签和已实现实验 ID 集合集中到 features/learning/courseMetadata.ts。
+- 组件通过显式 props 和回调接收状态，不读写 localStorage，不承担会话/租户授权职责，也不引入新的全局状态。
+- App.tsx 从 574 行降至 443 行，减少 131 行（22.8%）；页面交互和 CSS 选择器保持不变。
+- 全量本地验收通过：88 Vitest、46 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、生产构建和 M04–M20 示例。
+- 后续应优先抽取 lesson renderer 与 assessment composition；避免仅为了拆文件而引入过度抽象。

@@ -4,6 +4,8 @@ import type { CourseModuleSummary } from "./data/courseCatalog";
 import { courseCatalog } from "./data/courseCatalog";
 import { loadFullCourse } from "./data/loadFullCourse";
 import { loadModuleLessons } from "./data/moduleLessons";
+import CourseModuleNavigation from "./features/learning/CourseModuleNavigation";
+import { IMPLEMENTED_LABS, LEVEL_LABELS } from "./features/learning/courseMetadata";
 import { useLearningState } from "./features/learning/useLearningState";
 import SessionTenantControl from "./features/session/SessionTenantControl";
 import { toggleBookmark } from "./lib/bookmarks";
@@ -23,18 +25,6 @@ const RagLab = lazy(() => import("./components/RagLab"));
 const TokenizerLab = lazy(() => import("./components/TokenizerLab"));
 const ToolCallingLab = lazy(() => import("./components/ToolCallingLab"));
 const TransformerLab = lazy(() => import("./components/TransformerLab"));
-
-const LEVEL_LABELS: Record<CourseModule["level"], string> = {
-  L1: "基础认知",
-  L2: "模型原理",
-  L3: "应用工程",
-  L4: "Agent 工程",
-  L5: "平台工程",
-  L6: "综合实践",
-};
-const IMPLEMENTED_LABS = new Set(
-  courseCatalog.labs.filter((lab) => lab.status === "implemented").map((lab) => lab.id),
-);
 
 export default function App() {
   const [selectedModuleId, setSelectedModuleId] = useState("M01");
@@ -131,16 +121,6 @@ export default function App() {
       ? searched.filter((module) => bookmarkedModuleIds.includes(module.id))
       : searched;
   }, [moduleQuery, showBookmarksOnly, bookmarkedModuleIds, fullTextSearchModules]);
-  const groupedModules = useMemo(
-    () =>
-      filteredModules.reduce<Record<string, CourseModuleSummary[]>>((groups, item) => {
-        const levelModules = groups[item.level] ?? [];
-        levelModules.push(item);
-        groups[item.level] = levelModules;
-        return groups;
-      }, {}),
-    [filteredModules],
-  );
   const selectModule = (module: CourseModuleSummary) => {
     setSelectedModuleId(module.id);
     setActiveView(module.labId && IMPLEMENTED_LABS.has(module.labId) ? "lab" : "lesson");
@@ -173,132 +153,21 @@ export default function App() {
         </div>
       </header>
       <div className="workspace">
-        <aside className="sidebar" aria-label="课程目录">
-          <div className="sidebar-intro">
-            <span className="eyebrow">LEARNING PATH</span>
-            <h2>课程目录</h2>
-            <p>从模型原理走向 AI 系统工程</p>
-          </div>
-          <div className="course-progress">
-            <div className="progress-copy">
-              <span>已完成模块</span>
-              <strong>
-                {completedModules.length} / {courseCatalog.modules.length}
-              </strong>
-            </div>
-            <div
-              className="progress-track"
-              role="progressbar"
-              aria-label="课程模块完成进度"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={progressPercent}
-            >
-              <span style={{ width: `${progressPercent}%` }} />
-            </div>
-            <small>{progressPercent}% · 仅保存在当前浏览器</small>
-          </div>
-          <div className="recommendation-card">
-            <span>下一步建议</span>
-            {recommendedModule ? (
-              <>
-                <strong>
-                  {recommendedModule.id} · {recommendedModule.title}
-                </strong>
-                <button type="button" onClick={() => selectModule(recommendedModule)}>
-                  继续学习
-                </button>
-              </>
-            ) : (
-              <strong>所有课程模块均已完成</strong>
-            )}
-          </div>
-          <nav className="module-nav" aria-label="课程模块导航">
-            <label className="module-search-label" htmlFor="module-search">
-              搜索课程模块
-            </label>
-            <input
-              id="module-search"
-              className="module-search"
-              type="search"
-              value={moduleQuery}
-              onChange={(event) => setModuleQuery(event.target.value)}
-              placeholder="输入模块名称、主题、目标或正文关键词"
-            />
-            {moduleQuery.trim() && searchIndexLoading && (
-              <p className="module-search-empty" role="status">
-                正在检索课程正文…
-              </p>
-            )}
-            {moduleQuery.trim() && searchIndexError && (
-              <p className="module-search-empty" role="status">
-                全文索引暂不可用，已按目录信息搜索。
-              </p>
-            )}
-            <button
-              className="bookmark-filter"
-              type="button"
-              aria-pressed={showBookmarksOnly}
-              onClick={() => setShowBookmarksOnly((value) => !value)}
-            >
-              {showBookmarksOnly ? "显示全部模块" : `只看收藏 (${bookmarkedModuleIds.length})`}
-            </button>
-            {Object.entries(groupedModules).map(([level, modules]) => (
-              <section className="nav-group" key={level}>
-                <h2>
-                  <span>{level}</span>
-                  {LEVEL_LABELS[level as CourseModule["level"]]}
-                </h2>
-                {modules.map((module) => (
-                  <button
-                    className={
-                      selectedModuleId === module.id ? "module-link active" : "module-link"
-                    }
-                    key={module.id}
-                    onClick={() => selectModule(module)}
-                    aria-current={selectedModuleId === module.id ? "page" : undefined}
-                    type="button"
-                  >
-                    <span className="module-id">{module.id}</span>
-                    <span>{module.title}</span>
-                    {completedModules.includes(module.id) && (
-                      <>
-                        <span className="sr-only">已完成</span>
-                        <span className="module-complete" aria-hidden="true">
-                          ✓
-                        </span>
-                      </>
-                    )}
-                    {module.labId && (
-                      <>
-                        <span className="sr-only">
-                          {IMPLEMENTED_LABS.has(module.labId) ? "交互实验已实现" : "实验规划中"}
-                        </span>
-                        <span
-                          className={
-                            IMPLEMENTED_LABS.has(module.labId)
-                              ? "lab-indicator implemented"
-                              : "lab-indicator"
-                          }
-                          title={
-                            IMPLEMENTED_LABS.has(module.labId) ? "交互实验已实现" : "实验规划中"
-                          }
-                          aria-hidden="true"
-                        >
-                          ◈
-                        </span>
-                      </>
-                    )}
-                  </button>
-                ))}
-              </section>
-            ))}
-            {filteredModules.length === 0 && (
-              <p className="module-search-empty">没有匹配的课程模块。</p>
-            )}
-          </nav>
-          <div className="sidebar-footer">学习路径 · 课程版本 {courseCatalog.version}</div>
-        </aside>
+        <CourseModuleNavigation
+          filteredModules={filteredModules}
+          selectedModuleId={selectedModuleId}
+          completedModules={completedModules}
+          progressPercent={progressPercent}
+          recommendedModule={recommendedModule}
+          bookmarkedModuleIds={bookmarkedModuleIds}
+          moduleQuery={moduleQuery}
+          onModuleQueryChange={setModuleQuery}
+          showBookmarksOnly={showBookmarksOnly}
+          onShowBookmarksOnlyChange={setShowBookmarksOnly}
+          searchIndexLoading={searchIndexLoading}
+          searchIndexError={searchIndexError}
+          onSelectModule={selectModule}
+        />
         <main className="main-content" id="main-content" tabIndex={-1}>
           <div className="breadcrumb">
             课程 / {LEVEL_LABELS[selectedModule.level]} / <strong>{selectedModule.id}</strong>
