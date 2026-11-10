@@ -7,6 +7,7 @@ import { IMPLEMENTED_LABS, LEVEL_LABELS } from "./features/learning/courseMetada
 import LearningContextAside from "./features/learning/LearningContextAside";
 import LessonArticle from "./features/learning/LessonArticle";
 import { useAcademyCourseData } from "./features/learning/useAcademyCourseData";
+import { useGuestLearningImport } from "./features/learning/useGuestLearningImport";
 import { useLearnerAssessmentSync } from "./features/learning/useLearnerAssessmentSync";
 import { useLearnerProgressSync } from "./features/learning/useLearnerProgressSync";
 import { useLearningState } from "./features/learning/useLearningState";
@@ -53,6 +54,14 @@ export default function App() {
     tenantId: session.status === "authenticated" ? session.selectedTenantId : null,
     release: learnerSync.release,
     assessmentResponses,
+    setAssessmentResponses,
+  });
+  const guestImport = useGuestLearningImport({
+    enabled: session.status === "authenticated" && Boolean(session.selectedTenantId),
+    scope: learningScope,
+    current: { bookmarkedModuleIds, completedModules, assessmentResponses },
+    setBookmarkedModuleIds,
+    setCompletedModules,
     setAssessmentResponses,
   });
   const {
@@ -103,6 +112,27 @@ export default function App() {
           <span className="version-pill">CURRICULUM v{courseCatalog.version}</span>
           <span className="status-dot" /> 学习环境
           <SessionTenantControl session={session} />
+          {guestImport.enabled && guestImport.hasGuestData && !guestImport.alreadyImported && (
+            <div className="account-control">
+              <span className="account-state">发现未导入的访客学习记录</span>
+              <button
+                className="account-action"
+                type="button"
+                onClick={guestImport.importGuestData}
+              >
+                导入访客记录
+              </button>
+            </div>
+          )}
+          {guestImport.importResult && (
+            <div className="account-control" role="status">
+              <span className="account-state">
+                {guestImport.importResult.assessmentDraftConflicts > 0
+                  ? `有 ${guestImport.importResult.assessmentDraftConflicts} 份测评草稿冲突，未覆盖账户数据；访客原件已保留。`
+                  : `访客记录导入完成：新增收藏 ${guestImport.importResult.bookmarkedModulesAdded} 项、完成记录 ${guestImport.importResult.completedModulesAdded} 项、测评草稿 ${guestImport.importResult.assessmentDraftsAdded} 份。`}
+              </span>
+            </div>
+          )}
           {learnerSync.status !== "disabled" && (
             <div className="account-control" aria-live="polite">
               <span className="account-state">

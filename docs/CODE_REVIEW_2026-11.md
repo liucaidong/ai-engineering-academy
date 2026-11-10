@@ -268,3 +268,14 @@
 - 舊版本地草稿無服務端 revision 時保留本地內容，不直接覆蓋遠端 draft；會以新 attempt 保存，形成可追溯歷史。
 
 驗收：FastAPI/OpenAPI 17 paths drift check 通過；backend pytest 159 passed / 3 optional DB-only skips；PostgreSQL 18 RLS HTTP acceptance 3/3 通過，覆蓋 draft list、更新、stale revision 409、提交後更新拒絕和 no-store headers；Vitest 104、Playwright 47、M04–M20 示例測試、Biome、TypeScript、Ruff、production build 全部通過。GitHub Actions 未觸發。
+
+## 19. Explicit guest-to-account learning data import（2026-11-10）
+
+账户/租户隔离后，旧访客状态不会自动出现在已登录账户中。新增显式迁移入口：
+- 登录并选择租户后，检测 guest scope 和旧版未分区 localStorage 中的收藏、完成状态及测评草稿。
+- 用户点击“导入访客记录”后，收藏/完成状态按集合并集迁移；不存在的测评草稿复制到当前账户/租户。
+- 若账户已存在不同内容的同一测评草稿，保留账户版本并报告冲突；访客原始草稿不删除、不覆盖，用户可在访客 scope 中恢复。
+- 通过账户/租户专属 fingerprint marker 实现幂等；访客数据变化后允许再次检查新增数据。存储不可用时重复导入仍保持集合并集和草稿不覆盖语义。
+- 迁移只复制浏览器本地内容，不伪造用户身份、tenant、role 或 release ID；之后的云端同步仍受精确课程发布版本和服务端 RLS 约束。
+
+新增单元测试验证并集、测评草稿冲突保留、来源不变和重复导入幂等。

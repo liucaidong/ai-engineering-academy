@@ -41,6 +41,71 @@ function readStorage(key: string): string | null {
   }
 }
 
+export interface LocalLearningState {
+  bookmarkedModuleIds: string[];
+  completedModules: string[];
+  assessmentResponses: Record<string, AssessmentResponse>;
+}
+
+export function loadLocalLearningState(scope: LearningStorageScope): LocalLearningState {
+  return {
+    bookmarkedModuleIds: loadBookmarks(loadScopedValue("bookmarks", scope), MODULE_IDS),
+    completedModules: loadProgress(loadScopedValue("progress", scope), MODULE_IDS),
+    assessmentResponses: loadAssessmentProgress(loadScopedValue("assessments", scope)),
+  };
+}
+
+export interface GuestLearningImportResult {
+  bookmarkedModulesAdded: number;
+  completedModulesAdded: number;
+  assessmentDraftsAdded: number;
+  assessmentDraftConflicts: number;
+}
+
+function sameAssessmentResponse(left: AssessmentResponse, right: AssessmentResponse): boolean {
+  return (
+    left.responseText === right.responseText &&
+    JSON.stringify(left.reviewedCriteria) === JSON.stringify(right.reviewedCriteria)
+  );
+}
+
+export function mergeGuestLearningState(
+  current: LocalLearningState,
+  guest: LocalLearningState,
+): { state: LocalLearningState; result: GuestLearningImportResult } {
+  const bookmarkedModuleIds = [
+    ...new Set([...current.bookmarkedModuleIds, ...guest.bookmarkedModuleIds]),
+  ];
+  const completedModules = [...new Set([...current.completedModules, ...guest.completedModules])];
+  const assessmentResponses = { ...current.assessmentResponses };
+  let assessmentDraftsAdded = 0;
+  let assessmentDraftConflicts = 0;
+
+  for (const [assessmentId, guestResponse] of Object.entries(guest.assessmentResponses)) {
+    const existing = assessmentResponses[assessmentId];
+    if (!existing) {
+      assessmentResponses[assessmentId] = guestResponse;
+      assessmentDraftsAdded += 1;
+    } else if (!sameAssessmentResponse(existing, guestResponse)) {
+      assessmentDraftConflicts += 1;
+    }
+  }
+
+  return {
+    state: { bookmarkedModuleIds, completedModules, assessmentResponses },
+    result: {
+      bookmarkedModulesAdded: bookmarkedModuleIds.length - current.bookmarkedModuleIds.length,
+      completedModulesAdded: completedModules.length - current.completedModules.length,
+      assessmentDraftsAdded,
+      assessmentDraftConflicts,
+    },
+  };
+}
+
+export function getGuestImportMarkerKey(scope: LearningStorageScope): string {
+  return `${getLearningStorageKeys(scope).bookmarks.replace(":bookmarks:v1", "")}:guest-import:v1`;
+}
+
 function writeStorage(key: string, value: string): void {
   try {
     window.localStorage.setItem(key, value);
@@ -55,23 +120,24 @@ function writeStorage(key: string, value: string): void {
  */
 export function useLearningState(scope: LearningStorageScope = "guest") {
   const [activeScope, setActiveScope] = useState(scope);
-  const [bookmarkedModuleIds, setBookmarkedModuleIds] = useState<string[]>(() =>
-    loadBookmarks(loadScopedValue("bookmarks", scope), MODULE_IDS),
+  const [bookmarkedModuleIds, setBookmarkedModuleIds] = useState<string[]>(
+    () => loadLocalLearningState(scope).bookmarkedModuleIds,
   );
-  const [completedModules, setCompletedModules] = useState<string[]>(() =>
-    loadProgress(loadScopedValue("progress", scope), MODULE_IDS),
+  const [completedModules, setCompletedModules] = useState<string[]>(
+    () => loadLocalLearningState(scope).completedModules,
   );
   const [assessmentResponses, setAssessmentResponses] = useState<
     Record<string, AssessmentResponse>
-  >(() => loadAssessmentProgress(loadScopedValue("assessments", scope)));
+  >(() => loadLocalLearningState(scope).assessmentResponses);
 
   // Reset synchronously before effects run so a newly authenticated account never
   // receives another account's in-memory state or writes it into the new scope.
   if (activeScope !== scope) {
     setActiveScope(scope);
-    setBookmarkedModuleIds(loadBookmarks(loadScopedValue("bookmarks", scope), MODULE_IDS));
-    setCompletedModules(loadProgress(loadScopedValue("progress", scope), MODULE_IDS));
-    setAssessmentResponses(loadAssessmentProgress(loadScopedValue("assessments", scope)));
+    const next = loadLocalLearningState(scope);
+    setBookmarkedModuleIds(next.bookmarkedModuleIds);
+    setCompletedModules(next.completedModules);
+    setAssessmentResponses(next.assessmentResponses);
   }
 
   useEffect(() => {

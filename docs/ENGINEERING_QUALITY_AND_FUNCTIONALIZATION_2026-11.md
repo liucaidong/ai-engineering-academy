@@ -302,3 +302,10 @@ Added learner-owned latest-draft reads and optimistic-concurrency draft updates.
 The frontend debounces draft sync, validates assessment IDs against the exact published release snapshot, merges remote-only drafts, preserves pending local edits, updates matching server revisions, and forks a new attempt on concurrent revision conflict rather than overwriting remote work. ACK handling checks that the local value still matches the sent payload before marking it synchronized. The feature shares the existing learner sync gate and remains disabled by default.
 
 Acceptance: OpenAPI 17 paths in sync; backend 159 passed / 3 optional DB-only skips; real PostgreSQL 18 RLS HTTP integration 3/3 passed including stale revision conflict, submitted draft immutability and no-store; Vitest 104, Playwright 47, M04–M20 examples, Biome, TypeScript, Ruff and production build passed. GitHub Actions not triggered.
+
+
+### SF-07 — Explicit guest-to-account learning data import（implemented 2026-11-10）
+
+Added an explicit import control after authentication and tenant selection. Guest/legacy local bookmarks and completions merge by set union; guest assessment drafts are copied only when the account has no draft for that assessment. Conflicts preserve the account value and keep the guest source unchanged, with a visible conflict count. A scope-specific fingerprint marker makes repeated imports idempotent and allows later guest changes to be imported. The migration never fabricates identity, tenant authorization or course release IDs.
+
+Four focused tests cover key scope and guest-import merge/idempotency/conflict behavior. Cloud synchronization remains independently feature-gated.
