@@ -126,3 +126,12 @@
 - App.tsx 从 574 行降至 443 行，减少 131 行（22.8%）；页面交互和 CSS 选择器保持不变。
 - 全量本地验收通过：88 Vitest、46 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、生产构建和 M04–M20 示例。
 - 后续应优先抽取 lesson renderer 与 assessment composition；避免仅为了拆文件而引入过度抽象。
+
+## 8. 课程正文与学习上下文组件 Review（2026-11-10）
+
+- 将 lesson 正文、学习目标、模块完成动作、assessment 自评响应和参考来源抽取到 features/learning/LessonArticle.tsx。
+- 将先修模块、学习成果和实验执行说明抽取到 features/learning/LearningContextAside.tsx。
+- 组件通过显式 props/callbacks 接收状态；assessment 响应仍由 useLearningState 管理，持久化方式没有变化。
+- 与课程导航组件合并计算，App.tsx 从 574 行降至 338 行，减少 236 行（41.1%）。
+- 全量本地验收通过：88 Vitest、46 Playwright、152 backend pytest + 1 optional skip、TypeScript、Biome、OpenAPI drift、M04–M20 示例和生产构建。
+- 下一步只在边界明确时抽取 lab renderer/registry 与 authoring workflow，不为拆分而拆分。

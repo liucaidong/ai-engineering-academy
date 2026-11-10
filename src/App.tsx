@@ -1,11 +1,12 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import AssessmentWorkspace from "./components/AssessmentWorkspace";
 import type { CourseModuleSummary } from "./data/courseCatalog";
 import { courseCatalog } from "./data/courseCatalog";
 import { loadFullCourse } from "./data/loadFullCourse";
 import { loadModuleLessons } from "./data/moduleLessons";
 import CourseModuleNavigation from "./features/learning/CourseModuleNavigation";
+import LearningContextAside from "./features/learning/LearningContextAside";
 import { IMPLEMENTED_LABS, LEVEL_LABELS } from "./features/learning/courseMetadata";
+import LessonArticle from "./features/learning/LessonArticle";
 import { useLearningState } from "./features/learning/useLearningState";
 import SessionTenantControl from "./features/session/SessionTenantControl";
 import { toggleBookmark } from "./lib/bookmarks";
@@ -13,12 +14,11 @@ import { getNextRecommendedModule } from "./lib/learningPath";
 import { toggleModuleProgress } from "./lib/progress";
 import { searchModules } from "./lib/searchModules";
 import { getModuleValidationErrors } from "./lib/validateCourse";
-import { type Course, type CourseModule, EXECUTION_MODE_LABELS, type Lesson } from "./types/course";
+import type { Course, CourseModule, Lesson } from "./types/course";
 
 const AgentRuntimeLab = lazy(() => import("./components/AgentRuntimeLab"));
 const CourseAuthoringWorkspace = lazy(() => import("./components/CourseAuthoringWorkspace"));
 const EvaluationLab = lazy(() => import("./components/EvaluationLab"));
-const MarkdownContent = lazy(() => import("./components/MarkdownContent"));
 const McpLab = lazy(() => import("./components/McpLab"));
 const MultiAgentLab = lazy(() => import("./components/MultiAgentLab"));
 const RagLab = lazy(() => import("./components/RagLab"));
@@ -278,138 +278,33 @@ export default function App() {
               <EvaluationLab />
             ) : selectedLesson ? (
               <div className="lesson-layout">
-                <article className="lesson-card">
-                  <span className="eyebrow">LESSON 01 · {selectedLesson.estimatedMinutes} MIN</span>
-                  <h2>{selectedLesson.title}</h2>
-                  <p className="lesson-summary">{selectedLesson.summary}</p>
-                  {selectedLesson.content.map((section) => (
-                    <section className="lesson-section" key={section.heading}>
-                      <h3>{section.heading}</h3>
-                      <MarkdownContent content={section.markdown ?? section.body} />
-                    </section>
-                  ))}
-                  <div className="objectives">
-                    <h3>本节学习目标</h3>
-                    <ul>
-                      {selectedLesson.learningObjectives.map((objective) => (
-                        <li key={objective}>{objective}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <button
-                    className={
-                      completedModules.includes(selectedModule.id)
-                        ? "completion-button completed"
-                        : "completion-button"
-                    }
-                    type="button"
-                    aria-pressed={completedModules.includes(selectedModule.id)}
-                    onClick={() =>
-                      setCompletedModules((current) =>
-                        toggleModuleProgress(current, selectedModule.id),
-                      )
-                    }
-                  >
-                    {completedModules.includes(selectedModule.id)
-                      ? "✓ 已标记完成 · 点击撤销"
-                      : "标记本模块为已完成"}
-                  </button>
-                  {selectedLesson.assessments.length > 0 && (
-                    <div className="objectives">
-                      <h3>本节测评</h3>
-                      {selectedLesson.assessments.map((assessment) => (
-                        <AssessmentWorkspace
-                          key={assessment.id}
-                          assessment={assessment}
-                          value={
-                            assessmentResponses[assessment.id] ?? {
-                              responseText: "",
-                              reviewedCriteria: [],
-                            }
-                          }
-                          onChange={(value) =>
-                            setAssessmentResponses((current) => ({
-                              ...current,
-                              [assessment.id]: value,
-                            }))
-                          }
-                        />
-                      ))}
-                    </div>
-                  )}
-                  {selectedLesson.sources.length > 0 && (
-                    <div className="source-list">
-                      <h3>参考来源</h3>
-                      {selectedLesson.sources.map((source) => (
-                        <p key={source.url}>
-                          <a href={source.url} target="_blank" rel="noreferrer">
-                            {source.title}
-                          </a>{" "}
-                          · {source.publisher}
-                        </p>
-                      ))}
-                    </div>
-                  )}
-                  <div className="coming-next">
-                    <span>课程内容状态</span>
-                    <p>
-                      课程内容基线已覆盖 M01–M20；运行验收、更多交互实验和后端能力仍按路线图推进。
-                    </p>
-                  </div>
-                  {openLab && (
-                    <button
-                      className="primary-button"
-                      onClick={() => setActiveView("lab")}
-                      type="button"
-                    >
-                      打开交互实验 <span>→</span>
-                    </button>
-                  )}
-                </article>
-                <aside className="learning-aside">
-                  <div className="aside-card">
-                    <span className="eyebrow">PREREQUISITES</span>
-                    <h3>先修模块</h3>
-                    {selectedModule.prerequisites.length ? (
-                      selectedModule.prerequisites.map((id) => (
-                        <button
-                          className="prerequisite-link"
-                          key={id}
-                          onClick={() => {
-                            setSelectedModuleId(id);
-                            setActiveView("lesson");
-                          }}
-                          type="button"
-                        >
-                          {id} · {courseCatalog.modules.find((item) => item.id === id)?.title}
-                        </button>
-                      ))
-                    ) : (
-                      <p className="muted">无先修要求</p>
-                    )}
-                  </div>
-                  <div className="aside-card">
-                    <span className="eyebrow">LEARNING OUTCOMES</span>
-                    <h3>完成后你将能够</h3>
-                    <ul>
-                      {selectedModule.objectives.map((objective) => (
-                        <li key={objective}>{objective}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="aside-card execution-card">
-                    <span className="eyebrow">LAB EXECUTION</span>
-                    <h3>实验执行说明</h3>
-                    <p>
-                      {selectedLab
-                        ? EXECUTION_MODE_LABELS[selectedLab.executionMode]
-                        : selectedModule.labId
-                          ? "当前实验尚未登记执行定义"
-                          : "本模块当前没有关联实验。"}{" "}
-                      实验执行模式与安全边界以实验定义为准。
-                    </p>
-                  </div>
-                </aside>
+                <LessonArticle
+                  lesson={selectedLesson}
+                  isCompleted={completedModules.includes(selectedModule.id)}
+                  onToggleCompletion={() =>
+                    setCompletedModules((current) =>
+                      toggleModuleProgress(current, selectedModule.id),
+                    )
+                  }
+                  assessmentResponses={assessmentResponses}
+                  onAssessmentResponseChange={(assessmentId, value) =>
+                    setAssessmentResponses((current) => ({
+                      ...current,
+                      [assessmentId]: value,
+                    }))
+                  }
+                  showOpenLabButton={Boolean(openLab)}
+                  onOpenLab={() => setActiveView("lab")}
+                />
+                <LearningContextAside
+                  selectedModule={selectedModule}
+                  modules={courseCatalog.modules}
+                  selectedLab={selectedLab}
+                  onSelectPrerequisite={(moduleId) => {
+                    setSelectedModuleId(moduleId);
+                    setActiveView("lesson");
+                  }}
+                />
               </div>
             ) : (
               <div className="lesson-card" role="status" aria-live="polite">

@@ -228,12 +228,14 @@ Keep OIDC and learner API defaults disabled until provider-backed E2E, runtime D
 - GitHub Actions were not triggered. No persistent production database publication or external OIDC acceptance is claimed.
 
 
-### SF-06 — Frontend feature-boundary refactor (first slice complete)
+### SF-06 — Frontend feature-boundary refactor (two slices complete)
 
-- Extracted the course-directory/sidebar workflow from src/App.tsx into src/features/learning/CourseModuleNavigation.tsx.
-- Moved course-level labels and implemented-lab metadata into src/features/learning/courseMetadata.ts.
-- The navigation component receives filtered modules, current progress, bookmark/search state and explicit callbacks. It no longer reaches into App state or owns persistence.
-- src/App.tsx reduced from 574 to 443 lines (131 lines / 22.8% reduction) while retaining orchestration and page composition.
-- Existing Playwright scenarios continue to cover module search, selection, recommendation, bookmark filtering, completion indicators and narrow viewport behavior.
+- Extracted course directory, progress summary, recommendation, search and bookmark filtering into src/features/learning/CourseModuleNavigation.tsx.
+- Centralized course-level labels and implemented-lab metadata in src/features/learning/courseMetadata.ts.
+- Extracted lesson content, learning objectives, completion action, assessment response UI and source references into src/features/learning/LessonArticle.tsx.
+- Extracted prerequisites, learning outcomes and lab execution context into src/features/learning/LearningContextAside.tsx.
+- These components receive explicit data props and callbacks. They do not read/write localStorage, own authentication/tenant state, or introduce global state.
+- src/App.tsx reduced from 574 to 338 lines (236 lines / 41.1% reduction) while retaining application orchestration and view composition.
+- Full local acceptance passed after the refactor: 88 Vitest, 46 Playwright, 152 backend pytest + 1 optional skip, TypeScript, Biome, OpenAPI drift, M04–M20 examples and production build.
 
-Next extraction should target lesson rendering and assessment composition as a separate feature boundary. Keep state ownership in the relevant feature hook; do not split files solely to reduce line count.
+Next extraction should target the lab renderer/registry and authoring workflow only where their state and lifecycle boundaries are clear. Avoid splitting files solely to reduce line count.
