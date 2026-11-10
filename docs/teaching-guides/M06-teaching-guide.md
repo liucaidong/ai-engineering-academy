@@ -119,6 +119,8 @@ Schema 通过只代表结构有效，不代表业务正确或用户有权限。�
 为退款对象定义字段类型、金额精度、必填字段、枚举、额外字段策略和业务验证。
 
 ### 正式作业参考解答
+作业交付：一份 Draft 2020-12 JSON Schema 文件、至少一组合法/非法 JSON fixture、Ajv 8.x（Draft 2020-12 模式）或 Python jsonschema 4.x（Draft202012Validator）的运行命令、工具版本和结果，以及 parse→schema→business→authorization 四层校验说明。无须付费 API 或真实支付凭证。
+
 示例 Schema 设计要点：
 - request_id：string，必填，格式受约束。
 - order_id：string，必填。

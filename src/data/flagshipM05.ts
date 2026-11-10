@@ -17,7 +17,7 @@ body:"KV Cache 的动态增长不适合简单地为每条请求预留最大连�
 markdown:"**连续预留的问题**：如果按最大输出长度一次性分配，短回答会浪费空间；如果按需扩容连续内存，则可能产生外部碎片和搬移成本。PagedAttention 将 KV 按固定 token block 分配，并通过 block table 映射逻辑序列到物理块。\n\n若 block_size=16 tokens，序列长度 T=1001，则需要 ceil(1001/16)=63 个 block，分配容量为 1008 tokens，尾块最多浪费 15 token slots。分页降低连续大块分配和外部碎片压力，但仍有 block rounding、block table、调度和内存带宽成本。\n\n**前缀复用**：多个请求拥有完全相同的 token 前缀且模型、adapter、位置语义和缓存配置兼容时，可共享前缀 KV；引用计数、copy-on-write、失效和租户隔离必须正确。不能仅因自然语言文本相似就共享 KV。\n\n**课堂练习**：对 1,001、1,025 和 16,385 token 三条请求，分别计算 block_size=16/32 时的 block 数、尾块浪费和总分配容量。说明为什么分页不会减少每个 token 本身需要的 K/V 数值。"
 },
 ],
-assessments:[{id:"m05-01-kv-capacity",type:"code-task",prompt:"计算 32 层、8 KV heads、head_dim=128、BF16、batch=4、每请求 16k token 的理论 KV 容量，并说明分页分配和共享前缀如何改变实际占用。",rubric:[{criterion:"公式单位",description:"正确代入维度并区分 bytes 与 GiB",points:4},{criterion:"架构影响",description:"解释 GQA/MQA 对 KV head 项的影响",points:3},{criterion:"生命周期",description:"覆盖隔离、回收、共享或失效",points:3}]}],
+assessments:[{id:"m05-01-kv-capacity",type:"knowledge-check",prompt:"计算 32 层、8 KV heads、head_dim=128、BF16、batch=4、每请求 16k token 的理论 KV 容量，并说明分页分配和共享前缀如何改变实际占用。",rubric:[{criterion:"公式单位",description:"正确代入维度并区分 bytes 与 GiB",points:4},{criterion:"架构影响",description:"解释 GQA/MQA 对 KV head 项的影响",points:3},{criterion:"生命周期",description:"覆盖隔离、回收、共享或失效",points:3}]}],
 sources:[
 {title:"Efficiently Scaling Transformer Inference",url:"https://arxiv.org/abs/2211.05102",publisher:"Pope et al., 2022",note:"推理系统瓶颈与优化"},
 {title:"Fast Transformer Decoding: One Write-Head is All You Need",url:"https://arxiv.org/abs/1911.02150",publisher:"Shazeer, 2019",note:"Multi-Query Attention"},
@@ -85,7 +85,7 @@ body:"Speculative decoding 的正确性来自接受/拒绝校正，而不是简�
 markdown:"对某位置 draft 分布 q 采样得到候选 token x，target 分布为 p。标准 rejection sampling 的接受概率为 min(1,p(x)/q(x))。若拒绝，按归一化残差分布 max(0,p−q) 重新采样，才能保持 target 分布。实际算法还涉及候选块、并行验证、终止 token 和数值实现。\n\n草稿接受率高不必然带来同等比例的加速：还要计入 draft 计算、target 验证、内存带宽、batch 形态和调度开销。量化改变模型近似误差和 kernel 性能；Speculative decoding 改变 target forward 的组织方式，二者可以组合，但需要联合评测。\n\n**量化门禁**：对固定模型/Tokenizer/提示集/采样配置，报告 task quality、长上下文回归、格式成功率、TTFT、TPOT、tokens/s、峰值显存、并发和错误率。记录量化算法、位宽、group size、scale、校准集、异常层和 kernel 版本。"
 },
 ],
-assessments:[{id:"m05-04-quantization-plan",type:"code-task",prompt:"对 13B 参数模型比较 FP16、INT8、INT4 理论权重存储，并设计 32k context 多并发服务的量化评估计划。",rubric:[{criterion:"存储估算",description:"得到约 26GB、13GB、6.5GB 十进制理论值",points:3},{criterion:"机制区分",description:"区分权重/激活/KV 量化和 speculative decoding",points:3},{criterion:"验证计划",description:"覆盖质量、延迟、吞吐、显存与硬件兼容",points:4}]}],
+assessments:[{id:"m05-04-quantization-plan",type:"design-review",prompt:"对 13B 参数模型比较 FP16、INT8、INT4 理论权重存储，并设计 32k context 多并发服务的量化评估计划。",rubric:[{criterion:"存储估算",description:"得到约 26GB、13GB、6.5GB 十进制理论值",points:3},{criterion:"机制区分",description:"区分权重/激活/KV 量化和 speculative decoding",points:3},{criterion:"验证计划",description:"覆盖质量、延迟、吞吐、显存与硬件兼容",points:4}]}],
 sources:[
 {title:"Fast Inference from Transformers via Speculative Decoding",url:"https://arxiv.org/abs/2211.17192",publisher:"Leviathan et al., 2023",note:"Speculative decoding"},
 {title:"GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers",url:"https://arxiv.org/abs/2210.17323",publisher:"Frantar et al., ICLR 2023",note:"后训练权重量化"},

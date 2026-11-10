@@ -93,7 +93,9 @@
 
 ### 正式作业参考解答
 
-**原始作业：** 定义一个订单退款工具的 JSON Schema，并写出 schema、订单归属、金额上限、权限和幂等键校验顺序。
+**原始作业：** 提交 Draft 2020-12 订单退款工具 JSON Schema 文件、至少一组合法/非法 fixture，并用 Ajv 8.x 的 Draft 2020-12 模式或 Python jsonschema 4.x 的 Draft202012Validator 执行契约测试，记录工具版本；另写出 schema、订单归属、金额上限、权限和幂等键校验顺序。
+
+**交付物：** Draft 2020-12 JSON Schema 文件、合法/非法 fixture、Ajv 8.x（Draft 2020-12 模式）或 Python jsonschema 4.x（Draft202012Validator）的执行命令、工具版本和测试结果；无需真实支付 API 或付费凭证。
 
 **参考解答与推理：** Schema 定义类型、required、enum、范围、格式及 additionalProperties 策略；随后执行对象级授权、订单归属、可退款余额、币种/精度、订单状态和幂等键校验。金额用整数最小货币单位或定点数，拒绝负数、超额和未知字段。schema_valid 不等于业务合法或有权执行。
 

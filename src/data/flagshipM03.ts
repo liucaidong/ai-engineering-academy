@@ -102,7 +102,7 @@ export const flagshipM03Lessons: Course["modules"][number]["lessons"] = [
     ],
     assessments: [{
       id: "m03-02-embedding-calculation",
-      type: "code-task",
+      type: "knowledge-check",
       prompt: "给定词表 V=48,000、embedding 维度 d=3,072、BF16 权重，计算 embedding 参数量和原始权重存储量；再画出 token ID、embedding lookup、Transformer hidden state 和输出 logits 的数据流，并解释 weight tying。",
       rubric: [
         { criterion: "离散与连续表示", description: "明确区分 token ID 与 embedding vector", points: 2 },

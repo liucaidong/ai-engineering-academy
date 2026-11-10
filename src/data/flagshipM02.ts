@@ -41,7 +41,7 @@ export const flagshipM02Lessons: Course["modules"][number]["lessons"] = [
     ],
     assessments: [{
       id: "m02-01-attention-by-hand",
-      type: "code-task",
+      type: "knowledge-check",
       prompt: "给定 Q=K=[[1,0],[0,1]]、V=[[1,0],[0,2]]，逐步计算 QKᵀ、按 √dₖ 缩放后的分数、逐行 Softmax 权重和最终输出。提交每一步矩阵，并解释为什么 Softmax 沿键位置维度执行。",
       rubric: [
         { criterion: "分数矩阵", description: "正确计算 QKᵀ，行列含义与矩阵方向正确", points: 3 },

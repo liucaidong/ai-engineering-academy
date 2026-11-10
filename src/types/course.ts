@@ -17,6 +17,10 @@ export const SourceReferenceSchema = z
   })
   .strict();
 
+// `type` is editorial classification metadata, not a runtime execution mode.
+// Keep semantics aligned with docs/ASSESSMENT_TYPE_TAXONOMY.md:
+// knowledge-check = explanation/calculation; code-task = executable or machine-validated artifact;
+// design-review = design/analysis artifact; reflection = structured learning retrospective.
 export const AssessmentSchema = z
   .object({
     id: z.string().min(1),

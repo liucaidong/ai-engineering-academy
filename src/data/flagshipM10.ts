@@ -30,7 +30,7 @@ markdown:"一个可部署 Agent 至少包含 model、runtime、tool adapter、po
 heading:"Observation 可信度、后置条件与循环停止",
 body:"工具返回值只是一次观察；它可能过期、部分成功、格式错误或受到不可信内容影响。",
 markdown:"ReAct 交替生成 reasoning/action/observation，但生产 Trace 应记录结构化事件，而不是把内部思维文本当作事实审计。每个 action 需要 action_id、tool、arguments hash、deadline、authorization decision 和 expected postcondition；observation 需要 result status、source version、timestamp、error class 和 correlation ID。\n\n**验证闭环**：调用工具后重新读取目标状态，检查 postcondition 是否成立；区分“请求已接受”“执行中”“已完成”和“结果未知”。循环检测可使用重复 action signature、无进展状态、相同错误连续次数和 token/cost budget。停止条件至少包括目标达成、用户澄清、权限拒绝、预算耗尽、不可恢复错误和人工接管。"
-},],assessments:[{id:"m10-02-agent-loop",type:"code-task",prompt:"为“查找订单并判断是否符合退款条件”设计 Agent loop 伪代码，包含状态更新、重复动作检测、超时和停止条件。",rubric:[{criterion:"循环结构",description:"包含决策、校验、执行、观察和状态更新",points:4},{criterion:"计划状态",description:"计划节点具有依赖和完成条件",points:2},{criterion:"资源控制",description:"实现步数、调用次数、超时和循环检测",points:4}]}],sources:[
+},],assessments:[{id:"m10-02-agent-loop",type:"design-review",prompt:"为“查找订单并判断是否符合退款条件”设计 Agent loop 伪代码，包含状态更新、重复动作检测、超时和停止条件。",rubric:[{criterion:"循环结构",description:"包含决策、校验、执行、观察和状态更新",points:4},{criterion:"计划状态",description:"计划节点具有依赖和完成条件",points:2},{criterion:"资源控制",description:"实现步数、调用次数、超时和循环检测",points:4}]}],sources:[
 {title:"ReAct: Synergizing Reasoning and Acting in Language Models",url:"https://arxiv.org/abs/2210.03629",publisher:"Yao et al., 2023",note:"推理行动循环"},
 {title:"LLMCompiler: An LLM Compiler for Parallel Function Calling",url:"https://arxiv.org/abs/2312.04511",publisher:"Kim et al., 2023",note:"任务 DAG 与并行工具执行"},
 {title:"LangGraph Documentation",url:"https://docs.langchain.com/oss/python/langgraph/overview",publisher:"LangChain",note:"显式状态图、长运行 Agent orchestration、durable execution 与 human-in-the-loop"},

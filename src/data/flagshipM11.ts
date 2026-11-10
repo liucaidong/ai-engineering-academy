@@ -47,7 +47,7 @@ markdown:"建议记忆对象至少包含 memory_id、tenant/user scope、type（
 heading:"记忆检索与巩固：重要性、时效性和证据保真",
 body:"记忆系统既要从历史中找出相关信息，也要控制摘要和反思过程中产生的错误放大。",
 markdown:"可用 relevance、recency、salience、frequency、confidence 和 task utility 组合排序，但分数必须可解释并按任务校准。时间衰减不能覆盖有效期；过期偏好或旧项目状态应降权、标记 stale 或要求确认。Generative Agents 展示了 memory stream、reflection 和 retrieval 的组合；MemGPT 展示了上下文与外部记忆层之间的 paging 思路。\n\n**巩固边界**：摘要应保留 source_event_ids、时间范围、冲突标记和不确定性；反思性结论必须能回溯到原始事件。禁止把重复生成的摘要当作多个独立证据。记忆压缩后要运行事实保持、时间关系、实体关系和冲突回归测试。"
-},],assessments:[{id:"m11-03-memory-retrieval",type:"code-task",prompt:"为项目记忆设计 hybrid retrieval 与冲突检测流程，定义 5 个字段、检索排序和 stale memory 评测指标。",rubric:[{criterion:"检索设计",description:"融合语义、关键词、时间和权限",points:3},{criterion:"压缩巩固",description:"保留条件、来源并检测冲突",points:3},{criterion:"评测",description:"定义 Recall、过期率、归因和隔离测试",points:4}]}],sources:[
+},],assessments:[{id:"m11-03-memory-retrieval",type:"design-review",prompt:"为项目记忆设计 hybrid retrieval 与冲突检测流程，定义 5 个字段、检索排序和 stale memory 评测指标。",rubric:[{criterion:"检索设计",description:"融合语义、关键词、时间和权限",points:3},{criterion:"压缩巩固",description:"保留条件、来源并检测冲突",points:3},{criterion:"评测",description:"定义 Recall、过期率、归因和隔离测试",points:4}]}],sources:[
 {title:"MemGPT: Towards LLMs as Operating Systems",url:"https://arxiv.org/abs/2310.08560",publisher:"Packer et al., 2023",note:"分层记忆检索"},
 {title:"Lost in the Middle: How Language Models Use Long Contexts",url:"https://arxiv.org/abs/2307.03172",publisher:"Liu et al., TACL 2024",note:"上下文有效利用"},
 {title:"Ragas: Automated Evaluation of Retrieval Augmented Generation",url:"https://arxiv.org/abs/2309.15217",publisher:"Es et al., 2023",note:"检索增强质量评测"},

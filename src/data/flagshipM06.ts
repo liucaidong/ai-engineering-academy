@@ -39,7 +39,7 @@ body:"Few-shot 选择不只是最近邻检索；需要在 token 预算下兼顾�
 markdown:"**两阶段选择**：先用 coverage constraints 保证每类/每个风险边界有最低代表样本，再按相关性和质量补充。可用 MMR 风格目标兼顾 query similarity 与候选间差异：score(e)=λ·sim(e,q)−(1−λ)·max sim(e,S_selected)。该式是启发式，不保证全局最优。\n\n**反例和对比样本**：为易混类别提供最小对照对，说明决定标签的关键特征；对拒绝、缺失信息和分布外输入单独留预算。\n\n**位置稳健性**：对同一集合做原序、逆序和随机排列，比较 macro-F1、少数类 recall、拒绝准确率及输出差异。若顺序影响明显，应调整模板/排序或将该敏感性纳入线上风险。\n\n**预算算法**：每次加入示例前计算目标 Tokenizer 的实际 token 增量，并保留 system policy、用户输入和输出预留；不要按字符数近似 token 数。"
 },
 ],
-assessments:[{id:"m06-02-fewshot-design",type:"code-task",prompt:"为 8 类客服意图分类设计 few-shot 示例选择器，提交覆盖字段、相关性/覆盖/冗余评分、顺序敏感性测试和 token 预算规则。",rubric:[{criterion:"覆盖策略",description:"覆盖类别、边界和拒绝样例",points:3},{criterion:"选择机制",description:"解释相关性、覆盖和冗余权衡",points:3},{criterion:"实验预算",description:"包含顺序扰动与 tokenizer 预算",points:4}]}],
+assessments:[{id:"m06-02-fewshot-design",type:"design-review",prompt:"为 8 类客服意图分类设计 few-shot 示例选择器，提交覆盖字段、相关性/覆盖/冗余评分、顺序敏感性测试和 token 预算规则。",rubric:[{criterion:"覆盖策略",description:"覆盖类别、边界和拒绝样例",points:3},{criterion:"选择机制",description:"解释相关性、覆盖和冗余权衡",points:3},{criterion:"实验预算",description:"包含顺序扰动与 tokenizer 预算",points:4}]}],
 sources:[
 {title:"Language Models are Few-Shot Learners",url:"https://arxiv.org/abs/2005.14165",publisher:"Brown et al., NeurIPS 2020",note:"Few-shot in-context learning"},
 {title:"What Makes Good In-Context Examples for GPT-3?",url:"https://arxiv.org/abs/2101.06804",publisher:"Liu et al., 2021",note:"示例选择与相似度"},
@@ -61,7 +61,7 @@ body:"语法约束可保证输出落在定义的结构语言内，但不会自�
 markdown:"Grammar-constrained decoding 在每个生成步骤根据当前语法状态屏蔽不合法 token，使生成序列遵循 JSON、正则或自定义形式语法。它解决的是合法序列空间，不等于完整 JSON Schema/业务验证；不同 API 和推理引擎支持的 schema 子集、递归、引用、格式和动态约束可能不同。\n\n**验证链**：constrained generation → parse → full schema validation → semantic/business rules → authorization → side-effect approval。即使模型在语法约束下生成合法 JSON，仍可能填入不存在的订单、错误金额或越权资源 ID。\n\n**兼容性测试**：为目标引擎建立 schema feature matrix，覆盖 required、enum、numeric range、array bounds、nested objects、additionalProperties、nullable/missing semantics 和 schema version migration。"
 },
 ],
-assessments:[{id:"m06-03-schema-contract",type:"code-task",prompt:"定义退款申请 JSON Schema，并设计 parse→schema→business→authorization 校验流程；说明格式错误、业务错误和越权如何处置。",rubric:[{criterion:"Schema 完整性",description:"字段、类型、必填、范围、枚举和额外字段策略",points:4},{criterion:"校验分层",description:"区分语法、结构、语义和权限",points:3},{criterion:"失败处理",description:"重试有界、拒绝越权、写操作幂等",points:3}]}],
+assessments:[{id:"m06-03-schema-contract",type:"code-task",prompt:"提交 Draft 2020-12 退款申请 JSON Schema 文件及至少一组合法/非法 fixture；使用 Ajv 8.x 的 Draft 2020-12 模式或 Python jsonschema 4.x 的 Draft202012Validator 执行校验，并记录工具版本与结果，再设计 parse→schema→business→authorization 流程，说明格式错误、业务错误和越权如何处置。",rubric:[{criterion:"Schema 完整性",description:"字段、类型、必填、范围、枚举和额外字段策略",points:4},{criterion:"校验分层",description:"区分语法、结构、语义和权限",points:3},{criterion:"失败处理",description:"重试有界、拒绝越权、写操作幂等",points:3}]}],
 sources:[
 {title:"JSON Schema Specification",url:"https://json-schema.org/specification",publisher:"JSON Schema",note:"结构化数据约束标准"},
 {title:"Structured Outputs",url:"https://developers.openai.com/api/docs/guides/structured-outputs",publisher:"OpenAI",note:"Schema 约束输出接口"},

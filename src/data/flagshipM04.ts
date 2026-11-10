@@ -64,7 +64,7 @@ body:"LoRA 降低可训练参数量；QLoRA 进一步量化冻结的基础模型
 markdown:"**LoRA 与 QLoRA 的边界**：LoRA 冻结基础权重并训练低秩矩阵 A、B；QLoRA 通常将冻结的基础权重以 4-bit 形式存储，反向传播穿过量化权重计算 adapter 梯度，但不更新基础权重。QLoRA 的典型技术包括 NF4、double quantization 和 paged optimizer。\n\n**资源账本至少拆分**：基础权重存储、adapter 参数/梯度/优化器状态、激活、临时反量化缓冲、序列长度、batch size、gradient checkpointing 和 optimizer offload。只根据 LoRA 参数占比估算总显存是错误的。\n\n**示例**：一个 7B 模型的 4-bit 权重理论 payload 约为 7×10⁹×0.5 byte=3.5 GB（十进制），但实际显存还需容纳量化元数据、未量化模块、KV/激活、adapter、运行时缓冲和框架开销；因此不能把 3.5 GB 当作 QLoRA 的最低显存承诺。\n\n**实验设计**：固定模型、数据、序列长度和训练步数，比较 full fine-tuning、LoRA 与 QLoRA 的峰值显存、吞吐、训练时间、目标任务质量和通用能力回归。报告硬件、软件版本、精度、batch/accumulation、rank、target modules 和随机种子。"
 },
 ],
-assessments:[{id:"m04-03-lora-plan",type:"code-task",prompt:"设计客服指令 SFT 数据与 LoRA 方案。对 4096×4096 矩阵、rank=16，计算可训练参数和全量更新比例，并定义 loss mask。",rubric:[{criterion:"数据契约",description:"定义消息结构、目标回答、边界样例和许可",points:3},{criterion:"LoRA 计算",description:"得到 131072 参数及约 0.78% 比例",points:3},{criterion:"训练验证",description:"说明 loss mask、过拟合监控和独立 holdout",points:4}]}],
+assessments:[{id:"m04-03-lora-plan",type:"design-review",prompt:"设计客服指令 SFT 数据与 LoRA 方案。对 4096×4096 矩阵、rank=16，计算可训练参数和全量更新比例，并定义 loss mask。",rubric:[{criterion:"数据契约",description:"定义消息结构、目标回答、边界样例和许可",points:3},{criterion:"LoRA 计算",description:"得到 131072 参数及约 0.78% 比例",points:3},{criterion:"训练验证",description:"说明 loss mask、过拟合监控和独立 holdout",points:4}]}],
 sources:[
 {title:"LoRA: Low-Rank Adaptation of Large Language Models",url:"https://arxiv.org/abs/2106.09685",publisher:"Hu et al., 2021",note:"低秩适配原始论文"},
 {title:"TRL Documentation",url:"https://huggingface.co/docs/trl/index",publisher:"Hugging Face",note:"监督微调和偏好训练工具"},
