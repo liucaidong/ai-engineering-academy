@@ -95,7 +95,7 @@
 
 - Biome 是前端唯一 lint + formatter，负责 TypeScript/TSX、工程配置与导入排序；不并行维护 ESLint、Prettier。
 - Ruff 是 Python 唯一 lint + formatter，启用 pycodestyle、Pyflakes、import sorting（I）与 Bandit 安全规则（S）；测试中的 S101 断言仅在 tests 路径豁免，其他误报必须逐行附理由。后端验收同时执行 `ruff format --check` 和 `ruff check`。
-- `pnpm security:audit` 使用 npm 官方 registry 和 pip-audit 分别检查前端生产依赖、Python 环境依赖；不依赖 GitHub Actions。
+- `pnpm security:audit` 使用 npm 官方 registry 和 pip-audit 分别检查前端生产依赖、Python 环境依赖；不依赖 GitHub Actions。数据库 revision readiness 检查的 5 秒 TTL 与并发合并策略见 [ADR-0007](./adr/0007-database-schema-revision-cache.md)。
 - TypeScript `strict` 类型检查独立运行，Biome 不替代编译器类型检查。
 - Biome 不格式化课程数据源、教材 Markdown、CSS 和生成的 OpenAPI TypeScript；这些文件分别由课程校验、内容审阅、现有样式治理和生成器管理。
 - `pnpm check` 汇总 Biome lint、格式检查、TypeScript typecheck 和 OpenAPI 契约漂移检查。

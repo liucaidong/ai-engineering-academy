@@ -52,7 +52,7 @@
 | CORS 原先未放行 `X-Tenant-ID` | P2（跨源 learner API 预检失败） | 已放行该请求头，并新增真实 ASGI CORS preflight 回归测试 |
 | Assessment key 校验使用规范化值、持久化却使用原始值 | P2（测评记录主键语义不一致） | 已启用 Pydantic 字符串 trim，并新增规范化/空白拒绝测试 |
 | 全课程编辑器数据加载无 rejection handler | P2（失败后永久显示加载状态） | 已加入错误状态、重试按钮和失败 chunk 注入 E2E |
-| 每个认证/learner API 请求重复检查 Alembic revision | P2 性能观察 | 保持 fail-closed；后续用真实请求负载评估启动检查/有界缓存方案 |
+| 每个认证/learner API 请求重复检查 Alembic revision | P2 性能 | 已增加 5 秒进程内成功结果缓存、并发 miss 合并、失败不缓存和显式失效；生产迁移仍要求 expand/contract 与 worker 重启 |
 | 前端 localStorage 作为学习状态与草稿存储 | 低/产品边界 | 已抽取持久化 hook 并保留 storage 异常容错；后续评估 schema version migration |
 | npm audit 的默认 registry endpoint 不可用 | 过程风险 | 安全扫描固定使用 npm 官方 registry 或等效可信审计源 |
 
@@ -64,7 +64,7 @@
 - [x] 升级 Vite 8 / Rolldown、React 插件 6、Vitest 5。
 - [x] 升级 Zod 4 并修复未知字段错误断言的版本兼容性。
 - [x] npm 官方 registry 生产依赖审计。
-- [x] pytest 9 / pytest-asyncio 1.x 迁移并通过 122 项后端测试。
+- [x] pytest 9 / pytest-asyncio 1.x 迁移；当前后端 129 项通过、1 项 PostgreSQL RLS 集成测试因专用环境缺失而跳过。
 - [ ] TypeScript 7 在 OpenAPI 生成工具声明兼容后重新评估。
 - [ ] 建立依赖更新分级、升级窗口和回滚标准。
 
@@ -72,7 +72,8 @@
 - [ ] 全量审查身份认证、会话、CSRF、OIDC、租户授权、RLS 和 Alembic migrations。
 - [x] 为 Ruff 启用安全规则并逐处处理已识别误报；[ ] 持续扩大安全规则覆盖和修复新发现。
 - [ ] 检查前端 Markdown 渲染、浏览器存储、导入导出和文件处理边界。
-- [ ] 引入可重复的依赖漏洞扫描和 SBOM 生成流程（先本地执行，不依赖 Actions）。
+- [x] 建立可重复的本地依赖漏洞扫描：`pnpm security:audit`（npm 生产依赖 + Python 环境依赖）。
+- [ ] 增加 SPDX/CycloneDX SBOM 生成、归档与发布校验。
 
 ### G03 — 架构边界治理
 - [ ] 前端按 app shell、features、shared、data/contracts 划分职责。
@@ -106,7 +107,7 @@ Vite 8 + Vitest 5 + Zod 4 组合完成本机验收：
 - Playwright：42 tests passed。
 - M04–M20 Python 示例：全部通过（88 tests）。
 - Ruff format / lint（含 Bandit S 规则）：65 files 通过，无未豁免安全规则告警。
-- Backend pytest：125 passed / 1 skipped。
+- Backend pytest：129 passed / 1 skipped。
 - 1 项 skipped 是需要专用 PostgreSQL RLS 环境的可选集成测试，不计入通过数。
 - `pnpm security:audit`：npm 生产依赖与 Python 3.12 环境均 No known vulnerabilities found；本项目本身因未发布至 PyPI 被 pip-audit 跳过。
 - 未运行 GitHub Actions。
@@ -115,8 +116,9 @@ Vite 8 + Vitest 5 + Zod 4 组合完成本机验收：
 
 - 首轮 Review 明细：[`CODE_REVIEW_2026-11.md`](./CODE_REVIEW_2026-11.md)。
 - 前端状态持久化边界与浏览器安全中间件配置记录：[`ADR-0006`](./adr/0006-learning-state-and-browser-security-boundary.md)。
-- 本轮修复 3 项 P2：CORS tenant header、assessment key 规范化、全课程编辑器加载错误与重试。
-- 当前全量本机验收：42 E2E、125 backend tests passed / 1 skipped；详见本文件第 6 节。
+- 第一轮修复 3 项 P2：CORS tenant header、assessment key 规范化、全课程编辑器加载错误与重试。
+- 第二轮完成数据库 schema revision readiness 检查优化，增加 5 秒 TTL、并发合并、失败不缓存及显式失效；见 [`ADR-0007`](./adr/0007-database-schema-revision-cache.md)。
+- 当前全量本机验收：42 E2E、129 backend tests passed / 1 skipped；详见本文件第 6 节。
 
 ## 8. 完成定义
 

@@ -58,11 +58,19 @@
 |---|---|---|
 | `src/App.tsx` 仍承担过多页面组合和数据加载职责 | 中 | 已抽取学习状态 hook；继续拆分 sidebar、lesson workspace、lab router 与数据加载 hooks |
 | `oidc_provider.py` 和 `api/auth.py` 仍偏大 | 中 | 后续拆分 discovery/JWKS、token exchange/verification、auth application service |
-| `Database.check_schema_revision` 在认证/learner API 请求路径重复访问数据库 | P2 性能 | 保持 fail-closed 语义，评估 startup gate + 有界缓存/健康检查，不在缺少负载数据时盲目缓存 |
+| `Database.check_schema_revision` 在认证/learner API 请求路径重复访问数据库 | P2 性能 | 已增加 5 秒成功结果缓存、并发 miss 合并、失败不缓存和显式失效；部署仍要求 expand/contract 与 worker 重启，见 ADR-0007 |
 | OIDC login/callback 缺少应用层速率限制 | P2 上线前 | 在公开部署前加入基于 IP/会话/issuer 的限流与异常登录审计 |
 | PostgreSQL RLS 集成测试依赖专用数据库环境 | 验收限制 | 在隔离 PostgreSQL 环境中执行，不能以 mock 测试代替 |
 | OIDC 使用 fake provider transport 测试 | 验收限制 | 生产启用前必须完成真实测试 IdP 的端到端验收 |
 | localStorage 学习进度与草稿 | 产品边界 | 仍是设备本地数据；若引入账户同步，需定义冲突、迁移、隐私和删除策略 |
+
+## 3.1 第二轮后端性能与一致性修复
+
+- `Database.check_schema_revision` 原先每次认证或 learner API 请求都查询 `alembic_version`。
+- 已引入 5 秒进程内 TTL，仅缓存精确匹配的成功结果；并发 cache miss 由 `asyncio.Lock` 合并；失败不缓存。
+- 提供显式失效方法，并在 `dispose()` 时清理。
+- 7 项 database tests 覆盖 TTL、失败不缓存、并发合并和失效；全量后端测试 129 passed / 1 skipped。
+- 该优化没有真实 PostgreSQL 负载基准数据，不声称有确定百分比的延迟收益。迁移部署必须采用 expand/contract 并滚动重启 worker。
 
 ## 4. 质量门禁
 
