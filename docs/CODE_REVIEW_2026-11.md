@@ -285,3 +285,18 @@
 将账户、租户、guest import、learner progress sync 和 assessment draft sync 的 UI/side-effect orchestration 从 `src/App.tsx` 提取到 `LearningAccountControls` feature boundary。App 仍拥有权威 session 与学习状态，组件通过显式 props 接收状态和 setter，不复制 session、不把授权判断下沉到浏览器，也不改变 feature flag 默认值。
 
 结果：App 去除约 90 行账户/同步控制细节，账户 UI 和学习数据副作用集中在同一 feature boundary，后续可独立测试/演进。
+
+
+## 21. Reproducible local PostgreSQL role provisioning and reviewed release bootstrap（2026-11-10）
+
+新增 local-only database bootstrap：
+- `scripts/bootstrap-local-postgres.sh` 只允许 loopback DB host；先通过 Alembic 将数据库升级到唯一 revision `0012_platform_publisher_audit`，再 provision runtime/publisher 两个 direct-login roles。
+- `backend/scripts/provision_local_roles.sql` 通过 psql 环境变量读取密码，不回显密码；重置 role attributes 为 `NOSUPERUSER/NOBYPASSRLS/NOINHERIT`，撤销 role memberships，runtime 仅获得 RLS 保护下的 CRUD 与 sequence 权限，publisher 仅获得 course release/audit/迁移头所需权限。
+- `.env.example` 分离 admin、runtime、publisher 三种连接；应用 URL 使用 runtime role，publisher CLI 使用专用 publisher URL。真实 `.env` 必须保持 ignored 且权限 0600。
+- `scripts/publish-local-course-release.sh` 从当前前端源码导出课程并计算摘要；第一次执行只 dry-run，必须人工检查并通过 `ACADEMY_EXPECTED_COURSE_SHA256` 再次执行才写入持久化 DB。
+
+验证：两个 shell 脚本通过 `bash -n`；publisher wrapper dry-run 重新导出当前课程（20 modules / 100 lessons / 100 assessments），digest 为 `4779e75a5042b4759f011bc2747850e6ad7151657368ba1912574615766b5df0`，在未提供审批 digest 时按设计退出且没有数据库写入。role provisioning SQL 在现有本地数据库中通过事务包裹执行并显式 ROLLBACK，验证 psql 语法、grant 与 `superuser=false/bypassrls=false` 属性；未改变该数据库的持久状态。bootstrap 本身未对候选本地数据库执行，因为当前 repo 未配置其凭证/连接，且需要先确认目标数据库归属。
+
+## 22. Final local acceptance and dependency audit（2026-11-10）
+
+After learner progress/assessment sync, explicit guest import, account-control extraction and local DB bootstrap tooling, the full local acceptance gate passed: Biome lint/format, strict TypeScript, OpenAPI 3.1 drift (17 paths), Vitest 106, Playwright Chromium 47, M04–M20 example suites, Ruff, backend pytest 159 passed / 3 optional DB-only skips and Vite production build (431 modules). Separate PostgreSQL 18.6 RLS HTTP acceptance passed 3/3; disposable publisher acceptance passed all schema-head, concurrency/idempotency, atomic-audit, least-privilege, RLS and immutability checks. `pnpm security:audit` found no known npm or Python third-party vulnerabilities; the unpublished first-party Python package is not on PyPI and remains outside pip-audit coverage. GitHub Actions were not triggered.

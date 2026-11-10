@@ -75,24 +75,29 @@
 
 ## P5 — Code quality and system functionalization (2026-11-10)
 
-- [x] Establish current local quality baseline: 88 Vitest, 47 Playwright, 152 backend pytest passed / 1 optional RLS skip, Biome, Ruff, TypeScript, OpenAPI drift and production build passed.
+- [x] Establish current local quality baseline: 106 Vitest, 47 Playwright, 159 backend pytest passed / 3 optional DB-only skips, Biome, Ruff, TypeScript, OpenAPI drift (17 paths), PostgreSQL RLS acceptance (3 passed) and production build passed.
 - [x] Execute real PostgreSQL 18.6 RLS acceptance with an unprivileged non-owner / non-superuser / non-BYPASSRLS runtime role.
 - [x] Document risk-based code-quality and system-functionalization backlog in [ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11](./ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11.md).
 - [x] Expose authenticated `GET /tenants/me` using migration 0010's self-only RLS policy; verify actual query service on PostgreSQL 18.6.
-- [x] Implement typed frontend API transport with Cookie credentials, session-bound CSRF, explicit tenant context, structured errors, timeout/cancellation and 15 regression tests; full local acceptance passed (88 Vitest, 47 Playwright, 152 backend pytest + 1 optional skip).
+- [x] Implement typed frontend API transport with Cookie credentials, session-bound CSRF, explicit tenant context, structured errors, timeout/cancellation and 18 regression tests; full local acceptance passed.
 - [x] Add feature-gated session bootstrap, tenant discovery/selection, stale-preference revalidation and CSRF-protected logout UI (4 dedicated scenarios; full Playwright suite 47 passed); frontend auth UI flag defaults off.
-- [ ] Integrate learner progress and assessment attempts with backend persistence and local-state reconciliation (blocked on the committed release UUID from the intended persistent database and explicit legacy-data import).
+- [x] Implement exact-version learner progress sync with full published-snapshot validation, remote/local reconciliation and complete/reopen APIs (feature-gated).
+- [x] Implement assessment draft persistence/sync with latest-draft reads, optimistic concurrency, conflict-safe attempt creation and no-store responses (feature-gated).
+- [x] Implement explicit idempotent guest-to-account import with set-union and draft-conflict preservation.
+- [ ] Publish the current curriculum snapshot into the intended persistent database and bind live synchronization to its actual release UUID.
 - [ ] Complete provider-backed OIDC E2E and privacy/retention review before enabling learner APIs.
-- [x] Add authenticated, tenant-authorized published course-release metadata/content read APIs; drafts remain hidden (15 OpenAPI paths; PostgreSQL 18.6 RLS route acceptance passed).
+- [x] Add authenticated, tenant-authorized published course-release metadata/content read APIs; drafts remain hidden (17 OpenAPI paths after learner draft endpoints; PostgreSQL 18.6 RLS route acceptance passed).
 - [x] Add ADR-0009 defining immutable release consumption, platform-scoped publication and explicit legacy-data import boundaries.
 - [x] Implement platform-scoped course publication CLI, strict snapshot validation, reviewed digest, atomic audit, idempotency and immutable database guards (ADR-0010; PostgreSQL 18.6 disposable acceptance passed).
-- [ ] Provision the dedicated publisher role in the intended persistent database and publish the first persistent release; the disposable acceptance UUID is not reusable.
-- [ ] Bind the learner UI to that persistent published course-release UUID.
+- [x] Add loopback-only persistent PostgreSQL bootstrap and least-privilege runtime/publisher role provisioning scripts; SQL syntax/role grants validated in a rollback-only PostgreSQL transaction.
+- [x] Add reviewed-digest publisher wrapper; first run is dry-run only and publication requires the exact approved SHA-256.
+- [ ] Upgrade the intended persistent database to migration 0012, provision the dedicated publisher role and publish the first persistent release; the disposable acceptance UUID is not reusable.
+- [x] Implement runtime release resolution and exact version/schema/module validation; no release UUID is hard-coded.
 - [ ] Define instructor/course-authoring authorization and publishing workflow before exposing authoring APIs.
 
 
 ## Frontend maintainability
 
-- [x] Extract course navigation, lesson article/assessment content, learning-context aside, course-data loading hook and lazy lab registry into feature-owned modules with explicit inputs/callbacks; add catalog-to-lab registry contract tests (App.tsx reduced 574 → 237 lines; full local acceptance passed).
+- [x] Extract course navigation, lesson article/assessment content, learning-context aside, course-data loading hook, lazy lab registry and learner account/sync controls into feature-owned modules with explicit inputs/callbacks; App.tsx currently 257 lines.
 - [ ] Extract course-authoring orchestration into a feature-owned workflow only if its lifecycle boundary is clear; preserve lazy loading, validation and local draft semantics.
 - [ ] Add focused component-level tests where they provide coverage beyond the existing Playwright end-to-end suite.

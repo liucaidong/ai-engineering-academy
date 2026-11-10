@@ -6,68 +6,77 @@
 - Scope: code quality, backend/frontend integration, product workflows and local acceptance.
 - Exclusions: curriculum expansion, framework replacement, speculative infrastructure, GitHub Actions execution.
 
-## 1. Current verified baseline
+## 1. Current verified baseline（2026-11-10）
 
-| Area | Evidence | Status |
+| Area | Latest evidence | Status |
 |---|---|---|
-| Frontend lint/format | Biome | Pass |
+| Frontend lint/format | Biome lint + format | Pass |
 | Type safety | TypeScript strict check | Pass |
-| API contract | OpenAPI 3.1 export + generated type drift check | Pass; 15 paths |
-| Frontend unit tests | Vitest | 88 passed / 17 files |
+| API contract | OpenAPI 3.1 export + generated TypeScript drift check | Pass; 17 paths |
+| Frontend unit tests | Vitest | 106 passed / 21 files |
 | Browser E2E | Playwright Chromium | 47 passed |
-| Backend tests | pytest | 152 passed, 1 optional PostgreSQL harness skip |
+| Backend tests | pytest | 159 passed / 3 optional DB-only skips |
 | Backend lint/format | Ruff | Pass; 77 Python files formatted |
-| Production build | Vite 8.3.6 | Pass; 418 modules transformed |
-| PostgreSQL RLS | Disposable PostgreSQL 18.6, full Alembic chain, unprivileged runtime role | 1 integration test passed |
+| Production build | Vite 8.3.6 | Pass; 430 modules transformed |
+| PostgreSQL RLS | PostgreSQL 18.6, actual HTTP routes, non-owner/non-superuser/non-BYPASSRLS runtime role | 3 passed |
+| Platform publisher | Disposable PostgreSQL 18, strict snapshot, idempotency, atomic audit, role/RLS and immutability tests | Pass |
 | Git state | `develop` | Clean; local HEAD equals origin/develop |
 
-The one skipped test in the ordinary backend pytest run is the optional two-connection PostgreSQL RLS harness when its environment URLs are absent. The independent disposable-PostgreSQL acceptance passed; the skip must not be counted as a pass.
+The three skipped backend tests are optional DB-only tests in the ordinary pytest invocation; they are not counted as passes. The dedicated PostgreSQL acceptance script separately executes the real RLS HTTP integration suite and passes 3/3. The publisher acceptance uses a separate disposable PostgreSQL database and removes it after the test. Neither result proves that a persistent production database or external OIDC provider has been configured.
 
 ### Build observations
 
-The current main entry chunk is 40.29 kB raw / 15.27 kB gzip. React Runtime is 218.74 kB / 68.27 kB gzip, Vendor is 164.01 kB / 49.11 kB gzip, Validation is 89.89 kB / 25.50 kB gzip, and each curriculum module is emitted as an independent chunk. The previous ~971 kB main-chunk observation is stale. Further optimization must use measured initial-route waterfalls and interaction timings, not raw chunk size alone.
+The current build keeps curriculum module content in independent lazy-loaded chunks. The measured main entry is approximately 64.49 kB raw / 21.77 kB gzip; React Runtime is 218.74 kB / 68.27 kB gzip, Vendor 164.01 kB / 49.11 kB gzip and Validation 89.89 kB / 25.50 kB gzip. Continue to use initial-route waterfalls and interaction timings before changing the chunk strategy; do not optimize based only on raw chunk size.
+
+### Current integration state
+
+- Frontend browser state is isolated by authenticated user and selected tenant. Guest/legacy data can be imported explicitly with idempotent union semantics and draft-conflict preservation.
+- Learner progress and assessment draft sync are implemented but require both frontend flags and an exact persisted published release. Both flags remain false by default.
+- Backend learner routes remain disabled unless complete OIDC/database configuration and the database feature flag are enabled.
+- A local PostgreSQL container was observed on the development machine with database `academy`, Alembic revision `0011_personal_tenant_bootstrap`, zero course releases and an `academy_runtime` role. It is not configured in `backend/.env`; no publisher role or persistent release is provisioned there. A loopback-only bootstrap helper and role-provisioning SQL now exist, but were not applied to this candidate database. Treat it as local development infrastructure, not production acceptance evidence.
+- No external OIDC issuer/client registration or production secrets are configured in the current environment.
 
 ## 2. Confirmed product/system gaps
 
-### SF-01 — Typed API transport implemented; learner state remains device-local
+### SF-01 — Learner data is account-scoped locally and cloud-sync capable
 
-- Backend routes exist for OIDC login/callback/current-session/CSRF/logout, learner progress and assessment attempts.
-- src/api/client.ts provides typed session, tenant discovery, learner progress, assessment attempt and logout methods.
-- The client uses credentialed HttpOnly cookies, session-bound CSRF, explicit tenant headers, structured errors, timeout/cancellation and request correlation.
-- Frontend bookmarks, completion and assessment drafts still persist in browser localStorage; learner UI calls are not yet connected to backend persistence.
-- Consequence: the application has a transport layer but is not yet a multi-device learning product.
+- Bookmarks, module completion and assessment drafts use localStorage scopes derived from the authenticated server user ID and the currently selected tenant ID. Guest state is separate.
+- An explicit guest import control merges bookmarks/completion by set union and copies only assessment drafts absent from the account. Conflicting drafts never overwrite account data; the guest source remains intact.
+- Exact-version progress sync and assessment draft sync are implemented behind `VITE_ACADEMY_AUTH_UI_ENABLED` and `VITE_ACADEMY_LEARNER_SYNC_ENABLED`, both false by default.
+- Progress sync resolves the exact published `course_key + version + schema_version`, validates the complete snapshot with the frontend CourseSchema and checks the exact module sequence before using the server UUID.
+- Assessment drafts use latest-draft reads, bounded JSON, optimistic concurrency and conflict-safe attempt creation. No instructor grading capability is implied.
 
-**Next:** after a real published release UUID exists, connect progress and assessment flows with explicit legacy-data import and deterministic conflict handling. Do not introduce a second authentication scheme.
+**Remaining:** publish the actual curriculum snapshot into the intended persistent database, configure a real OIDC provider, then perform provider-backed E2E and privacy/retention review before enabling the feature flags.
 
-### SF-02 — Tenant discovery HTTP endpoint (implemented 2026-11-10)
+### SF-02 — Tenant discovery and session UI（implemented）
 
-- Migration `0010_tenant_membership_discovery` permits a signed-in user to discover only their own active tenant memberships.
-- `GET /auth/tenants` remains intentionally absent (a test asserts 404); the supported route is `GET /tenants/me`.
-- The route is gated by complete OIDC configuration and `ACADEMY_LEARNER_DATA_API_ENABLED=true`.
+`GET /tenants/me` uses the authenticated HttpOnly session, transaction-local user context and self-only membership RLS. The React session UI revalidates remembered tenant preferences and exposes explicit tenant selection/logout. One session hook is owned by App and passed to the account-control feature; the browser never treats its tenant preference as authorization.
 
-**Delivered:** `GET /tenants/me` uses the authenticated HttpOnly session, the transaction-local user context and migration 0010 self-discovery policy; it switches into each tenant context before reading tenant metadata and assigned roles, omits memberships suspended during the read, returns `Cache-Control: no-store`, and never accepts a caller-supplied user ID or role. Unit tests and the complete `GET /tenants/me` HTTP route (including real opaque-session resolution) pass against disposable PostgreSQL 18.6 with the non-owner/non-BYPASSRLS runtime role. The OpenAPI contract now contains 15 paths. This does not exercise an external OIDC provider.
+**Remaining:** provider-backed OIDC E2E. No real provider is configured in the current environment.
 
 ### SF-03 — Learner API remains disabled by default
 
 - `ACADEMY_LEARNER_DATA_API_ENABLED` defaults to false.
-- Learner APIs also require complete OIDC/database configuration and schema head 0012.
-- RLS acceptance is now complete, but that is not equivalent to production OIDC provider acceptance, production database least-privilege review or privacy approval.
+- Frontend auth UI and learner sync flags also default to false.
+- Learner routes require a valid session, active tenant membership, role permission, schema head 0012 and PostgreSQL RLS.
+- Disposable PostgreSQL acceptance is complete, but it is not equivalent to external provider acceptance, persistent runtime-role verification or privacy approval.
 
-**Target:** preserve fail-closed defaults. Do not turn on the feature flag as a shortcut. Complete provider-backed E2E and privacy/retention review first.
+**Target:** preserve fail-closed defaults until provider-backed E2E, persistent database least-privilege review and privacy/retention review are complete.
 
 ### SF-04 — Course authoring remains browser-local; platform publishing is CLI-only
 
-- Course authoring uses local drafts and browser JSON import/export.
-- A dedicated platform publisher CLI, strict snapshot validation, digest review, idempotent publication and immutable-release database guards are implemented; authenticated authoring/publishing UI and HTTP endpoints remain absent.
-- No instructor/course-authoring permissions should be inferred from the existing learner-only OIDC provisioning path.
+- Course authoring currently uses local drafts and browser JSON import/export.
+- A dedicated platform publisher CLI, strict full-snapshot validation, reviewed SHA-256 digest, atomic audit, idempotent publication and immutable-release database guards are implemented.
+- Authenticated authoring, review/approval and publishing UI/HTTP endpoints remain absent.
+- No instructor/course-authoring permission should be inferred from the learner-only OIDC provisioning path.
 
-**Target:** define the authoring roles, review/publish lifecycle, immutable release behavior and audit requirements before adding authoring endpoints.
+**Target:** define authoring roles, resource authorization, review/approval lifecycle and audit requirements before exposing authoring endpoints.
 
 ### SF-05 — Frontend composition and state ownership
 
-- `src/App.tsx` still owns navigation, route-like view selection, lesson loading, full-text search loading, authoring loading and learning-state presentation.
-- The learning state persistence boundary has been extracted to `useLearningState`, but it is still browser-local.
-- The next decomposition should follow real feature boundaries (session, tenant, learning progress, assessment, course workspace), not arbitrary component line counts.
+- `src/App.tsx` is now 257 lines; account/tenant/import/progress-sync/assessment-sync UI and side effects are encapsulated in `LearningAccountControls`.
+- Course navigation, lesson content, course-data loading, labs and local learning-state persistence already have feature-owned boundaries.
+- Course-authoring orchestration and route-like view selection remain in App; extract only where lifecycle ownership is clear.
 
 ## 3. Code-quality workstream
 
@@ -115,44 +124,23 @@ Test:
 
 ## 4. System functionality workstream
 
-Implement vertical slices in this order:
+| Slice | Implementation status | Remaining acceptance |
+|---|---|---|
+| Session and tenant context | Session API, tenant discovery, explicit selector, stale-preference revalidation and logout implemented | Configure a real OIDC provider and complete provider-backed E2E |
+| Course release consumption | Authenticated published metadata and immutable snapshot reads implemented | Seed the exact current curriculum into the intended persistent database and record its real UUID |
+| Platform publication | Strict publisher CLI, dedicated DB role contract, reviewed digest, atomic audit, idempotency and immutability implemented | Provision publisher role in persistent target DB and publish there |
+| Learner progress | Exact-release resolution, full snapshot validation, remote/local merge, complete/reopen sync implemented | Enable only after OIDC, persistent DB and privacy gates |
+| Assessment lifecycle | Latest-draft API, optimistic update, 64 KiB JSON bound, no-store, conflict-safe sync implemented | Instructor grading remains out of scope; real provider/persistent DB acceptance pending |
+| Guest/local data migration | Explicit account/tenant import, set-union semantics and draft conflict preservation implemented | Manual UX review on shared browser/account switching |
+| Authoring/instructor workflow | Browser-local authoring only; no authenticated server authoring API | Define roles, resource-scoped authorization, review/approval and audit before implementation |
+| Operational readiness | Liveness/readiness, request correlation, security boundaries and local acceptance available | Persistent deployment, backup/restore, provider E2E, privacy review, load/failure/recovery rehearsal |
 
-1. **Session and tenant context**
-   - typed frontend API client;
-   - login/session/current-user/logout UX;
-   - active tenant discovery and explicit tenant selection;
-   - cookie credentials, CSRF, Origin/CORS and error contract;
-   - provider-backed test IdP acceptance before enabling production login.
-
-2. **Course release consumption and publication boundary**
-   - expose authenticated published release metadata and immutable content snapshots;
-   - keep global catalog publishing platform-scoped, separate from tenant_admin;
-   - bootstrap and verify a real immutable release UUID before learner writes.
-
-3. **Learner progress synchronization**
-   - map local module progress to a published course release;
-   - create/touch/complete/reopen progress through backend routes;
-   - reconcile existing browser-local state only through explicit, idempotent import;
-   - define deterministic conflict and deletion behavior;
-   - show sync state and recoverable errors.
-
-4. **Assessment lifecycle**
-   - persist draft responses and rubric self-review;
-   - create/list/submit attempts through backend APIs;
-   - enforce attempt identity, immutable submission state and concurrency invariants;
-   - distinguish self-review from instructor grading (not implemented).
-
-5. **Authoring and instructor workflows**
-   - define role/resource authorization and review/approval lifecycle;
-   - implement course draft/version/publish APIs only after authorization design;
-   - retain audit events and immutable published releases.
-
-6. **Operational readiness**
-   - real OIDC provider E2E;
-   - runtime database least-privilege audit;
-   - request correlation, structured safe logs and operational health;
-   - load, failure and recovery tests;
-   - deployment and backup/restore rehearsal.
+Implementation order from here:
+1. Complete persistent PostgreSQL setup and seed the first immutable course release; do not reuse a UUID from a disposable test database.
+2. Configure a real OIDC provider registration, callback URL, client type and secrets; run the full login/session/tenant/learner API E2E.
+3. Perform production runtime-role grants review and privacy/retention review; only then consider enabling learner APIs.
+4. Define instructor/course-authoring roles and approval lifecycle before adding server authoring endpoints.
+5. Continue risk-based code review, manual accessibility review, operational backup/restore and failure recovery.
 
 ## 5. Delivery and quality gates
 
@@ -209,13 +197,13 @@ Implemented ADR-0010 and the platform publication boundary:
 - The unique course/version constraint provides the concurrency boundary. Identical repeated publication returns the existing UUID without a second audit event; mismatched digest/schema/status is rejected.
 - Disposable PostgreSQL 18.6 acceptance exported and validated the actual course bundle (20 modules, 100 lessons, 100 assessments), published it, raced two concurrent publishers (one insert, one idempotent conflict result), repeated it idempotently, rejected a conflicting snapshot and digest mismatch, proved release rollback when audit INSERT was denied, verified one audit event, checked role/grant attributes and confirmed snapshot immutability. The generated UUID existed only in the disposable database and must not be used by the frontend.
 
-**Remaining external operation:** no persistent target database or publisher credential is configured in this local environment. A DBA must apply migrations through 0012_platform_publisher_audit, provision the dedicated role, and run the documented dry-run/review/publish sequence against the intended persistent database. Only that database's committed release UUID can unblock SF-05.
+**Remaining external operation:** a local PostgreSQL container was found, but it is not configured in `backend/.env`; its `academy` database is at revision 0011 and contains zero course releases. It has an existing runtime role but no publisher role. The database has not been modified in this continuation. Apply migration 0012 through Alembic, verify/reprovision least-privilege roles, and run the documented dry-run/review/publish sequence against the intended persistent database. Only the resulting committed release UUID can unblock live learner synchronization.
 
-### SF-05 — Learner data synchronization (blocked on SF-04)
+### SF-05/SF-06/SF-07 — Learner progress, assessment drafts and guest import（code implemented; activation gated）
 
-After a real published release is available, map learner progress to its persisted UUID and selected tenant. Reconcile legacy browser-local completion only through an explicit, idempotent import; preserve the original local snapshot and report conflicts. Assessment persistence follows the same release binding.
+The frontend sync adapters and backend routes are implemented and tested. Progress sync requires an exact published release UUID and exact module sequence. Assessment draft sync uses a 700 ms debounce, latest-draft lookup, optimistic `updated_at` revision checks and a new attempt on concurrent conflict. Guest-to-account import is explicit and idempotent; conflicting assessment drafts are preserved rather than overwritten.
 
-Keep OIDC and learner API defaults disabled until provider-backed E2E, runtime DB least-privilege and privacy/retention gates are accepted.
+The production activation dependency is now narrowly defined: the current course snapshot must be published into the intended persistent database; the actual returned UUID is resolved by API at runtime, never hard-coded. Then a real OIDC provider and production runtime role/privacy review must pass. Keep all feature flags false until those gates are satisfied.
 
 
 ### SF-04 acceptance evidence — 2026-11-10
@@ -314,3 +302,12 @@ Four focused tests cover key scope and guest-import merge/idempotency/conflict b
 ### CQ-06 — Account and learner-control feature boundary（implemented 2026-11-10）
 
 Extracted session/tenant presentation, guest import, learner progress sync and assessment draft sync orchestration from `src/App.tsx` into `LearningAccountControls`. App retains the authoritative session and learning state; the component receives explicit state/setter props and does not instantiate a second session or make authorization decisions. App composition is reduced by roughly 90 lines without changing default feature gates.
+
+
+### SF-08 — Persistent local PostgreSQL bootstrap and reviewed publication（implemented, not applied to candidate DB）
+
+Added a loopback-only bootstrap path: `scripts/bootstrap-local-postgres.sh` runs the full Alembic chain as a separate admin role, requires exact migration head 0012, provisions `academy_runtime` and `academy_course_publisher` as direct-login non-superuser/non-BYPASSRLS roles, removes role memberships, applies narrow grants/default privileges and verifies ownership/grant invariants. `backend/.env.example` separates admin/runtime/publisher credentials; the real `.env` remains ignored and must be mode 0600. `scripts/publish-local-course-release.sh` exports the exact current curriculum and performs a dry-run first; persistent publication requires a second invocation with the reviewed SHA-256 in `ACADEMY_EXPECTED_COURSE_SHA256`.
+
+Validation: both scripts pass `bash -n`; role provisioning SQL was executed against the candidate local PostgreSQL inside an explicit transaction and rolled back, proving SQL syntax/grants and role attributes without persistent changes. The publisher wrapper dry-run exported 20 modules, 100 lessons and 100 assessments, produced SHA-256 `4779e75a5042b4759f011bc2747850e6ad7151657368ba1912574615766b5df0`, and correctly refused to write without an approved digest. The candidate local database remains at revision 0011 with zero releases; bootstrap and publication have not been applied to it.
+
+Latest full acceptance: 106 Vitest, 47 Playwright, 159 backend pytest / 3 optional DB-only skips, OpenAPI 17 paths, Biome, TypeScript, Ruff, all M04–M20 examples, production build, PostgreSQL RLS 3/3, publisher PostgreSQL acceptance and dependency audit all passed. No GitHub Actions were triggered.

@@ -140,3 +140,15 @@ runtime or a tenant-admin credential for this operation. The disposable
 PostgreSQL end-to-end publisher acceptance can be run with
 pnpm acceptance:course-publisher; it does not publish to a persistent or
 production database.
+
+
+## Local persistent PostgreSQL setup
+
+The application runtime must connect as `academy_runtime`, never as the schema owner or a superuser. The publisher CLI must connect directly as `academy_course_publisher`. A local PostgreSQL server/database must already be running and reachable on loopback.
+
+1. Copy `backend/.env.example` to `backend/.env`. Set `ACADEMY_DB_HOST=127.0.0.1`, the actual local port/database, and generate three independent 32-byte hex passwords (admin, runtime, publisher) using `python -c "import secrets; print(secrets.token_hex(32))"`. Update both role URLs with their matching passwords. Keep `ACADEMY_LEARNER_DATA_API_ENABLED=false`.
+2. Run `bash scripts/bootstrap-local-postgres.sh`. The script refuses non-loopback targets, applies Alembic migrations as the admin role, requires the single head `0012_platform_publisher_audit`, provisions direct-login least-privilege roles, removes role memberships and verifies both roles are non-superuser/non-BYPASSRLS.
+3. Keep `backend/.env` untracked and permission-restricted (`chmod 600 backend/.env`). Never copy local credentials into source control, shell history or issue reports.
+4. Run `bash scripts/publish-local-course-release.sh`. The first invocation exports the exact current curriculum, validates it and prints the SHA-256 without writing to the database. Review the course summary and digest, then rerun with `ACADEMY_EXPECTED_COURSE_SHA256=<reviewed digest>` to publish. The publisher URL is not the runtime URL.
+
+This helper is local-development only and rejects remote database hosts. It does not configure an OIDC provider, approve privacy/retention, or enable learner APIs.
