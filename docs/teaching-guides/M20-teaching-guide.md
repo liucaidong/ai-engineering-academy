@@ -197,9 +197,9 @@
 
 ### 正式作业参考解答
 
-**原始作业：** 提交 Capstone 验收包：端到端 benchmark、威胁模型、安全测试证据、trace/metrics、SLO、成本和部署/回滚计划。
+**原始作业：** 提交 Capstone 验收包：端到端 benchmark、威胁模型、安全测试证据、trace/metrics、SLO、成本和部署/回滚计划。逐项标记 E0–E5 证据等级，并记录数据/fixture 版本、执行环境、测试命令、预期/实际结果、失败和限制。无外部凭证时可用 deterministic mock 与本地测试验证工作流/控制逻辑，但必须区分 E2 Mock 与 E3 Local-tested；不得据此声称真实模型质量、provider 集成或目标环境通过，未运行项标记 not tested。
 
-**参考解答与推理：** Benchmark 覆盖正常、边界、无证据、注入、越权、工具超时、重复请求和租户隔离。分层报告 retrieval recall、citation support、task success、schema pass、unauthorized action、P95、cost/task。威胁模型映射控制和测试证据；部署文档写配置、密钥、健康检查、SLO、回滚和未验证项。
+**参考解答与推理：** Benchmark 覆盖正常、边界、无证据、注入、越权、工具超时、重复请求和租户隔离，固定数据/fixture 版本、样本数、预期结果和评分规则。Mock E2 可验证确定性工作流/控制逻辑；本地重复执行的测试可对相应代码路径标 E3。真实模型质量指标必须绑定模型/provider、版本和实际运行数据；没有这些证据时标记 not tested，不得从 mock 推断。威胁模型逐项映射控制、攻击载荷、预期阻断点和脱敏日志；部署文档写配置、密钥、健康检查、SLO、回滚和未验证项。
 
 **原始 Rubric 对照（满分 10 分）：**
 
@@ -243,9 +243,9 @@
 
 ### 正式作业参考解答
 
-**原始作业：** 完成 Capstone 答辩包，演示正常/失败/安全拒绝三条路径，并说明实现状态、测试证据、架构取舍和残余风险。
+**原始作业：** 完成 Capstone 答辩包，冻结 commit、依赖锁、模型/Prompt/工具/索引版本和演示输入；演示正常/失败/安全拒绝三条路径，并为每条路径引用 evidence ID、标记 E0–E5 等级，说明执行模式、实现状态、测试证据、架构取舍和残余风险。可用 deterministic mock 演示本地逻辑，但不得将其表述为真实 provider、目标环境或生产验证；未验证项明确标记 not tested。
 
-**参考解答与推理：** 交付包包含代码 commit、架构/ADR、API schema、数据/模型/Prompt 版本、测试、benchmark、trace、成本、部署和已知限制。演示冻结版本和输入，展示正常、失败、安全拒绝/人工接管；答辩解释替代方案、指标、失败模式和残余风险。Implemented、reviewed、tested、not tested、blocked 分开标记。
+**参考解答与推理：** 交付包包含代码 commit、依赖锁、架构/ADR、API schema、数据/模型/Prompt/工具/索引版本、测试、benchmark、trace、成本、部署和已知限制。冻结演示输入与环境，正常、失败、安全拒绝/人工接管各自引用 evidence ID，并按 E0 Designed、E1 Static-reviewed、E2 Mock、E3 Local-tested、E4 Target-env-tested、E5 Production-observed 逐项标记。Implemented、reviewed、tested、not tested、blocked 分开记录；Mock 演示不得升级为真实 provider、目标环境或生产证据。
 
 **原始 Rubric 对照（满分 10 分）：**
 

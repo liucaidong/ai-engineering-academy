@@ -53,8 +53,8 @@
 | 0 | `m20-01-capstone-problem-charter` | `m20-01-project-charter` | 项目章程、范围/非目标、验收指标、风险与依赖清单 | 能否把开放问题收敛成可测量范围 |
 | 1 | `m20-02-capstone-architecture` | `m20-02-architecture-pack` | 架构图、数据流、时序、选型表、至少三份 ADR | 能否说明架构取舍和可信边界 |
 | 2 | `m20-03-capstone-implementation` | `m20-03-implementation-review` | 代码/commit、README、复现命令、正常/失败/拒绝测试与日志 | 能否实现可复现的最小垂直切片，并区分 mock/真实服务 |
-| 3 | `m20-04-capstone-evaluation-security` | `m20-04-acceptance-pack` | benchmark、威胁模型、安全测试、trace/metrics、SLO、成本与回滚方案 | 能否将风险映射到测试、证据和发布门槛 |
-| 4 | `m20-05-capstone-demo-defense` | `m20-05-capstone-defense` | 冻结版本、演示脚本、证据索引、状态清单和答辩 | 能否诚实区分实现、审阅、测试、未测试与阻塞 |
+| 3 | `m20-04-capstone-evaluation-security` | `m20-04-acceptance-pack` | benchmark、威胁模型、安全测试、trace/metrics、SLO、成本与回滚方案；逐项标记 E0–E5，区分 Mock 与本地实测 | 能否将风险映射到测试、证据和发布门槛，且不把 mock 结果冒充真实模型/Provider 质量 |
+| 4 | `m20-05-capstone-demo-defense` | `m20-05-capstone-defense` | 冻结 commit/依赖/模型/Prompt/工具/索引版本、演示输入、证据索引和 E0–E5 状态清单 | 能否诚实区分实现、审阅、Mock、本地测试、目标环境、生产观察、未测试与阻塞 |
 
 P04 与 P06 是建议的 Gate 0–4 占位参与者。两人都必须完成完整 Gate 序列，且每个 Gate 单独记录耗时和证据；若仅完成桌面演练或 mock 路径，报告中必须标注相应证据等级，不能宣称真实生产验证。
 
