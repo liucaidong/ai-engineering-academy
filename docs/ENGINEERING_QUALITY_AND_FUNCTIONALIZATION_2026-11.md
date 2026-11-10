@@ -311,3 +311,10 @@ Added a loopback-only bootstrap path: `scripts/bootstrap-local-postgres.sh` runs
 Validation: both scripts pass `bash -n`; role provisioning SQL was executed against the candidate local PostgreSQL inside an explicit transaction and rolled back, proving SQL syntax/grants and role attributes without persistent changes. The publisher wrapper dry-run exported 20 modules, 100 lessons and 100 assessments, produced SHA-256 `4779e75a5042b4759f011bc2747850e6ad7151657368ba1912574615766b5df0`, and correctly refused to write without an approved digest. The candidate local database remains at revision 0011 with zero releases; bootstrap and publication have not been applied to it.
 
 Latest full acceptance: 106 Vitest, 47 Playwright, 159 backend pytest / 3 optional DB-only skips, OpenAPI 17 paths, Biome, TypeScript, Ruff, all M04–M20 examples, production build, PostgreSQL RLS 3/3, publisher PostgreSQL acceptance and dependency audit all passed. No GitHub Actions were triggered.
+
+
+### CQ-07 — Serialize assessment attempt lifecycle by logical assessment identity（implemented 2026-11-10）
+
+Draft update and submit now acquire the same transaction-scoped advisory lock used by attempt creation, keyed by tenant/user/release/assessment, before checking the latest attempt number. Only the latest attempt may be edited or submitted; older drafts remain historical and return 409. This closes the race where a new attempt could be created while an older draft update was in flight. Row locking and expected `updated_at` revision checks remain in place.
+
+PostgreSQL 18.6 HTTP acceptance now exercises concurrent attempt creation vs update and asserts a serializable outcome: the old update either commits before the new attempt or is rejected after it, and the new attempt remains latest. RLS acceptance: 3/3 passed.

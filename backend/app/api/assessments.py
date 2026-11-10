@@ -10,6 +10,7 @@ from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import learner_transaction
 from app.models.course_release import CourseRelease
@@ -123,6 +124,32 @@ async def _owned_attempt(db, attempt_id: UUID, user_id: UUID, tenant_id: UUID):
     if value is None:
         raise HTTPException(status_code=404, detail="Assessment attempt not found")
     return value
+
+
+async def _require_latest_attempt(db: AsyncSession, attempt: AssessmentResult) -> None:
+    await lock_record_identity(
+        db,
+        namespace="assessment-attempt",
+        identity=(
+            str(attempt.tenant_id),
+            str(attempt.user_id),
+            str(attempt.course_release_id),
+            attempt.assessment_key,
+        ),
+    )
+    latest_number = await db.scalar(
+        select(func.max(AssessmentResult.attempt_number)).where(
+            AssessmentResult.tenant_id == attempt.tenant_id,
+            AssessmentResult.user_id == attempt.user_id,
+            AssessmentResult.course_release_id == attempt.course_release_id,
+            AssessmentResult.assessment_key == attempt.assessment_key,
+        )
+    )
+    if latest_number != attempt.attempt_number:
+        raise HTTPException(
+            status_code=409,
+            detail="Only the latest assessment attempt can be edited or submitted",
+        )
 
 
 @router.get("/attempts", response_model=list[AttemptRead])
@@ -266,6 +293,7 @@ async def update_attempt_draft(
         request, tenant_id=tenant_id, permission="assessment:write:self"
     ) as (db, principal):
         attempt = await _owned_attempt(db, attempt_id, principal.user_id, principal.tenant_id)
+        await _require_latest_attempt(db, attempt)
         if attempt.updated_at != body.expected_updated_at:
             raise HTTPException(
                 status_code=409,
@@ -296,6 +324,7 @@ async def submit_attempt(
         request, tenant_id=tenant_id, permission="assessment:write:self"
     ) as (db, principal):
         attempt = await _owned_attempt(db, attempt_id, principal.user_id, principal.tenant_id)
+        await _require_latest_attempt(db, attempt)
         try:
             submit_assessment(attempt)
         except ValueError as error:

@@ -309,6 +309,22 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                 headers=assessment_headers,
             )
             latest_draft = max(draft_list.json(), key=lambda item: item["attempt_number"])
+            older_attempt = min(
+                (response.json() for response in assessment_responses),
+                key=lambda item: item["attempt_number"],
+            )
+            older_draft_update = await client.put(
+                f"/assessments/attempts/{older_attempt['id']}/draft",
+                headers=assessment_headers,
+                json={
+                    "response": {"answer": "must not mutate older draft"},
+                    "expected_updated_at": older_attempt["updated_at"],
+                },
+            )
+            older_draft_submit = await client.post(
+                f"/assessments/attempts/{older_attempt['id']}/submit",
+                headers=assessment_headers,
+            )
             draft_update = await client.put(
                 f"/assessments/attempts/{latest_draft['id']}/draft",
                 headers=assessment_headers,
@@ -342,6 +358,38 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                 f"/assessments/attempts/drafts?course_release_id={release_id}",
                 headers=assessment_headers,
             )
+            race_base = await client.post(
+                "/assessments/attempts",
+                headers=assessment_headers,
+                json={
+                    "course_release_id": str(release_id),
+                    "assessment_key": "A01",
+                    "response": {"answer": "race base"},
+                },
+            )
+            race_update, race_create = await asyncio.gather(
+                client.put(
+                    f"/assessments/attempts/{race_base.json()['id']}/draft",
+                    headers=assessment_headers,
+                    json={
+                        "response": {"answer": "concurrent edit"},
+                        "expected_updated_at": race_base.json()["updated_at"],
+                    },
+                ),
+                client.post(
+                    "/assessments/attempts",
+                    headers=assessment_headers,
+                    json={
+                        "course_release_id": str(release_id),
+                        "assessment_key": "A01",
+                        "response": {"answer": "next attempt"},
+                    },
+                ),
+            )
+            latest_after_race = await client.get(
+                f"/assessments/attempts/drafts?course_release_id={release_id}",
+                headers=assessment_headers,
+            )
 
         assert response.status_code == 200
         assert response.headers["cache-control"] == "no-store"
@@ -367,12 +415,15 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
         assert attempt_list.headers["cache-control"] == "no-store"
         attempt_numbers = sorted(item.json()["attempt_number"] for item in assessment_responses)
         attempt_ids = {UUID(item.json()["id"]) for item in assessment_responses}
+        attempt_ids.update({UUID(race_base.json()["id"]), UUID(race_create.json()["id"])})
         assert attempt_numbers == [2, 3], (
             "concurrent assessment attempts must extend the existing sequence without gaps"
         )
         assert draft_list.status_code == 200
         assert draft_list.headers["cache-control"] == "no-store"
         assert [item["attempt_number"] for item in draft_list.json()] == [3]
+        assert older_draft_update.status_code == 409
+        assert older_draft_submit.status_code == 409
         assert draft_update.status_code == 200
         assert draft_update.json()["response"] == {"answer": "updated draft"}
         assert draft_update.json()["rubric_self_review"] == {"reviewedCriteria": ["correctness"]}
@@ -383,6 +434,15 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
         assert submitted_draft_update.status_code == 409
         assert drafts_after_submit.status_code == 200
         assert drafts_after_submit.json() == []
+        assert race_base.status_code == 201
+        assert race_create.status_code == 201
+        assert race_update.status_code in {200, 409}
+        assert latest_after_race.status_code == 200
+        assert len(latest_after_race.json()) == 1
+        assert latest_after_race.json()[0]["attempt_number"] == race_create.json()["attempt_number"]
+        assert (
+            latest_after_race.json()[0]["attempt_number"] == race_base.json()["attempt_number"] + 1
+        )
         assert all(item["roles"] == ["learner"] for item in payload)
 
         async with runtime_engine.connect() as connection:

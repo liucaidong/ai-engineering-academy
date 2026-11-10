@@ -82,7 +82,7 @@
 - [x] Implement typed frontend API transport with Cookie credentials, session-bound CSRF, explicit tenant context, structured errors, timeout/cancellation and 18 regression tests; full local acceptance passed.
 - [x] Add feature-gated session bootstrap, tenant discovery/selection, stale-preference revalidation and CSRF-protected logout UI (4 dedicated scenarios; full Playwright suite 47 passed); frontend auth UI flag defaults off.
 - [x] Implement exact-version learner progress sync with full published-snapshot validation, remote/local reconciliation and complete/reopen APIs (feature-gated).
-- [x] Implement assessment draft persistence/sync with latest-draft reads, optimistic concurrency, conflict-safe attempt creation and no-store responses (feature-gated).
+- [x] Implement assessment draft persistence/sync with latest-draft reads, optimistic concurrency, latest-attempt-only update/submit serialization, conflict-safe attempt creation and no-store responses (feature-gated).
 - [x] Implement explicit idempotent guest-to-account import with set-union and draft-conflict preservation.
 - [ ] Publish the current curriculum snapshot into the intended persistent database and bind live synchronization to its actual release UUID.
 - [ ] Complete provider-backed OIDC E2E and privacy/retention review before enabling learner APIs.

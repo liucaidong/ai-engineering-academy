@@ -300,3 +300,14 @@
 ## 22. Final local acceptance and dependency audit（2026-11-10）
 
 After learner progress/assessment sync, explicit guest import, account-control extraction and local DB bootstrap tooling, the full local acceptance gate passed: Biome lint/format, strict TypeScript, OpenAPI 3.1 drift (17 paths), Vitest 106, Playwright Chromium 47, M04–M20 example suites, Ruff, backend pytest 159 passed / 3 optional DB-only skips and Vite production build (431 modules). Separate PostgreSQL 18.6 RLS HTTP acceptance passed 3/3; disposable publisher acceptance passed all schema-head, concurrency/idempotency, atomic-audit, least-privilege, RLS and immutability checks. `pnpm security:audit` found no known npm or Python third-party vulnerabilities; the unpublished first-party Python package is not on PyPI and remains outside pip-audit coverage. GitHub Actions were not triggered.
+
+## 23. Assessment attempt lifecycle serialization（2026-11-10）
+
+发现 learner draft update/submit 只锁定 attempt row 并校验 revision，但创建新 attempt 使用的是按 tenant/user/release/assessment 维度的 transaction advisory lock。两个事务并发时，旧 attempt 的更新可能与新 attempt 创建交错，导致旧 attempt 在新 attempt 产生后仍被修改/提交。
+
+修复：
+- update/submit 先锁定 attempt row，再获取与 create 相同 namespace/identity 的 transaction advisory lock，随后读取最新 attempt_number。
+- 只有当前最新 attempt 可以更新或提交；旧 draft 保留为历史记录但不可再变更，返回 409。
+- row lock + advisory lock + `expected_updated_at` revision compare 三层共同覆盖同一 attempt 更新竞争、跨 attempt 生命周期竞争和并发新建。
+
+PostgreSQL 18.6 HTTP acceptance 新增旧 attempt update/submit 拒绝，以及新 attempt 创建与旧 draft update 并发竞态测试。并发结果允许旧 draft update 在新 attempt 创建前成功（200）或在创建后被拒绝（409），但最新 attempt 序号必须严格递增且最新 draft 只能指向新 attempt。RLS acceptance 3/3 通过。
