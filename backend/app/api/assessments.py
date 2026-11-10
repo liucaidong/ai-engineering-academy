@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -18,9 +18,15 @@ from app.services.learning_records import (
     create_assessment_attempt,
     lock_record_identity,
     submit_assessment,
+    update_assessment_draft,
 )
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
+
+
+def _set_no_store(response: Response) -> None:
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
 
 
 class AttemptCreate(BaseModel):
@@ -42,6 +48,29 @@ class AttemptCreate(BaseModel):
                     raise ValueError("payload must contain finite JSON values") from error
                 if size > 65536:
                     raise ValueError("assessment payload exceeds 64 KiB")
+        return self
+
+
+class AttemptDraftUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    response: dict[str, Any]
+    expected_updated_at: datetime
+    rubric_self_review: dict[str, Any] | None = None
+
+    @model_validator(mode="after")
+    def validate_json_size(self):
+        for value in (self.response, self.rubric_self_review):
+            if value is not None:
+                try:
+                    size = len(
+                        json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+                    )
+                except (TypeError, ValueError) as error:
+                    raise ValueError("payload must contain finite JSON values") from error
+                if size > 65536:
+                    raise ValueError("assessment payload exceeds 64 KiB")
+        if self.expected_updated_at.tzinfo is None or self.expected_updated_at.utcoffset() is None:
+            raise ValueError("expected_updated_at must include a timezone")
         return self
 
 
@@ -99,6 +128,7 @@ async def _owned_attempt(db, attempt_id: UUID, user_id: UUID, tenant_id: UUID):
 @router.get("/attempts", response_model=list[AttemptRead])
 async def list_attempts(
     request: Request,
+    response: Response,
     tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
     course_release_id: Annotated[UUID | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
@@ -113,12 +143,17 @@ async def list_attempts(
         if course_release_id:
             query = query.where(AssessmentResult.course_release_id == course_release_id)
         result = await db.execute(query.order_by(AssessmentResult.created_at.desc()).limit(limit))
-        return list(result.scalars().all())
+        attempts = list(result.scalars().all())
+    _set_no_store(response)
+    return attempts
 
 
 @router.post("/attempts", response_model=AttemptRead, status_code=201)
 async def create_attempt(
-    body: AttemptCreate, request: Request, tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")]
+    body: AttemptCreate,
+    request: Request,
+    response: Response,
+    tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
 ):
     try:
         async with learner_transaction(
@@ -164,6 +199,7 @@ async def create_attempt(
             db.add(attempt)
             await db.flush()
             await db.refresh(attempt)
+            _set_no_store(response)
             return attempt
     except IntegrityError as error:
         raise HTTPException(
@@ -171,9 +207,90 @@ async def create_attempt(
         ) from error
 
 
+@router.get("/attempts/drafts", response_model=list[AttemptRead])
+async def list_latest_drafts(
+    request: Request,
+    response: Response,
+    tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
+    course_release_id: Annotated[UUID, Query()],
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+):
+    async with learner_transaction(
+        request, tenant_id=tenant_id, permission="assessment:read:self"
+    ) as (db, principal):
+        latest_attempts = (
+            select(
+                AssessmentResult.assessment_key.label("assessment_key"),
+                func.max(AssessmentResult.attempt_number).label("attempt_number"),
+            )
+            .where(
+                AssessmentResult.tenant_id == principal.tenant_id,
+                AssessmentResult.user_id == principal.user_id,
+                AssessmentResult.course_release_id == course_release_id,
+            )
+            .group_by(AssessmentResult.assessment_key)
+            .subquery()
+        )
+        query = (
+            select(AssessmentResult)
+            .join(
+                latest_attempts,
+                (AssessmentResult.assessment_key == latest_attempts.c.assessment_key)
+                & (AssessmentResult.attempt_number == latest_attempts.c.attempt_number),
+            )
+            .where(
+                AssessmentResult.tenant_id == principal.tenant_id,
+                AssessmentResult.user_id == principal.user_id,
+                AssessmentResult.course_release_id == course_release_id,
+                AssessmentResult.status == "draft",
+            )
+            .order_by(AssessmentResult.assessment_key)
+            .limit(limit)
+        )
+        result = await db.execute(query)
+        drafts = list(result.scalars().all())
+
+    _set_no_store(response)
+    return drafts
+
+
+@router.put("/attempts/{attempt_id}/draft", response_model=AttemptRead)
+async def update_attempt_draft(
+    attempt_id: UUID,
+    body: AttemptDraftUpdate,
+    request: Request,
+    response: Response,
+    tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
+):
+    async with learner_transaction(
+        request, tenant_id=tenant_id, permission="assessment:write:self"
+    ) as (db, principal):
+        attempt = await _owned_attempt(db, attempt_id, principal.user_id, principal.tenant_id)
+        if attempt.updated_at != body.expected_updated_at:
+            raise HTTPException(
+                status_code=409,
+                detail="Assessment draft changed on the server; reload before updating",
+            )
+        try:
+            update_assessment_draft(
+                attempt,
+                response=body.response,
+                rubric_self_review=body.rubric_self_review,
+            )
+        except ValueError as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
+        await db.flush()
+        await db.refresh(attempt)
+        _set_no_store(response)
+        return attempt
+
+
 @router.post("/attempts/{attempt_id}/submit", response_model=AttemptRead)
 async def submit_attempt(
-    attempt_id: UUID, request: Request, tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")]
+    attempt_id: UUID,
+    request: Request,
+    response: Response,
+    tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
 ):
     async with learner_transaction(
         request, tenant_id=tenant_id, permission="assessment:write:self"
@@ -185,4 +302,5 @@ async def submit_attempt(
             raise HTTPException(status_code=409, detail=str(error)) from error
         await db.flush()
         await db.refresh(attempt)
+        _set_no_store(response)
         return attempt

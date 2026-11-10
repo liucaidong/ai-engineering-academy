@@ -40,6 +40,39 @@
         "title": "AttemptCreate",
         "type": "object"
       },
+      "AttemptDraftUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_updated_at": {
+            "format": "date-time",
+            "title": "Expected Updated At",
+            "type": "string"
+          },
+          "response": {
+            "additionalProperties": true,
+            "title": "Response",
+            "type": "object"
+          },
+          "rubric_self_review": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rubric Self Review"
+          }
+        },
+        "required": [
+          "response",
+          "expected_updated_at"
+        ],
+        "title": "AttemptDraftUpdate",
+        "type": "object"
+      },
       "AttemptRead": {
         "properties": {
           "assessment_key": {
@@ -554,6 +587,138 @@
           }
         },
         "summary": "Create Attempt",
+        "tags": [
+          "assessments"
+        ]
+      }
+    },
+    "/assessments/attempts/drafts": {
+      "get": {
+        "operationId": "list_latest_drafts_assessments_attempts_drafts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "course_release_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Course Release Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Tenant-ID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "X-Tenant-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AttemptRead"
+                  },
+                  "title": "Response List Latest Drafts Assessments Attempts Drafts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Latest Drafts",
+        "tags": [
+          "assessments"
+        ]
+      }
+    },
+    "/assessments/attempts/{attempt_id}/draft": {
+      "put": {
+        "operationId": "update_attempt_draft_assessments_attempts__attempt_id__draft_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Tenant-ID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "X-Tenant-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttemptDraftUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Attempt Draft",
         "tags": [
           "assessments"
         ]

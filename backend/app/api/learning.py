@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -21,6 +21,11 @@ from app.services.learning_records import (
 )
 
 router = APIRouter(prefix="/learning", tags=["learning"])
+
+
+def _set_no_store(response: Response) -> None:
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
 
 
 class ProgressCreate(BaseModel):
@@ -67,6 +72,7 @@ async def _owned_progress(db, progress_id: UUID, user_id: UUID, tenant_id: UUID)
 @router.get("/progress", response_model=list[ProgressRead])
 async def list_progress(
     request: Request,
+    response: Response,
     tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
     course_release_id: Annotated[UUID | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
@@ -83,13 +89,16 @@ async def list_progress(
         result = await db.execute(
             query.order_by(LearningProgress.last_accessed_at.desc()).limit(limit)
         )
-        return list(result.scalars().all())
+        records = list(result.scalars().all())
+    _set_no_store(response)
+    return records
 
 
 @router.post("/progress", response_model=ProgressRead, status_code=201)
 async def begin_progress(
     body: ProgressCreate,
     request: Request,
+    response: Response,
     tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
 ):
     key = body.module_key.strip()
@@ -140,6 +149,7 @@ async def begin_progress(
                 touch_progress(progress)
             await db.flush()
             await db.refresh(progress)
+            _set_no_store(response)
             return progress
     except IntegrityError as error:
         raise HTTPException(
@@ -149,7 +159,10 @@ async def begin_progress(
 
 @router.post("/progress/{progress_id}/complete", response_model=ProgressRead)
 async def mark_progress_complete(
-    progress_id: UUID, request: Request, tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")]
+    progress_id: UUID,
+    request: Request,
+    response: Response,
+    tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
 ):
     async with learner_transaction(
         request, tenant_id=tenant_id, permission="learning:write:self"
@@ -161,12 +174,16 @@ async def mark_progress_complete(
             raise HTTPException(status_code=409, detail=str(error)) from error
         await db.flush()
         await db.refresh(progress)
+        _set_no_store(response)
         return progress
 
 
 @router.post("/progress/{progress_id}/reopen", response_model=ProgressRead)
 async def reopen_completed_progress(
-    progress_id: UUID, request: Request, tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")]
+    progress_id: UUID,
+    request: Request,
+    response: Response,
+    tenant_id: Annotated[UUID, Header(alias="X-Tenant-ID")],
 ):
     async with learner_transaction(
         request, tenant_id=tenant_id, permission="learning:write:self"
@@ -178,4 +195,5 @@ async def reopen_completed_progress(
             raise HTTPException(status_code=409, detail=str(error)) from error
         await db.flush()
         await db.refresh(progress)
+        _set_no_store(response)
         return progress

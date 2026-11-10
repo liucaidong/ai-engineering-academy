@@ -255,3 +255,16 @@
 - 网络/权限/版本错误显示为显式同步错误并提供重试；取消/切换租户时 abort 当前客户端请求。服务端 mutation 仍依赖现有幂等、事务和 RLS 边界。
 
 新增服务层测试覆盖精确版本解析、无发布版本拒绝、远端快照完整校验、缺失记录创建、完成、重新打开和两端收敛。当前部署仍默认关闭同步；只有真实持久化数据库中存在对应发布快照后才可打开。
+
+
+## 18. Assessment draft persistence and optimistic concurrency（2026-11-10）
+
+補齊本地測評草稿到服務端的同步閉環：
+- 新增 `GET /assessments/attempts/drafts`，只返回每個 assessment 最新 attempt 且仍為 draft 的記錄；若最新 attempt 已提交/評分，不會把舊 draft 當作活動草稿。
+- 新增 `PUT /assessments/attempts/{id}/draft`，只允許擁有者修改仍處於 draft 的 self-review attempt；請求必須攜帶 `expected_updated_at`，服務端以 row lock + revision compare 實施 optimistic concurrency，過期 revision 返回 409。
+- 草稿 response 與 rubric payload 限制 64 KiB，拒絕非有限 JSON。提交後不能再修改。
+- 所有 learning/assessment 成功響應均設 `Cache-Control: no-store` 和 `Pragma: no-cache`，避免共享/瀏覽器緩存保存帳戶學習資料。
+- 前端草稿同步採 700ms debounce；先按 release snapshot 校驗 assessment IDs，再同步。服務端 revision 未變時更新原 draft；遇到 409 則創建新 attempt 保存本地編輯，不覆蓋另一設備的遠端內容。遠端較新且本地此前已同步時，遠端成為本地權威版本。同步 ACK 只在本地內容仍與已發送快照相同時標記 synced，避免覆蓋請求期間的新輸入。
+- 舊版本地草稿無服務端 revision 時保留本地內容，不直接覆蓋遠端 draft；會以新 attempt 保存，形成可追溯歷史。
+
+驗收：FastAPI/OpenAPI 17 paths drift check 通過；backend pytest 159 passed / 3 optional DB-only skips；PostgreSQL 18 RLS HTTP acceptance 3/3 通過，覆蓋 draft list、更新、stale revision 409、提交後更新拒絕和 no-store headers；Vitest 104、Playwright 47、M04–M20 示例測試、Biome、TypeScript、Ruff、production build 全部通過。GitHub Actions 未觸發。

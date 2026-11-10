@@ -9,6 +9,7 @@ export type LearningProgress = ApiSchemas["ProgressRead"];
 export type LearningProgressCreate = ApiSchemas["ProgressCreate"];
 export type AssessmentAttempt = ApiSchemas["AttemptRead"];
 export type AssessmentAttemptCreate = ApiSchemas["AttemptCreate"];
+export type AssessmentAttemptDraftUpdate = ApiSchemas["AttemptDraftUpdate"];
 
 export interface CurrentSession {
   user_id: string;
@@ -50,14 +51,14 @@ export interface ApiClientOptions {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   tenantId?: string;
   query?: Record<string, string | number | boolean | undefined>;
   body?: unknown;
   signal?: AbortSignal;
 }
 
-const UNSAFE_METHODS = new Set(["POST"]);
+const UNSAFE_METHODS = new Set(["POST", "PUT"]);
 const DEFAULT_TIMEOUT_MS = 15_000;
 
 function normalizeBaseUrl(value: string | undefined): string {
@@ -399,12 +400,38 @@ export class AcademyApiClient {
     return this.request("/assessments/attempts", { tenantId, query, signal });
   }
 
+  listAssessmentDrafts(
+    tenantId: string,
+    courseReleaseId: string,
+    signal?: AbortSignal,
+  ): Promise<AssessmentAttempt[]> {
+    return this.request("/assessments/attempts/drafts", {
+      tenantId,
+      query: { course_release_id: courseReleaseId, limit: 500 },
+      signal,
+    });
+  }
+
   createAssessmentAttempt(
     tenantId: string,
     body: AssessmentAttemptCreate,
     signal?: AbortSignal,
   ): Promise<AssessmentAttempt> {
     return this.request("/assessments/attempts", { method: "POST", tenantId, body, signal });
+  }
+
+  updateAssessmentAttemptDraft(
+    tenantId: string,
+    attemptId: string,
+    body: AssessmentAttemptDraftUpdate,
+    signal?: AbortSignal,
+  ): Promise<AssessmentAttempt> {
+    return this.request(`/assessments/attempts/${encodeURIComponent(attemptId)}/draft`, {
+      method: "PUT",
+      tenantId,
+      body,
+      signal,
+    });
   }
 
   submitAssessmentAttempt(

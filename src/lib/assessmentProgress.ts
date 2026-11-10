@@ -3,6 +3,9 @@ import { z } from "zod";
 const AssessmentResponseSchema = z.object({
   responseText: z.string(),
   reviewedCriteria: z.array(z.string()),
+  updatedAt: z.string().datetime().optional(),
+  serverUpdatedAt: z.string().datetime().optional(),
+  syncState: z.enum(["pending", "synced"]).optional(),
 });
 
 const AssessmentProgressSchema = z.object({

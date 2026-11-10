@@ -299,6 +299,49 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                     for _ in range(2)
                 ]
             )
+            assessment_headers = {"X-Tenant-ID": str(tenant_a)}
+            attempt_list = await client.get(
+                f"/assessments/attempts?course_release_id={release_id}",
+                headers=assessment_headers,
+            )
+            draft_list = await client.get(
+                f"/assessments/attempts/drafts?course_release_id={release_id}",
+                headers=assessment_headers,
+            )
+            latest_draft = max(draft_list.json(), key=lambda item: item["attempt_number"])
+            draft_update = await client.put(
+                f"/assessments/attempts/{latest_draft['id']}/draft",
+                headers=assessment_headers,
+                json={
+                    "response": {"answer": "updated draft"},
+                    "rubric_self_review": {"reviewedCriteria": ["correctness"]},
+                    "expected_updated_at": latest_draft["updated_at"],
+                },
+            )
+            stale_draft_update = await client.put(
+                f"/assessments/attempts/{latest_draft['id']}/draft",
+                headers=assessment_headers,
+                json={
+                    "response": {"answer": "stale concurrent update"},
+                    "expected_updated_at": latest_draft["updated_at"],
+                },
+            )
+            draft_submit = await client.post(
+                f"/assessments/attempts/{latest_draft['id']}/submit",
+                headers=assessment_headers,
+            )
+            submitted_draft_update = await client.put(
+                f"/assessments/attempts/{latest_draft['id']}/draft",
+                headers=assessment_headers,
+                json={
+                    "response": {"answer": "must not overwrite submission"},
+                    "expected_updated_at": draft_submit.json()["updated_at"],
+                },
+            )
+            drafts_after_submit = await client.get(
+                f"/assessments/attempts/drafts?course_release_id={release_id}",
+                headers=assessment_headers,
+            )
 
         assert response.status_code == 200
         assert response.headers["cache-control"] == "no-store"
@@ -315,14 +358,31 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
         assert release_detail.json()["content"] == persisted_release.content
         assert unauthorized_release_list.status_code == 403
         assert all(item.status_code == 201 for item in progress_responses)
+        assert all(item.headers["cache-control"] == "no-store" for item in progress_responses)
         progress_ids = {item.json()["id"] for item in progress_responses}
         assert len(progress_ids) == 1, "concurrent progress starts must converge on one record"
         assert all(item.status_code == 201 for item in assessment_responses)
+        assert all(item.headers["cache-control"] == "no-store" for item in assessment_responses)
+        assert attempt_list.status_code == 200
+        assert attempt_list.headers["cache-control"] == "no-store"
         attempt_numbers = sorted(item.json()["attempt_number"] for item in assessment_responses)
         attempt_ids = {UUID(item.json()["id"]) for item in assessment_responses}
         assert attempt_numbers == [2, 3], (
             "concurrent assessment attempts must extend the existing sequence without gaps"
         )
+        assert draft_list.status_code == 200
+        assert draft_list.headers["cache-control"] == "no-store"
+        assert [item["attempt_number"] for item in draft_list.json()] == [3]
+        assert draft_update.status_code == 200
+        assert draft_update.json()["response"] == {"answer": "updated draft"}
+        assert draft_update.json()["rubric_self_review"] == {"reviewedCriteria": ["correctness"]}
+        assert draft_update.headers["cache-control"] == "no-store"
+        assert stale_draft_update.status_code == 409
+        assert draft_submit.status_code == 200
+        assert draft_submit.json()["status"] == "submitted"
+        assert submitted_draft_update.status_code == 409
+        assert drafts_after_submit.status_code == 200
+        assert drafts_after_submit.json() == []
         assert all(item["roles"] == ["learner"] for item in payload)
 
         async with runtime_engine.connect() as connection:

@@ -57,7 +57,7 @@ export default function AssessmentWorkspace({ assessment, value, onChange }: Pro
         ))}
       </div>
       <p className="assessment-storage-note">
-        草稿和自評保存在目前瀏覽器；此自評分數不是教師評分或模型自動評分。
+        草稿先保存在目前帳戶與租戶的瀏覽器；登入、選擇租戶且課程版本已發布後，可同步為服務端草稿。自評不是教師評分或模型自動評分。
       </p>
     </section>
   );

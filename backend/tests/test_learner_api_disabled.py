@@ -27,7 +27,19 @@ async def test_learner_data_routes_are_disabled_by_default(monkeypatch):
         responses = [
             await client.get("/learning/progress", headers={"X-Tenant-ID": tenant}),
             await client.get("/assessments/attempts", headers={"X-Tenant-ID": tenant}),
+            await client.get(
+                "/assessments/attempts/drafts?course_release_id=00000000-0000-0000-0000-000000000002",
+                headers={"X-Tenant-ID": tenant},
+            ),
             await client.get("/courses/releases", headers={"X-Tenant-ID": tenant}),
+            await client.put(
+                "/assessments/attempts/00000000-0000-0000-0000-000000000003/draft",
+                headers={"X-Tenant-ID": tenant},
+                json={
+                    "response": {"answer": "blocked"},
+                    "expected_updated_at": "2026-11-10T12:00:00Z",
+                },
+            ),
             await client.post(
                 "/assessments/attempts",
                 headers={"X-Tenant-ID": tenant},
@@ -37,4 +49,4 @@ async def test_learner_data_routes_are_disabled_by_default(monkeypatch):
                 },
             ),
         ]
-    assert [response.status_code for response in responses] == [503, 503, 503, 503]
+    assert [response.status_code for response in responses] == [503, 503, 503, 503, 503, 503]

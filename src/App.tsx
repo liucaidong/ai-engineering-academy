@@ -7,6 +7,7 @@ import { IMPLEMENTED_LABS, LEVEL_LABELS } from "./features/learning/courseMetada
 import LearningContextAside from "./features/learning/LearningContextAside";
 import LessonArticle from "./features/learning/LessonArticle";
 import { useAcademyCourseData } from "./features/learning/useAcademyCourseData";
+import { useLearnerAssessmentSync } from "./features/learning/useLearnerAssessmentSync";
 import { useLearnerProgressSync } from "./features/learning/useLearnerProgressSync";
 import { useLearningState } from "./features/learning/useLearningState";
 import SessionTenantControl from "./features/session/SessionTenantControl";
@@ -46,6 +47,13 @@ export default function App() {
     tenantId: session.status === "authenticated" ? session.selectedTenantId : null,
     completedModules,
     setCompletedModules,
+  });
+  const assessmentSync = useLearnerAssessmentSync({
+    enabled: LEARNER_SYNC_ENABLED,
+    tenantId: session.status === "authenticated" ? session.selectedTenantId : null,
+    release: learnerSync.release,
+    assessmentResponses,
+    setAssessmentResponses,
   });
   const {
     authoringCourse,
@@ -116,6 +124,31 @@ export default function App() {
               {learnerSync.status === "error" && (
                 <button className="account-action" type="button" onClick={learnerSync.retry}>
                   重试同步
+                </button>
+              )}
+            </div>
+          )}
+          {assessmentSync.status !== "disabled" && (
+            <div className="account-control" aria-live="polite">
+              <span className="account-state">
+                {assessmentSync.status === "waiting-release"
+                  ? "等待课程发布后同步测评草稿"
+                  : assessmentSync.status === "loading"
+                    ? "正在加载测评草稿…"
+                    : assessmentSync.status === "error"
+                      ? "测评草稿同步异常"
+                      : assessmentSync.syncing
+                        ? "正在同步测评草稿…"
+                        : "测评草稿已同步"}
+              </span>
+              {assessmentSync.error && (
+                <span className="account-error" role="status">
+                  {assessmentSync.error}
+                </span>
+              )}
+              {assessmentSync.status === "error" && (
+                <button className="account-action" type="button" onClick={assessmentSync.retry}>
+                  重试测评同步
                 </button>
               )}
             </div>
@@ -242,7 +275,11 @@ export default function App() {
                   onAssessmentResponseChange={(assessmentId, value) =>
                     setAssessmentResponses((current) => ({
                       ...current,
-                      [assessmentId]: value,
+                      [assessmentId]: {
+                        ...value,
+                        updatedAt: new Date().toISOString(),
+                        syncState: "pending",
+                      },
                     }))
                   }
                   showOpenLabButton={Boolean(openLab)}

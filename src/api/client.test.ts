@@ -150,6 +150,38 @@ describe("AcademyApiClient", () => {
     expect(new Headers(fetcher.mock.calls[0]?.[1]?.headers).get("X-Tenant-ID")).toBe("tenant-1");
   });
 
+  it("lists the latest assessment drafts and binds them to the selected tenant", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([]));
+    const api = client(fetcher);
+
+    await api.listAssessmentDrafts("tenant-1", "release-1");
+
+    expect(fetcher.mock.calls[0]?.[0]).toBe(
+      "/assessments/attempts/drafts?course_release_id=release-1&limit=500",
+    );
+    expect(new Headers(fetcher.mock.calls[0]?.[1]?.headers).get("X-Tenant-ID")).toBe("tenant-1");
+  });
+
+  it("updates an existing assessment draft with a CSRF-protected PUT", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse({ csrf_token: "csrf-draft" }))
+      .mockResolvedValueOnce(jsonResponse({ id: "attempt-1", status: "draft" }));
+    const api = client(fetcher);
+    const body = {
+      response: { responseText: "draft response" },
+      rubric_self_review: { reviewedCriteria: ["correctness"] },
+      expected_updated_at: "2026-11-10T12:00:00Z",
+    };
+
+    await api.updateAssessmentAttemptDraft("tenant-1", "attempt-1", body);
+
+    expect(fetcher.mock.calls[1]?.[0]).toBe("/assessments/attempts/attempt-1/draft");
+    expect(fetcher.mock.calls[1]?.[1]?.method).toBe("PUT");
+    expect(new Headers(fetcher.mock.calls[1]?.[1]?.headers).get("X-CSRF-Token")).toBe("csrf-draft");
+    expect(JSON.parse(String(fetcher.mock.calls[1]?.[1]?.body))).toEqual(body);
+  });
+
   it("lists published course releases within the authenticated tenant context", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([]));
     const api = client(fetcher);

@@ -12,6 +12,7 @@ from app.services.learning_records import (
     reopen_progress,
     start_progress,
     submit_assessment,
+    update_assessment_draft,
 )
 
 NOW = datetime(2026, 11, 5, 12, 0, tzinfo=UTC)
@@ -148,6 +149,45 @@ def test_assessment_attempt_rejects_non_json_payload() -> None:
             grading_mode="self_review",
             response={"invalid": object()},
         )
+
+
+def test_update_assessment_draft_replaces_json_payload_without_submission() -> None:
+    result = create_assessment_attempt(
+        tenant_id=uuid4(),
+        user_id=uuid4(),
+        course_release_id=uuid4(),
+        assessment_key="A01",
+        attempt_number=1,
+        grading_mode="self_review",
+        response={"answer": "old"},
+    )
+
+    updated = update_assessment_draft(
+        result,
+        response={"answer": "new"},
+        rubric_self_review={"reviewedCriteria": ["correctness"]},
+    )
+
+    assert updated is result
+    assert result.response == {"answer": "new"}
+    assert result.rubric_self_review == {"reviewedCriteria": ["correctness"]}
+    assert result.status == "draft"
+    assert result.submitted_at is None
+
+
+def test_update_assessment_draft_rejects_submitted_attempts() -> None:
+    result = create_assessment_attempt(
+        tenant_id=uuid4(),
+        user_id=uuid4(),
+        course_release_id=uuid4(),
+        assessment_key="A01",
+        attempt_number=1,
+        grading_mode="self_review",
+    )
+    submit_assessment(result, now=NOW)
+
+    with pytest.raises(ValueError, match="only draft"):
+        update_assessment_draft(result, response={"answer": "late edit"})
 
 
 def test_submit_assessment_sets_submission_timestamp_once() -> None:

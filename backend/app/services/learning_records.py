@@ -154,6 +154,24 @@ def create_assessment_attempt(
     )
 
 
+def update_assessment_draft(
+    result: AssessmentResult,
+    *,
+    response: Mapping[str, Any],
+    rubric_self_review: Mapping[str, Any] | None = None,
+) -> AssessmentResult:
+    """Replace learner-owned draft content without changing its lifecycle state."""
+    if result.status != "draft":
+        raise ValueError("only draft assessment attempts can be updated")
+    if result.grading_mode != "self_review":
+        raise ValueError("learner draft updates require self_review grading mode")
+    result.response = _json_object(response)
+    result.rubric_self_review = (
+        _json_object(rubric_self_review) if rubric_self_review is not None else None
+    )
+    return result
+
+
 def submit_assessment(
     result: AssessmentResult,
     *,

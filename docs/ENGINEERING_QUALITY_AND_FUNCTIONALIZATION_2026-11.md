@@ -293,3 +293,12 @@ Added an account/tenant-scoped learner progress sync adapter. It resolves the ex
 The feature requires both `VITE_ACADEMY_AUTH_UI_ENABLED=true` and `VITE_ACADEMY_LEARNER_SYNC_ENABLED=true`; both remain false by default. No release exists in the durable production database yet, so this capability must not be enabled in production until a real release is published and OIDC/runtime-role/privacy acceptance is complete.
 
 Tests: exact published-version resolution and schema validation, fail-closed missing release, creation/completion/reopening reconciliation. Focused tests and TypeScript passed.
+
+
+### SF-06 — Assessment draft persistence and conflict-safe sync（implemented, feature-gated 2026-11-10）
+
+Added learner-owned latest-draft reads and optimistic-concurrency draft updates. The API exposes only the latest attempt per assessment when its lifecycle state is still `draft`; submitted/graded attempts are not resurrected. Draft writes require the expected server `updated_at` revision and reject stale writes with 409. Payloads remain bounded to 64 KiB finite JSON, and submitted attempts are immutable through the learner draft endpoint. All learner progress/assessment responses are `no-store`.
+
+The frontend debounces draft sync, validates assessment IDs against the exact published release snapshot, merges remote-only drafts, preserves pending local edits, updates matching server revisions, and forks a new attempt on concurrent revision conflict rather than overwriting remote work. ACK handling checks that the local value still matches the sent payload before marking it synchronized. The feature shares the existing learner sync gate and remains disabled by default.
+
+Acceptance: OpenAPI 17 paths in sync; backend 159 passed / 3 optional DB-only skips; real PostgreSQL 18 RLS HTTP integration 3/3 passed including stale revision conflict, submitted draft immutability and no-store; Vitest 104, Playwright 47, M04–M20 examples, Biome, TypeScript, Ruff and production build passed. GitHub Actions not triggered.
