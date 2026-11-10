@@ -12,12 +12,12 @@
 |---|---|---|
 | Frontend lint/format | Biome | Pass |
 | Type safety | TypeScript strict check | Pass |
-| API contract | OpenAPI 3.1 export + generated type drift check | Pass; 13 paths |
-| Frontend unit tests | Vitest | 73 passed / 16 files |
-| Browser E2E | Playwright Chromium | 42 passed |
-| Backend tests | pytest | 135 passed, 1 skipped |
-| Backend lint/format | Ruff | Pass; 67 Python files formatted |
-| Production build | Vite 8.3.6 | Pass; 414 modules transformed |
+| API contract | OpenAPI 3.1 export + generated type drift check | Pass; 15 paths |
+| Frontend unit tests | Vitest | 88 passed / 17 files |
+| Browser E2E | Playwright Chromium | 46 passed |
+| Backend tests | pytest | 152 passed, 1 optional PostgreSQL harness skip |
+| Backend lint/format | Ruff | Pass; 77 Python files formatted |
+| Production build | Vite 8.3.6 | Pass; 418 modules transformed |
 | PostgreSQL RLS | Disposable PostgreSQL 18.6, full Alembic chain, unprivileged runtime role | 1 integration test passed |
 | Git state | `develop` | Clean; local HEAD equals origin/develop |
 
@@ -29,14 +29,15 @@ The current main entry chunk is 40.29 kB raw / 15.27 kB gzip. React Runtime is 2
 
 ## 2. Confirmed product/system gaps
 
-### SF-01 — Frontend does not consume authenticated learner APIs
+### SF-01 — Typed API transport implemented; learner state remains device-local
 
 - Backend routes exist for OIDC login/callback/current-session/CSRF/logout, learner progress and assessment attempts.
-- Frontend currently persists bookmarks, completion and assessment drafts in browser `localStorage`.
-- There is no runtime API client in `src/api`; only generated OpenAPI types exist.
-- Consequence: learning state is device-local, not account-synchronized. A successful backend RLS test does not make the frontend a multi-device learning product.
+- src/api/client.ts provides typed session, tenant discovery, learner progress, assessment attempt and logout methods.
+- The client uses credentialed HttpOnly cookies, session-bound CSRF, explicit tenant headers, structured errors, timeout/cancellation and request correlation.
+- Frontend bookmarks, completion and assessment drafts still persist in browser localStorage; learner UI calls are not yet connected to backend persistence.
+- Consequence: the application has a transport layer but is not yet a multi-device learning product.
 
-**Target:** one typed API transport with credentialed cookies, session-bound CSRF handling, tenant header handling, structured HTTP errors, abort/timeout behavior and tests. Do not implement a second authentication scheme.
+**Next:** after a real published release UUID exists, connect progress and assessment flows with explicit legacy-data import and deterministic conflict handling. Do not introduce a second authentication scheme.
 
 ### SF-02 — Tenant discovery HTTP endpoint (implemented 2026-11-10)
 
@@ -44,20 +45,20 @@ The current main entry chunk is 40.29 kB raw / 15.27 kB gzip. React Runtime is 2
 - `GET /auth/tenants` remains intentionally absent (a test asserts 404); the supported route is `GET /tenants/me`.
 - The route is gated by complete OIDC configuration and `ACADEMY_LEARNER_DATA_API_ENABLED=true`.
 
-**Delivered:** `GET /tenants/me` uses the authenticated HttpOnly session, the transaction-local user context and migration 0010 self-discovery policy; it switches into each tenant context before reading tenant metadata and assigned roles, omits memberships suspended during the read, returns `Cache-Control: no-store`, and never accepts a caller-supplied user ID or role. Unit tests and the complete `GET /tenants/me` HTTP route (including real opaque-session resolution) pass against disposable PostgreSQL 18.6 with the non-owner/non-BYPASSRLS runtime role. The OpenAPI contract now contains 13 paths. This does not exercise an external OIDC provider.
+**Delivered:** `GET /tenants/me` uses the authenticated HttpOnly session, the transaction-local user context and migration 0010 self-discovery policy; it switches into each tenant context before reading tenant metadata and assigned roles, omits memberships suspended during the read, returns `Cache-Control: no-store`, and never accepts a caller-supplied user ID or role. Unit tests and the complete `GET /tenants/me` HTTP route (including real opaque-session resolution) pass against disposable PostgreSQL 18.6 with the non-owner/non-BYPASSRLS runtime role. The OpenAPI contract now contains 15 paths. This does not exercise an external OIDC provider.
 
 ### SF-03 — Learner API remains disabled by default
 
 - `ACADEMY_LEARNER_DATA_API_ENABLED` defaults to false.
-- Learner APIs also require complete OIDC/database configuration and schema head 0011.
+- Learner APIs also require complete OIDC/database configuration and schema head 0012.
 - RLS acceptance is now complete, but that is not equivalent to production OIDC provider acceptance, production database least-privilege review or privacy approval.
 
 **Target:** preserve fail-closed defaults. Do not turn on the feature flag as a shortcut. Complete provider-backed E2E and privacy/retention review first.
 
-### SF-04 — Course authoring remains browser-local
+### SF-04 — Course authoring remains browser-local; platform publishing is CLI-only
 
 - Course authoring uses local drafts and browser JSON import/export.
-- Course release domain services and schema exist, but a complete authenticated authoring/publishing workflow is not exposed through HTTP and the UI.
+- A dedicated platform publisher CLI, strict snapshot validation, digest review, idempotent publication and immutable-release database guards are implemented; authenticated authoring/publishing UI and HTTP endpoints remain absent.
 - No instructor/course-authoring permissions should be inferred from the existing learner-only OIDC provisioning path.
 
 **Target:** define the authoring roles, review/publish lifecycle, immutable release behavior and audit requirements before adding authoring endpoints.
@@ -179,7 +180,7 @@ Added `src/api/client.ts` and exported the runtime through `src/api/index.ts`. T
 - Structured error categories for 401/403/409/422/5xx, request correlation ID capture, network failures, timeout and caller cancellation.
 - Query serialization, JSON request/response handling, 204 responses and configurable API base URL/fetch implementation.
 
-Regression coverage: `src/api/client.test.ts` (13 tests). The full `pnpm acceptance:local` gate passed after implementation: Biome lint/format, strict TypeScript, OpenAPI 3.1 drift check (13 paths), Vitest (86 passed), Playwright Chromium (42 passed), all M04–M20 Python example suites, Ruff, backend pytest (135 passed, 1 optional PostgreSQL harness skip) and production build. The client is deliberately not wired into the learner UI yet; no OIDC or learner-data feature flag has been enabled. Browser-backed provider E2E remains pending. A separate local dependency security audit also passed: no known npm or Python dependency vulnerabilities; the unpublished first-party Python package was skipped by pip-audit because it is not on PyPI. GitHub Actions were not triggered.
+Regression coverage: `src/api/client.test.ts` (15 tests). The full `pnpm acceptance:local` gate passed after implementation: Biome lint/format, strict TypeScript, OpenAPI 3.1 drift check (15 paths), Vitest (88 passed), Playwright Chromium (46 passed), all M04–M20 Python example suites, Ruff, backend pytest (152 passed, 1 optional PostgreSQL harness skip) and production build. The client is deliberately not wired into the learner UI yet; no OIDC or learner-data feature flag has been enabled. Browser-backed provider E2E remains pending. A separate local dependency security audit also passed: no known npm or Python dependency vulnerabilities; the unpublished first-party Python package was skipped by pip-audit because it is not on PyPI. GitHub Actions were not triggered.
 
 ### SF-02 — Session and tenant context UI (implemented locally)
 
@@ -189,20 +190,39 @@ Tenant selection is explicit. The browser stores only a tenant ID preference (no
 
 The account shell is gated by `VITE_ACADEMY_AUTH_UI_ENABLED`, which defaults to false. This is a frontend presentation flag only; it does not enable backend OIDC, learner APIs or production data access. The Playwright test server sets it to true to exercise the UI. No secret is exposed through this variable.
 
-Regression coverage: four dedicated Playwright scenarios verify authorized tenant preference revalidation and selection, expired-session login affordance, tenant API unavailability, and CSRF-protected logout. The full local acceptance gate passed: Biome, TypeScript, OpenAPI drift check, Vitest (86 passed), Playwright Chromium (46 passed), all M04–M20 Python example suites, Ruff, backend pytest (135 passed, 1 optional PostgreSQL harness skip), and production build. The independent dependency audit found no known npm/Python dependency vulnerabilities; the unpublished first-party Python package remains outside pip-audit's PyPI coverage. Provider-backed OIDC remains untested; tenant selection is not yet integrated into learning/assessment requests. GitHub Actions were not triggered.
+Regression coverage: four dedicated Playwright scenarios verify authorized tenant preference revalidation and selection, expired-session login affordance, tenant API unavailability, and CSRF-protected logout. The latest local acceptance gate passed: Biome, TypeScript, OpenAPI drift check, Vitest (88 passed), Playwright Chromium (46 passed), all M04–M20 Python example suites, Ruff, backend pytest (152 passed, 1 optional PostgreSQL harness skip), and production build. The independent dependency audit found no known npm/Python dependency vulnerabilities; the unpublished first-party Python package remains outside pip-audit's PyPI coverage. Provider-backed OIDC remains untested; tenant selection is not yet integrated into learning/assessment requests. GitHub Actions were not triggered.
 
 ### SF-03 — Authenticated course release read API (implemented locally)
 
 Added `backend/app/api/course_releases.py` with tenant-authorized `GET /courses/releases` and `GET /courses/releases/{release_id}`. Both use the authenticated session, active tenant membership and the existing `course:read` permission. Discovery returns published metadata only; detail reads published or retired immutable snapshots for historical interpretation. Drafts are never exposed. Responses use `Cache-Control: no-store` and `Pragma: no-cache`. The OpenAPI contract and generated TypeScript types now include the two routes; the frontend API client exposes typed discovery and detail methods.
 
-Regression coverage includes API-level tests for published-only filtering, snapshot visibility, no-store headers and 404 behavior. The PostgreSQL RLS acceptance harness exercises the actual HTTP read routes with an opaque session and non-owner/non-BYPASSRLS runtime role, including rejection of a tenant without active membership. The full local acceptance gate passed: OpenAPI 3.1 drift check (15 paths), Vitest (88 passed), Playwright Chromium (46 passed), all M04–M20 Python example suites, Ruff (71 files formatted), backend pytest (138 passed, 1 optional PostgreSQL harness skip) and production build. The independent disposable PostgreSQL 18.6 RLS acceptance passed with `superuser=false` and `bypassrls=false`; the dependency audit found no known npm/Python third-party vulnerabilities, while the unpublished first-party Python package remains outside pip-audit's PyPI coverage. GitHub Actions were not triggered.
+Regression coverage includes API-level tests for published-only filtering, snapshot visibility, no-store headers and 404 behavior. The PostgreSQL RLS acceptance harness exercises the actual HTTP read routes with an opaque session and non-owner/non-BYPASSRLS runtime role, including rejection of a tenant without active membership. The full local acceptance gate passed: OpenAPI 3.1 drift check (15 paths), Vitest (88 passed), Playwright Chromium (46 passed), all M04–M20 Python example suites, Ruff (77 files formatted), backend pytest (152 passed, 1 optional PostgreSQL harness skip) and production build. The independent disposable PostgreSQL 18.6 RLS acceptance passed with `superuser=false` and `bypassrls=false`; the dependency audit found no known npm/Python third-party vulnerabilities, while the unpublished first-party Python package remains outside pip-audit's PyPI coverage. GitHub Actions were not triggered.
 
-### SF-04 — Platform-scoped course publication (next)
+### SF-04 — Platform-scoped course publication (implementation complete; persistent environment seed pending)
 
-The current domain service can build and publish immutable snapshots, but there is no publication API or operator command and no persisted release is yet bound to the frontend curriculum. Follow ADR-0009: publishing global catalog content is a platform operation, not a `tenant_admin` privilege. Define an auditable operator workflow, validate the strict course schema and digest, and bootstrap the first real release UUID before connecting learner writes.
+Implemented ADR-0010 and the platform publication boundary:
+
+- scripts/export-course-release.mjs loads all modules through the Vite SSR loader and validates the complete curriculum with the same Zod CourseSchema used by the frontend.
+- backend/app/schemas/course_release.py independently validates the complete nested snapshot with strict Pydantic models, unknown-field rejection, duplicate-ID checks, prerequisite graph validation, URL/date validation and lab-reference integrity.
+- backend/scripts/publish_course_release.py requires a dedicated ACADEMY_PUBLISHER_DATABASE_URL, verifies both session_user and current_user, requires a reviewed --expected-sha256, and inserts the published snapshot plus global audit event in one transaction.
+- Migration 0012_platform_publisher_audit adds the narrow global audit policy, denies the publisher all tenant-membership rows through restrictive RLS, and installs database guards against draft insertion by the publisher and mutation/deletion/reactivation of published releases.
+- The unique course/version constraint provides the concurrency boundary. Identical repeated publication returns the existing UUID without a second audit event; mismatched digest/schema/status is rejected.
+- Disposable PostgreSQL 18.6 acceptance exported and validated the actual course bundle (20 modules, 100 lessons, 100 assessments), published it, raced two concurrent publishers (one insert, one idempotent conflict result), repeated it idempotently, rejected a conflicting snapshot and digest mismatch, proved release rollback when audit INSERT was denied, verified one audit event, checked role/grant attributes and confirmed snapshot immutability. The generated UUID existed only in the disposable database and must not be used by the frontend.
+
+**Remaining external operation:** no persistent target database or publisher credential is configured in this local environment. A DBA must apply migrations through 0012_platform_publisher_audit, provision the dedicated role, and run the documented dry-run/review/publish sequence against the intended persistent database. Only that database's committed release UUID can unblock SF-05.
 
 ### SF-05 — Learner data synchronization (blocked on SF-04)
 
 After a real published release is available, map learner progress to its persisted UUID and selected tenant. Reconcile legacy browser-local completion only through an explicit, idempotent import; preserve the original local snapshot and report conflicts. Assessment persistence follows the same release binding.
 
 Keep OIDC and learner API defaults disabled until provider-backed E2E, runtime DB least-privilege and privacy/retention gates are accepted.
+
+
+### SF-04 acceptance evidence — 2026-11-10
+
+- Disposable PostgreSQL 18.6 migration rehearsal reached the single Alembic head 0012_platform_publisher_audit.
+- Dedicated publisher acceptance passed: strict full-curriculum validation, direct-role identity checks, least-privilege grants, restrictive tenant-membership RLS, atomic release/audit write and forced audit-failure rollback, concurrent idempotency race, conflicting-content rejection, expected-digest rejection, draft-insert rejection and immutable published-snapshot update/delete rejection.
+- Separate PostgreSQL RLS acceptance passed with a non-owner, non-superuser, non-BYPASSRLS academy_runtime role.
+- pnpm acceptance:local: Biome lint/format, TypeScript, OpenAPI drift (15 paths), Vitest 88, Playwright Chromium 46, M04–M20 Python example suites, Ruff, backend pytest 152 passed / 1 optional skip, Vite production build passed.
+- pnpm security:audit: no known npm or Python third-party dependency vulnerabilities; the unpublished first-party Python package was skipped by pip-audit because it is not published on PyPI.
+- GitHub Actions were not triggered. No persistent production database publication or external OIDC acceptance is claimed.

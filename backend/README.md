@@ -1,6 +1,6 @@
 # Backend foundation
 
-FastAPI modular-monolith foundation. The current slice provides operational endpoints, PostgreSQL connectivity, async session/transaction primitives, eleven Alembic migrations, versioned course releases, identity/tenant schemas, OIDC sign-in/session routes (disabled until configured), owner-scoped learner records, forced RLS policies and domain lifecycle services. General account-management and tenant-management routes are not exposed. Authenticated course-release reads, learner progress and assessment routes are mounted but return HTTP 503 by default; explicit activation requires complete OIDC configuration, PostgreSQL RLS acceptance and privacy/retention review. The backend does not execute user code.
+FastAPI modular-monolith foundation. The current slice provides operational endpoints, PostgreSQL connectivity, async session/transaction primitives, twelve Alembic migrations, versioned course releases, identity/tenant schemas, OIDC sign-in/session routes (disabled until configured), owner-scoped learner records, forced RLS policies and domain lifecycle services. General account-management and tenant-management routes are not exposed. Authenticated course-release reads, learner progress and assessment routes are mounted but return HTTP 503 by default; explicit activation requires complete OIDC configuration, PostgreSQL RLS acceptance and privacy/retention review. The backend does not execute user code.
 
 ## Local development
 
@@ -42,7 +42,7 @@ uv run --locked --default-index https://pypi.org/simple alembic -c alembic.ini c
 uv run --locked --default-index https://pypi.org/simple alembic -c alembic.ini history
 ```
 
-Run migration commands from the `backend/` directory. The URL is read from environment settings; the placeholder URL in `alembic.ini` is not a credential source. Run migrations with a schema-owner/migrator role; the API must connect with a separate non-owner role that is neither superuser nor `BYPASSRLS` and has only the required table privileges. When OIDC is enabled, grant that role `SELECT` on `alembic_version` so the API can fail closed unless the database head is `0011_personal_tenant_bootstrap`, the current schema revision required by both OIDC and learner API code.
+Run migration commands from the `backend/` directory. The URL is read from environment settings; the placeholder URL in `alembic.ini` is not a credential source. Run migrations with a schema-owner/migrator role; the API must connect with a separate non-owner role that is neither superuser nor `BYPASSRLS` and has only the required table privileges. When OIDC is enabled, grant that role `SELECT` on `alembic_version` so the API can fail closed unless the database head is `0012_platform_publisher_audit`, the current schema revision required by both OIDC and learner API code.
 
 ## Session and transaction rules
 
@@ -61,7 +61,7 @@ OIDC endpoints are mounted but return HTTP 503 until all required environment se
 
 ## Security boundary
 
-Identity and tenant tables support the limited OIDC sign-in and first-login provisioning flow. General account-management and tenant-management routes are not exposed. Self-scoped learner progress and assessment-attempt routes are mounted but disabled by default. Provider-neutral opaque-session hashing, CSRF HMAC, OIDC state/nonce and PKCE S256 primitives are implemented. The browser-bound state cookie uses the `__Host-` prefix, Secure, HttpOnly and SameSite=Lax attributes to mitigate login CSRF. The OIDC provider adapter performs HTTPS-only discovery, exact issuer matching, cached JWKS retrieval with unknown-kid refresh, algorithm allowlisting and ID-token signature/issuer/audience/expiry/issued-at/subject/nonce/azp validation. Session create/resolve/revoke/rotate services, HttpOnly cookie helpers, opt-in CSRF/Origin middleware and active-membership/default-deny role authorization services are implemented; the OIDC routes use the authentication and provisioning subset. A narrow token-hash RLS bootstrap policy enables session lookup before user identity is known, then the transaction switches to user context. Authorization-code exchange with PKCE and durable one-time login-transaction storage (hashed state/nonce plus Fernet-encrypted verifier) are implemented as provider-neutral services. OIDC routes now provide login, callback, current-session, CSRF-token and logout flows, but remain disabled until the complete provider/database/security configuration is supplied. The API caches provider discovery/JWKS for its lifespan, validates ID tokens before provisioning a learner-only personal workspace, and issues opaque Secure/HttpOnly session cookies. Production provider registration, secret provisioning, same-site frontend/API deployment validation and resource-scoped instructor access remain deployment gates. Learner-data APIs require `ACADEMY_LEARNER_DATA_API_ENABLED=true`, complete OIDC configuration and migration head `0011_personal_tenant_bootstrap`; they remain disabled by default until non-owner PostgreSQL RLS acceptance and privacy review pass. Tenant-management APIs remain disabled. Migration 0010 adds a narrow self-only active-membership discovery policy, allowing the signed-in user to select their own tenant IDs before setting a tenant context. Migration 0011 adds an exact-owner, exact-tenant, transaction-local bootstrap visibility policy used only while first-login provisioning inserts the first active personal membership; the application clears this marker immediately after the insert, and normal tenant discovery continues to require active membership. Migration `0004_tenant_rls` enables and forces RLS on identity/tenant tables; each database transaction must call `set_security_context(session, user_id=..., tenant_id=...)` before scoped queries. This helper sets transaction-local PostgreSQL settings so pooled connections cannot retain a previous request's context. A local PostgreSQL RLS acceptance was executed against a non-owner, non-BYPASSRLS runtime role, including first-login personal-tenant bootstrap, exact-marker rejection, tenant isolation, active-membership suspension and assessment self-grading rejection. The pytest integration harness remains available for repeatable execution when separate admin/runtime database URLs are supplied. Learner records are currently owner-only under RLS; instructor review visibility and write services are not implemented; learner APIs remain disabled by default until the ADR 0003 implementation gates are satisfied. Course release snapshots are catalog data, not learner-owned data. Arbitrary code execution is also absent.
+Identity and tenant tables support the limited OIDC sign-in and first-login provisioning flow. General account-management and tenant-management routes are not exposed. Self-scoped learner progress and assessment-attempt routes are mounted but disabled by default. Provider-neutral opaque-session hashing, CSRF HMAC, OIDC state/nonce and PKCE S256 primitives are implemented. The browser-bound state cookie uses the `__Host-` prefix, Secure, HttpOnly and SameSite=Lax attributes to mitigate login CSRF. The OIDC provider adapter performs HTTPS-only discovery, exact issuer matching, cached JWKS retrieval with unknown-kid refresh, algorithm allowlisting and ID-token signature/issuer/audience/expiry/issued-at/subject/nonce/azp validation. Session create/resolve/revoke/rotate services, HttpOnly cookie helpers, opt-in CSRF/Origin middleware and active-membership/default-deny role authorization services are implemented; the OIDC routes use the authentication and provisioning subset. A narrow token-hash RLS bootstrap policy enables session lookup before user identity is known, then the transaction switches to user context. Authorization-code exchange with PKCE and durable one-time login-transaction storage (hashed state/nonce plus Fernet-encrypted verifier) are implemented as provider-neutral services. OIDC routes now provide login, callback, current-session, CSRF-token and logout flows, but remain disabled until the complete provider/database/security configuration is supplied. The API caches provider discovery/JWKS for its lifespan, validates ID tokens before provisioning a learner-only personal workspace, and issues opaque Secure/HttpOnly session cookies. Production provider registration, secret provisioning, same-site frontend/API deployment validation and resource-scoped instructor access remain deployment gates. Learner-data APIs require `ACADEMY_LEARNER_DATA_API_ENABLED=true`, complete OIDC configuration and migration head `0012_platform_publisher_audit`; they remain disabled by default until non-owner PostgreSQL RLS acceptance and privacy review pass. Tenant-management APIs remain disabled. Migration 0010 adds a narrow self-only active-membership discovery policy, allowing the signed-in user to select their own tenant IDs before setting a tenant context. Migration 0011 adds an exact-owner, exact-tenant, transaction-local bootstrap visibility policy used only while first-login provisioning inserts the first active personal membership; the application clears this marker immediately after the insert, and normal tenant discovery continues to require active membership. Migration `0004_tenant_rls` enables and forces RLS on identity/tenant tables; each database transaction must call `set_security_context(session, user_id=..., tenant_id=...)` before scoped queries. This helper sets transaction-local PostgreSQL settings so pooled connections cannot retain a previous request's context. A local PostgreSQL RLS acceptance was executed against a non-owner, non-BYPASSRLS runtime role, including first-login personal-tenant bootstrap, exact-marker rejection, tenant isolation, active-membership suspension and assessment self-grading rejection. The pytest integration harness remains available for repeatable execution when separate admin/runtime database URLs are supplied. Learner records are currently owner-only under RLS; instructor review visibility and write services are not implemented; learner APIs remain disabled by default until the ADR 0003 implementation gates are satisfied. Course release snapshots are catalog data, not learner-owned data. Arbitrary code execution is also absent.
 
 See [ADR 0002](../docs/adr/0002-backend-modular-monolith.md) and [ADR 0003](../docs/adr/0003-identity-and-tenant-isolation.md).
 
@@ -89,3 +89,52 @@ uv run --locked --default-index https://pypi.org/simple pytest -q tests/integrat
 ```
 
 The test seeds two users in the same tenant plus a user in a second tenant. It verifies that a non-owner runtime role sees only the current user's membership and learner records, cannot update another learner's progress or assessment attempt in the same tenant, receives no rows when the user/tenant context is mismatched, and receives no tenant rows when context is absent. It skips when the two test-only URLs are not configured. Never use production credentials for this test.
+
+
+## Platform course publication
+
+Global course releases are published only through the dedicated
+`academy_course_publisher` PostgreSQL login, not through learner sessions or
+`tenant_admin` permissions. Apply Alembic through
+`0012_platform_publisher_audit`, then have a database administrator
+create the login role and apply the least-privilege grants in
+`backend/scripts/provision_course_publisher_role.sql`. The role must be
+`NOSUPERUSER`, `NOBYPASSRLS`, `NOINHERIT`, and must not be granted membership
+in any other role. It receives SELECT/INSERT on `course_releases` and
+INSERT on `audit_events`; it cannot update or delete published snapshots. It also receives SELECT on
+tenant_memberships only because the existing tenant-user audit insert policy
+contains an EXISTS subquery; migration 0012 adds a restrictive RLS policy
+that makes this role see zero membership rows even if it sets custom GUC
+values. The database trigger prevents publisher draft inserts and
+published/retired snapshot mutation or deletion.
+
+Export the complete frontend curriculum through Vite's SSR loader, which uses
+the same Zod schema as the application:
+
+```bash
+node scripts/export-course-release.mjs /tmp/course-release.json
+```
+
+Validate and obtain the SHA-256 digest before publication:
+
+```bash
+cd backend
+PYTHONPATH=. uv run --locked --python 3.12.14 --default-index https://pypi.org/simple \
+  python scripts/publish_course_release.py \
+  --content /tmp/course-release.json \
+  --course-key ai-engineering-foundations \
+  --version 0.40.9 --schema-version 1 --dry-run
+```
+
+After reviewing the digest, set `ACADEMY_PUBLISHER_DATABASE_URL` to the
+dedicated role's connection string and repeat the command with
+`--expected-sha256 <reviewed-digest>` and without `--dry-run`. The command
+checks both `session_user` and `current_user`, validates the full strict
+snapshot again, inserts the published immutable release and its global audit
+event in one transaction, and uses the unique course/version constraint for
+concurrency-safe idempotency. A repeat with identical content is a no-op; a
+different digest, schema or lifecycle state is rejected. Never use the API
+runtime or a tenant-admin credential for this operation. The disposable
+PostgreSQL end-to-end publisher acceptance can be run with
+pnpm acceptance:course-publisher; it does not publish to a persistent or
+production database.

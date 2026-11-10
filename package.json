@@ -39,7 +39,8 @@
     "format:check": "biome format .",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm api:check",
     "api:generate": "PYTHONPATH=backend uv run --project backend --locked --python 3.12.14 --default-index https://pypi.org/simple python backend/scripts/export_openapi.py && openapi-typescript openapi/openapi.json --output src/api/generated.ts",
-    "api:check": "node scripts/check-openapi.mjs"
+    "api:check": "node scripts/check-openapi.mjs",
+    "acceptance:course-publisher": "bash scripts/acceptance-course-publisher.sh"
   },
   "dependencies": {
     "react": "^19.1.0",

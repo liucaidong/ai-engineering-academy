@@ -8,7 +8,7 @@ The database must already be migrated to head.
 import os
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import httpx
 import pytest
@@ -45,7 +45,9 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
     bootstrap_membership = uuid4()
     progress_a, progress_b, progress_c, progress_new = uuid4(), uuid4(), uuid4(), uuid4()
     result_a, result_b, result_c, result_new = uuid4(), uuid4(), uuid4(), uuid4()
-    release_id = uuid4()
+    # Published releases are immutable. Keep one deterministic fixture row so
+    # repeated runs against a dedicated test database remain idempotent.
+    release_id = UUID("00000000-0000-4000-8000-000000000012")
     admin_can_bypass_rls = False
 
     try:
@@ -134,9 +136,24 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                     "(id, course_key, version, schema_version, content_sha256, content, status, published_at) "
                     "VALUES (:release_id, 'rls-test', '1.0.0', 1, :digest, "
                     """'{"title":"RLS test"}'::jsonb, 'published', now())"""
+                    "ON CONFLICT (course_key, version) DO NOTHING"
                 ),
                 {"release_id": release_id, "digest": "0" * 64},
             )
+            persisted_release = (
+                await connection.execute(
+                    text(
+                        "SELECT id, content_sha256, content, status FROM course_releases "
+                        "WHERE course_key = 'rls-test' AND version = '1.0.0'"
+                    )
+                )
+            ).one()
+            assert persisted_release.content_sha256 == "0" * 64
+            assert persisted_release.content == {"title": "RLS test"}
+            assert persisted_release.status == "published"
+            # Reuse the existing immutable fixture UUID when this harness is
+            # rerun against a database that already contains the stable row.
+            release_id = persisted_release.id
             await connection.execute(
                 text(
                     "INSERT INTO learning_progress "
@@ -226,7 +243,7 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
             session_factory = runtime_sessions
 
             async def check_schema_revision(self, revision):
-                assert revision == "0011_personal_tenant_bootstrap"
+                assert revision == "0012_platform_publisher_audit"
 
         app = FastAPI()
         app.state.database = RuntimeDatabase()
@@ -629,9 +646,7 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                         "bootstrap_user": bootstrap_user,
                     },
                 )
-                await connection.execute(
-                    text("DELETE FROM course_releases WHERE id = :release_id"),
-                    {"release_id": release_id},
-                )
+                # Published course releases are immutable and deliberately
+                # retained as a stable fixture in reusable test databases.
         await runtime_engine.dispose()
         await admin_engine.dispose()

@@ -11,9 +11,9 @@
 - [x] Author substantive, sourced lessons and rubric assessments for M01–M20
 - [x] Browser-local module completion progress, bookmarks and assessment self-review
 - [x] Playwright Chromium E2E suite authored for core learning flows, accessibility and mobile widths
-- [ ] Execute browser E2E suite and complete full accessibility audit
-- [ ] Generate and commit a dependency lockfile after resolving the final package set
-- [ ] Verified clean install, test and production build in a controlled runtime
+- [x] Execute browser E2E suite (46 passed) and automated accessibility checks; [ ] complete manual accessibility audit
+- [x] Generate and commit the dependency lockfile after resolving the package set
+- [x] Verify clean lockfile install, local tests and production build in the controlled local runtime
 
 ## P2 — Learning experience
 - [x] Content authoring guide, schemaVersion contract and legacy v0-to-v1 migration
@@ -33,7 +33,7 @@
 - [x] Deterministic course-content hashing and draft-to-published domain service
 - [x] Publication timestamp/status invariant enforced by a follow-up migration
 - [x] Course release lifecycle and migration-chain unit tests authored
-- [x] Backend health and model tests authored (execution pending)
+- [x] Backend health and model tests executed as part of local acceptance
 - [x] Define OIDC identity, tenant membership, session and learner-data isolation baseline in ADR-0003
 - [x] Add user, OIDC identity, session, tenant, membership, role, invitation and audit schemas with no general CRUD HTTP exposure
 - [x] Add provider-neutral opaque session hashing, CSRF HMAC, OIDC state/nonce and PKCE S256 primitives with RFC-vector tests
@@ -75,16 +75,17 @@
 
 ## P5 — Code quality and system functionalization (2026-11-10)
 
-- [x] Establish current local quality baseline: 73 Vitest, 42 Playwright, 135 backend pytest passed / 1 optional RLS skip, Biome, Ruff, TypeScript, OpenAPI drift and production build passed.
+- [x] Establish current local quality baseline: 88 Vitest, 46 Playwright, 152 backend pytest passed / 1 optional RLS skip, Biome, Ruff, TypeScript, OpenAPI drift and production build passed.
 - [x] Execute real PostgreSQL 18.6 RLS acceptance with an unprivileged non-owner / non-superuser / non-BYPASSRLS runtime role.
 - [x] Document risk-based code-quality and system-functionalization backlog in [ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11](./ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11.md).
 - [x] Expose authenticated `GET /tenants/me` using migration 0010's self-only RLS policy; verify actual query service on PostgreSQL 18.6.
-- [x] Implement typed frontend API transport with Cookie credentials, session-bound CSRF, explicit tenant context, structured errors, timeout/cancellation and 13 regression tests; full local acceptance passed (86 Vitest, 42 Playwright, 135 backend pytest + 1 optional skip).
+- [x] Implement typed frontend API transport with Cookie credentials, session-bound CSRF, explicit tenant context, structured errors, timeout/cancellation and 15 regression tests; full local acceptance passed (88 Vitest, 46 Playwright, 152 backend pytest + 1 optional skip).
 - [x] Add feature-gated session bootstrap, tenant discovery/selection, stale-preference revalidation and CSRF-protected logout UI (4 dedicated scenarios; full Playwright suite 46 passed); frontend auth UI flag defaults off.
-- [ ] Integrate learner progress and assessment attempts with backend persistence and local-state reconciliation (blocked on a real published release UUID and explicit legacy-data import).
+- [ ] Integrate learner progress and assessment attempts with backend persistence and local-state reconciliation (blocked on the committed release UUID from the intended persistent database and explicit legacy-data import).
 - [ ] Complete provider-backed OIDC E2E and privacy/retention review before enabling learner APIs.
 - [x] Add authenticated, tenant-authorized published course-release metadata/content read APIs; drafts remain hidden (15 OpenAPI paths; PostgreSQL 18.6 RLS route acceptance passed).
 - [x] Add ADR-0009 defining immutable release consumption, platform-scoped publication and explicit legacy-data import boundaries.
-- [ ] Implement platform-scoped course publication and bootstrap the first immutable release.
-- [ ] Bind the learner UI to a real published course-release UUID.
+- [x] Implement platform-scoped course publication CLI, strict snapshot validation, reviewed digest, atomic audit, idempotency and immutable database guards (ADR-0010; PostgreSQL 18.6 disposable acceptance passed).
+- [ ] Provision the dedicated publisher role in the intended persistent database and publish the first persistent release; the disposable acceptance UUID is not reusable.
+- [ ] Bind the learner UI to that persistent published course-release UUID.
 - [ ] Define instructor/course-authoring authorization and publishing workflow before exposing authoring APIs.

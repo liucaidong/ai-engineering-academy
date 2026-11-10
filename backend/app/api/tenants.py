@@ -86,7 +86,7 @@ async def list_my_tenants(request: Request, response: Response) -> list[TenantMe
     if database is None:
         raise HTTPException(status_code=503, detail="Database is unavailable")
     try:
-        await database.check_schema_revision("0011_personal_tenant_bootstrap")
+        await database.check_schema_revision("0012_platform_publisher_audit")
     except (SQLAlchemyError, RuntimeError, ValueError) as error:
         raise HTTPException(
             status_code=503,

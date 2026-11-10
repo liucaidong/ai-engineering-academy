@@ -38,7 +38,7 @@ async def test_tenant_discovery_rejects_missing_session(monkeypatch):
 
     class Database:
         async def check_schema_revision(self, revision):
-            assert revision == "0011_personal_tenant_bootstrap"
+            assert revision == "0012_platform_publisher_audit"
 
     @asynccontextmanager
     async def fake_transaction_scope(_database):
@@ -119,7 +119,7 @@ async def test_authenticated_tenant_discovery_returns_session_scoped_memberships
 
     class Database:
         async def check_schema_revision(self, revision):
-            assert revision == "0011_personal_tenant_bootstrap"
+            assert revision == "0012_platform_publisher_audit"
 
     @asynccontextmanager
     async def fake_transaction_scope(_database):

@@ -94,7 +94,7 @@ async def readiness(request: Request) -> JSONResponse:
     try:
         await database.check()
         if current_settings.oidc_login_enabled:
-            await database.check_schema_revision("0011_personal_tenant_bootstrap")
+            await database.check_schema_revision("0012_platform_publisher_audit")
     except (SQLAlchemyError, RuntimeError, ValueError):
         return JSONResponse(
             status_code=503,

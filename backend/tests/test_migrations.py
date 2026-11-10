@@ -23,6 +23,7 @@ def test_alembic_has_one_linear_revision_chain() -> None:
         "0009_assessment_grade_guard",
         "0010_tenant_membership_discovery",
         "0011_personal_tenant_bootstrap",
+        "0012_platform_publisher_audit",
     ]
     assert all(len(revision_id) <= 32 for revision_id in revision_ids)
     assert scripts.get_heads() == [revision_ids[-1]]

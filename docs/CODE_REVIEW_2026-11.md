@@ -102,3 +102,18 @@
 4. 课程发布、Instructor 授权和云端编辑流程单独进行权限及审计设计，不从 learner-only role 推导管理权限。
 
 详细基线与 DoD：[`ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11.md`](./ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11.md)。
+
+## 6. 第四轮课程发布边界 Review（2026-11-10）
+
+新增平台发布边界并完成 PostgreSQL 18.6 disposable acceptance：
+
+- 平台发布身份独立于 tenant_admin 和 API runtime role；CLI 同时核验 session_user / current_user，拒绝 SET ROLE 代用连接。
+- 课程导出复用前端 Zod Schema；后端再次执行严格 Pydantic 校验，拒绝未知字段、显式 null、无效嵌套结构、重复 ID、无效先修图和实验引用。
+- 发布要求 dry-run 后人工复核的 SHA-256；数据库唯一约束负责 course/version 并发冲突；重复同内容为幂等 no-op，冲突内容不覆盖；并发发布验收验证两个发布进程只有一个实际 INSERT，另一个取得相同 UUID 的 no-op 结果；内容冲突拒绝覆盖，故意撤销 audit INSERT 权限后验证 release INSERT 随事务一起回滚。
+- release 与全局 audit event 同一事务提交；publisher audit 不伪造 actor_user_id / tenant_id。
+- publisher 对 tenant_memberships 具有仅供既有 audit policy EXISTS 子查询使用的 SELECT table privilege；restrictive RLS policy 即使面对任意自设 GUC 仍返回零行。
+- 数据库触发器阻止 publisher 插入 draft，阻止已发布/已退役快照被修改或删除，阻止 retired 重新激活。
+- 实测通过：20 modules / 100 lessons / 100 assessments 的实际课程快照校验、并发发布、重复幂等、内容冲突和 digest mismatch 拒绝、审计写入失败时的事务回滚、最小权限、租户行不可见及不可变性测试；migration downgrade/re-upgrade 也通过。
+- 该测试数据库是 disposable；其中产生的 release UUID 不得绑定前端。真实持久化数据库的 DBA role provisioning、密钥管理与发布尚未执行。
+
+残余风险：数据库 publisher 凭证仍具有对 course_releases 的 INSERT 权限；拥有该凭证的主体可绕过 CLI 直接提交结构不符合课程 Schema 的 published JSON。生产环境必须将该凭证仅交给受控发布作业/操作员，限制网络访问并保留审批与凭证轮换。当前审计事件可归因到 PostgreSQL publisher role，不能证明具体自然人身份。当前没有 HTTP 发布 API，也没有 Instructor/tenant_admin 发布权限。
