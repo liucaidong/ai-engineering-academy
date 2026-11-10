@@ -139,6 +139,7 @@ async def begin_progress(
             else:
                 touch_progress(progress)
             await db.flush()
+            await db.refresh(progress)
             return progress
     except IntegrityError as error:
         raise HTTPException(
@@ -159,6 +160,7 @@ async def mark_progress_complete(
         except ValueError as error:
             raise HTTPException(status_code=409, detail=str(error)) from error
         await db.flush()
+        await db.refresh(progress)
         return progress
 
 
@@ -175,4 +177,5 @@ async def reopen_completed_progress(
         except ValueError as error:
             raise HTTPException(status_code=409, detail=str(error)) from error
         await db.flush()
+        await db.refresh(progress)
         return progress

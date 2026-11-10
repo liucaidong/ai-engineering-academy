@@ -255,3 +255,8 @@ Acceptance: 154 backend tests passed (2 optional DB-only skips in the ordinary r
 Session resolution and revocation now coordinate through PostgreSQL transaction-scoped shared/exclusive advisory locks. The token-hash bootstrap query remains SELECT-only; the resolver switches to the owner RLS context before rechecking active session state. Concurrent authenticated requests share the lock, while logout/rotation require the exclusive lock. This makes logout wait for in-flight requests without granting broader bootstrap RLS permissions.
 
 A real PostgreSQL two-connection test invokes `resolve_session` and `revoke_session`, verifies revocation waits for the in-flight transaction, and confirms subsequent resolution fails. Disposable PostgreSQL RLS acceptance passed 3 tests with a non-owner, non-superuser, non-BYPASSRLS role.
+
+
+### CQ-02 — Real learner HTTP concurrency acceptance（implemented 2026-11-10）
+
+The disposable PostgreSQL RLS harness now exercises concurrent `POST /learning/progress` and `POST /assessments/attempts` requests through FastAPI using an opaque session cookie and the non-owner runtime role. Concurrent progress starts converge on one UUID; concurrent assessment attempts continue an existing sequence as 2 and 3 without duplicate numbers or gaps. The exercise also caught and fixed detached ORM response timestamps by refreshing write results before leaving the transaction. PostgreSQL integration acceptance: 3 passed; ordinary backend pytest: 154 passed / 3 optional DB-only skips.

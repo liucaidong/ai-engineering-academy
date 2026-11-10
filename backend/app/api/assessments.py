@@ -163,6 +163,7 @@ async def create_attempt(
             )
             db.add(attempt)
             await db.flush()
+            await db.refresh(attempt)
             return attempt
     except IntegrityError as error:
         raise HTTPException(
@@ -183,4 +184,5 @@ async def submit_attempt(
         except ValueError as error:
             raise HTTPException(status_code=409, detail=str(error)) from error
         await db.flush()
+        await db.refresh(attempt)
         return attempt

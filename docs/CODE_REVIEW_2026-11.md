@@ -188,3 +188,18 @@
 真实 PostgreSQL 双连接验收验证：第一事务持有 resolver shared lock 时，第二事务调用实际 `revoke_session` 必须等待；第一事务提交后撤销成功；之后再次解析同一 cookie 返回无效 session。完整 RLS acceptance 3 passed，runtime role `superuser=false`、`bypassrls=false`。普通 backend pytest 154 passed / 3 optional DB-only skips。
 
 残余语义：logout 不会中断已经通过认证并开始执行的请求；它会等待这些请求完成后再确认撤销。logout 完成后新请求无法继续使用该 session。这是明确的事务边界，不声称可以取消已经运行中的业务操作。
+
+
+## 13. Learner HTTP concurrency and ORM response lifecycle（2026-11-10）
+
+将并发验收从锁 helper 提升到真实 HTTP 路由：PostgreSQL 18.6 + 非 owner / 非 superuser / 非 BYPASSRLS runtime role，使用真实 opaque session cookie 和 tenant header，并发调用 `POST /learning/progress` 与 `POST /assessments/attempts`。
+
+实测发现并修复一个此前未覆盖的 API 响应生命周期缺陷：learner endpoints 在事务上下文退出后由 FastAPI 序列化 ORM response；部分 server-generated / on-update timestamp 字段可能处于 expired 状态，导致 `DetachedInstanceError` 和响应 500。所有创建/状态转换写入现在在 flush 后、事务仍处于活动状态时显式 refresh 对应 ORM 记录，再返回给 response serializer。
+
+真实 HTTP 并发断言：
+- 两个相同身份的 progress start 均返回 201，并收敛到同一 progress UUID，不产生重复行或 409。
+- 已有 attempt 1 的情况下，并发创建同一 assessment 的两个新 attempt，返回 attempt_number 2 和 3，无重复编号、无序号空洞。
+- 返回模型的时间戳字段可在 session 关闭后正常序列化。
+- 同一 RLS transaction 仍只能看到当前用户的 progress/assessment rows；测试同时校验新增记录属于当前 learner。
+
+完整 disposable PostgreSQL 18.6 acceptance：3 passed；runtime role `superuser=false`、`bypassrls=false`。普通 backend pytest：154 passed / 3 optional DB-only skips。

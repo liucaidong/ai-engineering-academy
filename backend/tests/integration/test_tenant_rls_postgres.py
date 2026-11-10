@@ -18,7 +18,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.api import course_releases, tenants
+from app.api import assessments, course_releases, learning, tenants
 from app.api.tenants import _list_active_tenants
 from app.db.session import set_security_context
 from app.security.oidc import generate_session_token
@@ -137,7 +137,7 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                     "INSERT INTO course_releases "
                     "(id, course_key, version, schema_version, content_sha256, content, status, published_at) "
                     "VALUES (:release_id, 'rls-test', '1.0.0', 1, :digest, "
-                    """'{"title":"RLS test"}'::jsonb, 'published', now())"""
+                    """'{"title":"RLS test","modules":[{"id":"M01","lessons":[{"assessments":[{"id":"A01"}]}]}]}'::jsonb, 'published', now())"""
                     "ON CONFLICT (course_key, version) DO NOTHING"
                 ),
                 {"release_id": release_id, "digest": "0" * 64},
@@ -151,7 +151,10 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                 )
             ).one()
             assert persisted_release.content_sha256 == "0" * 64
-            assert persisted_release.content == {"title": "RLS test"}
+            assert persisted_release.content == {
+                "title": "RLS test",
+                "modules": [{"id": "M01", "lessons": [{"assessments": [{"id": "A01"}]}]}],
+            }
             assert persisted_release.status == "published"
             # Reuse the existing immutable fixture UUID when this harness is
             # rerun against a database that already contains the stable row.
@@ -251,6 +254,8 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
         app.state.database = RuntimeDatabase()
         app.include_router(tenants.router)
         app.include_router(course_releases.router)
+        app.include_router(learning.router)
+        app.include_router(assessments.router)
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app),
             base_url="https://academy.example.test",
@@ -270,6 +275,31 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                 headers={"X-Tenant-ID": str(bootstrap_tenant)},
             )
 
+            progress_responses = await asyncio.gather(
+                *[
+                    client.post(
+                        "/learning/progress",
+                        headers={"X-Tenant-ID": str(tenant_a)},
+                        json={"course_release_id": str(release_id), "module_key": "M01"},
+                    )
+                    for _ in range(2)
+                ]
+            )
+            assessment_responses = await asyncio.gather(
+                *[
+                    client.post(
+                        "/assessments/attempts",
+                        headers={"X-Tenant-ID": str(tenant_a)},
+                        json={
+                            "course_release_id": str(release_id),
+                            "assessment_key": "A01",
+                            "response": {"answer": "concurrent"},
+                        },
+                    )
+                    for _ in range(2)
+                ]
+            )
+
         assert response.status_code == 200
         assert response.headers["cache-control"] == "no-store"
         payload = response.json()
@@ -282,8 +312,17 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
         assert release_list.headers["cache-control"] == "no-store"
         assert [item["id"] for item in release_list.json()] == [str(release_id)]
         assert release_detail.status_code == 200
-        assert release_detail.json()["content"] == {"title": "RLS test"}
+        assert release_detail.json()["content"] == persisted_release.content
         assert unauthorized_release_list.status_code == 403
+        assert all(item.status_code == 201 for item in progress_responses)
+        progress_ids = {item.json()["id"] for item in progress_responses}
+        assert len(progress_ids) == 1, "concurrent progress starts must converge on one record"
+        assert all(item.status_code == 201 for item in assessment_responses)
+        attempt_numbers = sorted(item.json()["attempt_number"] for item in assessment_responses)
+        attempt_ids = {UUID(item.json()["id"]) for item in assessment_responses}
+        assert attempt_numbers == [2, 3], (
+            "concurrent assessment attempts must extend the existing sequence without gaps"
+        )
         assert all(item["roles"] == ["learner"] for item in payload)
 
         async with runtime_engine.connect() as connection:
@@ -350,12 +389,20 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                         {"tenant_id": tenant_a},
                     )
                 ).scalars().all() == [membership_a]
-                assert (
-                    await connection.execute(text("SELECT id FROM learning_progress"))
-                ).scalars().all() == [progress_a]
-                assert (
-                    await connection.execute(text("SELECT id FROM assessment_results"))
-                ).scalars().all() == [result_a]
+                visible_progress = (
+                    (await connection.execute(text("SELECT id FROM learning_progress")))
+                    .scalars()
+                    .all()
+                )
+                assert set(visible_progress) == {progress_a} | {
+                    UUID(value) for value in progress_ids
+                }
+                visible_assessments = (
+                    (await connection.execute(text("SELECT id FROM assessment_results")))
+                    .scalars()
+                    .all()
+                )
+                assert set(visible_assessments) == {result_a} | attempt_ids
                 progress_update = await connection.execute(
                     text(
                         "UPDATE learning_progress SET module_key = 'M99' "
@@ -625,32 +672,43 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap(mo
                         )
 
     finally:
+        # Close pooled runtime connections before fixture cleanup so failed or
+        # cancelled concurrent HTTP requests cannot retain row/FK locks.
+        await runtime_engine.dispose()
         if admin_can_bypass_rls:
             async with admin_engine.begin() as connection:
+                tenant_ids = (tenant_a, tenant_b, bootstrap_tenant)
+                user_ids = (user_a, user_b, user_c, bootstrap_user)
                 await connection.execute(
-                    text(
-                        "DELETE FROM tenants WHERE id IN (:tenant_a, :tenant_b, :bootstrap_tenant)"
-                    ),
-                    {
-                        "tenant_a": tenant_a,
-                        "tenant_b": tenant_b,
-                        "bootstrap_tenant": bootstrap_tenant,
-                    },
+                    text("DELETE FROM assessment_results WHERE tenant_id = ANY(:tenant_ids)"),
+                    {"tenant_ids": list(tenant_ids)},
                 )
                 await connection.execute(
-                    text(
-                        "DELETE FROM users WHERE id IN (:user_a, :user_b, :user_c, :bootstrap_user)"
-                    ),
-                    {
-                        "user_a": user_a,
-                        "user_b": user_b,
-                        "user_c": user_c,
-                        "bootstrap_user": bootstrap_user,
-                    },
+                    text("DELETE FROM learning_progress WHERE tenant_id = ANY(:tenant_ids)"),
+                    {"tenant_ids": list(tenant_ids)},
+                )
+                await connection.execute(
+                    text("DELETE FROM tenant_membership_roles WHERE tenant_id = ANY(:tenant_ids)"),
+                    {"tenant_ids": list(tenant_ids)},
+                )
+                await connection.execute(
+                    text("DELETE FROM tenant_memberships WHERE tenant_id = ANY(:tenant_ids)"),
+                    {"tenant_ids": list(tenant_ids)},
+                )
+                await connection.execute(
+                    text("DELETE FROM auth_sessions WHERE user_id = ANY(:user_ids)"),
+                    {"user_ids": list(user_ids)},
+                )
+                await connection.execute(
+                    text("DELETE FROM tenants WHERE id = ANY(:tenant_ids)"),
+                    {"tenant_ids": list(tenant_ids)},
+                )
+                await connection.execute(
+                    text("DELETE FROM users WHERE id = ANY(:user_ids)"),
+                    {"user_ids": list(user_ids)},
                 )
                 # Published course releases are immutable and deliberately
                 # retained as a stable fixture in reusable test databases.
-        await runtime_engine.dispose()
         await admin_engine.dispose()
 
 
