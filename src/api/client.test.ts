@@ -64,6 +64,36 @@ describe("AcademyApiClient", () => {
     expect(fetcher.mock.calls[0]?.[0]).toBe("/auth/csrf");
   });
 
+  it("cancels an unsafe request while it waits for a shared CSRF token", async () => {
+    let resolveCsrf: ((response: Response) => void) | undefined;
+    const csrfResponse = new Promise<Response>((resolve) => {
+      resolveCsrf = resolve;
+    });
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockImplementationOnce(() => csrfResponse)
+      .mockResolvedValueOnce(jsonResponse({ id: "progress-1" }));
+    const api = client(fetcher);
+    const controller = new AbortController();
+
+    const cancelledRequest = api.completeLearningProgress(
+      "tenant-1",
+      "progress-cancelled",
+      controller.signal,
+    );
+    controller.abort();
+    await expect(cancelledRequest).rejects.toMatchObject({ name: "AbortError" });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    resolveCsrf?.(jsonResponse({ csrf_token: "csrf-after-cancel" }));
+    await api.completeLearningProgress("tenant-1", "progress-1");
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(new Headers(fetcher.mock.calls[1]?.[1]?.headers).get("X-CSRF-Token")).toBe(
+      "csrf-after-cancel",
+    );
+  });
+
   it("invalidates a rejected CSRF token without automatically replaying a mutation", async () => {
     const fetcher = vi
       .fn<typeof fetch>()

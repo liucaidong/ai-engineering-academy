@@ -204,3 +204,17 @@
 - Session lifecycle 测试进一步证明两个并发认证读取可同时持有 shared lock，而 exclusive logout 必须等待读取事务结束；`last_seen_at` 在乱序提交下保持单调。
 
 完整 disposable PostgreSQL 18.6 acceptance：3 passed；runtime role `superuser=false`、`bypassrls=false`。普通 backend pytest：154 passed / 3 optional DB-only skips。
+
+## 14. Frontend API cancellation during CSRF bootstrap（2026-11-10）
+
+发现 API client 的 caller cancellation 只覆盖最终业务请求，不覆盖 unsafe request 前置的 CSRF token 获取阶段。若组件在等待 `GET /auth/csrf` 时卸载或切换页面，调用方虽然已取消，但原实现仍会在 CSRF 请求返回后继续发送 POST，造成不必要的副作用窗口。
+
+修复：
+- 新增 `awaitWithSignal`，让单个调用方可独立取消对共享 CSRF token Promise 的等待。
+- 不因某个调用方取消而中止共享 CSRF 获取，避免破坏同一 session 下其他并发 mutation 的 token bootstrap。
+- CSRF 等待完成后再次检查 signal，确保取消请求不会继续发送业务 mutation。
+- 不自动重放 mutation；既有 CSRF rejection 仍要求调用方显式重试，避免未知执行结果下重复副作用。
+
+新增回归测试：在 CSRF fetch pending 时取消 mutation，断言业务请求没有发送；随后完成 token bootstrap，再发起正常请求并复用已取得的 token。
+
+验收：API client tests 16 passed；完整 `pnpm acceptance:local` 通过：Vitest 91、Playwright Chromium 47、backend pytest 154 passed / 3 optional DB-only skips，Biome、TypeScript、OpenAPI drift、M04–M20 示例、Ruff 和 Vite production build 全部通过。GitHub Actions 未触发。

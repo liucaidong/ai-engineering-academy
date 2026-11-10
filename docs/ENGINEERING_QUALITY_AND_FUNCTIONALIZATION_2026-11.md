@@ -263,3 +263,10 @@ The disposable PostgreSQL RLS harness now exercises concurrent `POST /learning/p
 
 
 Session lifecycle follow-up: the PostgreSQL integration test now proves concurrent authenticated readers can hold the shared lifecycle lock together while logout waits for both. `last_seen_at` is updated with `GREATEST(existing, request_time)` so a slower, earlier request cannot move activity time backwards when it commits after a newer request. PostgreSQL acceptance remains 3 passed.
+
+
+### CQ-03 — API mutation cancellation covers CSRF bootstrap（implemented 2026-11-10）
+
+Caller cancellation now applies while an unsafe request waits for the shared session-bound CSRF token, not only after the business request starts. Cancellation rejects only that caller's wait and does not abort the shared token bootstrap used by concurrent requests. A post-bootstrap abort check prevents the mutation from being sent after cancellation. No automatic mutation replay was introduced.
+
+Regression: cancel a progress mutation while the CSRF endpoint is pending; assert no mutation request is sent; resolve the shared token and verify a subsequent mutation succeeds. API client tests: 16 passed. Full local acceptance: 91 Vitest, 47 Playwright, 154 backend pytest / 3 optional DB-only skips, Biome, TypeScript, OpenAPI drift, M04–M20 examples, Ruff and production build all passed. GitHub Actions were not triggered.

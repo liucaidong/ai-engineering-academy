@@ -100,6 +100,32 @@ function errorCategory(status: number): ApiErrorCategory {
   return "http";
 }
 
+function awaitWithSignal<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) {
+    return Promise.reject(signal.reason ?? new DOMException("Request was cancelled", "AbortError"));
+  }
+
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => {
+      cleanup();
+      reject(signal.reason ?? new DOMException("Request was cancelled", "AbortError"));
+    };
+    const cleanup = () => signal.removeEventListener("abort", abort);
+    signal.addEventListener("abort", abort, { once: true });
+    promise.then(
+      (value) => {
+        cleanup();
+        resolve(value);
+      },
+      (error: unknown) => {
+        cleanup();
+        reject(error);
+      },
+    );
+  });
+}
+
 export class AcademyApiClient {
   private readonly baseUrl: string;
   private readonly fetcher: typeof fetch;
@@ -251,7 +277,10 @@ export class AcademyApiClient {
       body = JSON.stringify(options.body);
     }
     if (UNSAFE_METHODS.has(method)) {
-      headers.set("X-CSRF-Token", await this.getCsrfToken());
+      headers.set("X-CSRF-Token", await awaitWithSignal(this.getCsrfToken(), options.signal));
+    }
+    if (options.signal?.aborted) {
+      throw options.signal.reason ?? new DOMException("Request was cancelled", "AbortError");
     }
 
     return this.fetchWithTimeout(
