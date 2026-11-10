@@ -785,10 +785,17 @@ async def test_session_revocation_waits_for_in_flight_authenticated_transaction(
                 second_started.set()
                 return await revoke_session(session, token.raw_token)
 
+        async def resolve_from_second_transaction():
+            async with sessions() as session, session.begin():
+                return await resolve_session(session, token.raw_token)
+
         async with sessions() as first_session:
             async with first_session.begin():
                 active = await resolve_session(first_session, token.raw_token)
                 assert active is not None and active.session_id == session_id
+                # Shared lifecycle locks allow concurrent authenticated readers.
+                second_active = await asyncio.wait_for(resolve_from_second_transaction(), timeout=2)
+                assert second_active is not None and second_active.session_id == session_id
                 revoke_task = asyncio.create_task(revoke_from_second_transaction())
                 await asyncio.wait_for(second_started.wait(), timeout=2)
                 await asyncio.sleep(0.05)

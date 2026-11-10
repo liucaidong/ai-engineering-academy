@@ -129,6 +129,6 @@ async def test_resolve_session_switches_from_token_hash_to_user_context() -> Non
     assert resolved is not None
     assert resolved.user_id == record.user_id
     assert resolved.session_id == record.id
-    assert record.last_seen_at == now
+    assert "greatest" in str(record.last_seen_at).lower()
     assert db.execute.await_count == 6
     assert "pg_advisory_xact_lock_shared" in str(db.execute.call_args_list[2].args[0])

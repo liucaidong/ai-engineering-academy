@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi import Response
-from sqlalchemy import select, text, update
+from sqlalchemy import func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import (
@@ -123,7 +123,9 @@ async def _resolve_locked_session(
     if user_result.scalar_one_or_none() != "active":
         return None
 
-    active.last_seen_at = current
+    # Multiple requests can share the lifecycle lock. Keep last_seen_at monotonic
+    # even if an earlier request commits after a later request.
+    active.last_seen_at = func.greatest(AuthSession.last_seen_at, current)
     return ResolvedSession(
         session_id=active.id,
         user_id=active.user_id,

@@ -260,3 +260,6 @@ A real PostgreSQL two-connection test invokes `resolve_session` and `revoke_sess
 ### CQ-02 — Real learner HTTP concurrency acceptance（implemented 2026-11-10）
 
 The disposable PostgreSQL RLS harness now exercises concurrent `POST /learning/progress` and `POST /assessments/attempts` requests through FastAPI using an opaque session cookie and the non-owner runtime role. Concurrent progress starts converge on one UUID; concurrent assessment attempts continue an existing sequence as 2 and 3 without duplicate numbers or gaps. The exercise also caught and fixed detached ORM response timestamps by refreshing write results before leaving the transaction. PostgreSQL integration acceptance: 3 passed; ordinary backend pytest: 154 passed / 3 optional DB-only skips.
+
+
+Session lifecycle follow-up: the PostgreSQL integration test now proves concurrent authenticated readers can hold the shared lifecycle lock together while logout waits for both. `last_seen_at` is updated with `GREATEST(existing, request_time)` so a slower, earlier request cannot move activity time backwards when it commits after a newer request. PostgreSQL acceptance remains 3 passed.

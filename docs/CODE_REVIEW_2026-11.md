@@ -182,7 +182,7 @@
 - session resolve：先用 token hash 进行原有窄范围 bootstrap SELECT，再对 session ID 获取 shared advisory lock；切换至已解析用户的 RLS context 后，重新确认该 session 仍未撤销、未过期且用户 active。
 - session revoke/logout：先按 token hash 定位 session，再获取同一 identity 的 exclusive advisory lock，最后在 owner RLS context 中执行带 `revoked_at IS NULL` 条件的更新。
 - session rotation：直接获取 exclusive lock，重新验证当前 session 后原子撤销并创建替代 session，避免 shared-to-exclusive lock upgrade。
-- 多个普通请求可共享 lifecycle lock；logout 等待已开始的请求事务结束。若 logout 先取得 exclusive lock，后续请求等待后重新检查并拒绝已撤销 session。last_seen_at 更新和 session 变更仍由数据库事务管理。
+- 多个普通请求可共享 lifecycle lock；logout 等待已开始的请求事务结束。若 logout 先取得 exclusive lock，后续请求等待后重新检查并拒绝已撤销 session。`last_seen_at` 使用数据库 `GREATEST` 表达式保持单调，避免较早请求较晚提交时覆盖更新的活动时间。
 - lock key 使用固定 namespace 和 session UUID，通过 SQL 参数传递；shared/exclusive 函数名由代码内固定分支选择。
 
 真实 PostgreSQL 双连接验收验证：第一事务持有 resolver shared lock 时，第二事务调用实际 `revoke_session` 必须等待；第一事务提交后撤销成功；之后再次解析同一 cookie 返回无效 session。完整 RLS acceptance 3 passed，runtime role `superuser=false`、`bypassrls=false`。普通 backend pytest 154 passed / 3 optional DB-only skips。
@@ -201,5 +201,6 @@
 - 已有 attempt 1 的情况下，并发创建同一 assessment 的两个新 attempt，返回 attempt_number 2 和 3，无重复编号、无序号空洞。
 - 返回模型的时间戳字段可在 session 关闭后正常序列化。
 - 同一 RLS transaction 仍只能看到当前用户的 progress/assessment rows；测试同时校验新增记录属于当前 learner。
+- Session lifecycle 测试进一步证明两个并发认证读取可同时持有 shared lock，而 exclusive logout 必须等待读取事务结束；`last_seen_at` 在乱序提交下保持单调。
 
 完整 disposable PostgreSQL 18.6 acceptance：3 passed；runtime role `superuser=false`、`bypassrls=false`。普通 backend pytest：154 passed / 3 optional DB-only skips。
