@@ -28,8 +28,8 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
     tenant_a, tenant_b, bootstrap_tenant = uuid4(), uuid4(), uuid4()
     membership_a, membership_b, membership_c = uuid4(), uuid4(), uuid4()
     bootstrap_membership = uuid4()
-    progress_a, progress_b, progress_c = uuid4(), uuid4(), uuid4()
-    result_a, result_b, result_c = uuid4(), uuid4(), uuid4()
+    progress_a, progress_b, progress_c, progress_new = uuid4(), uuid4(), uuid4(), uuid4()
+    result_a, result_b, result_c, result_new = uuid4(), uuid4(), uuid4(), uuid4()
     release_id = uuid4()
     admin_can_bypass_rls = False
 
@@ -177,6 +177,7 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                     "users",
                     "external_identities",
                     "auth_sessions",
+                    "oidc_login_transactions",
                     "tenants",
                     "tenant_memberships",
                     "tenant_membership_roles",
@@ -242,6 +243,113 @@ async def test_runtime_role_enforces_rls_and_narrow_personal_tenant_bootstrap() 
                     {"response": '{"tampered":true}', "other_result_id": result_c},
                 )
                 assert assessment_update.rowcount == 0
+
+                # Cross-tenant INSERT must fail at WITH CHECK, not merely be hidden later.
+                with pytest.raises(DBAPIError):
+                    async with connection.begin_nested():
+                        await connection.execute(
+                            text(
+                                "INSERT INTO learning_progress "
+                                "(id, tenant_id, user_id, course_release_id, module_key) "
+                                "VALUES (:id, :tenant_id, :user_id, :release_id, 'M88')"
+                            ),
+                            {
+                                "id": uuid4(),
+                                "tenant_id": tenant_b,
+                                "user_id": user_b,
+                                "release_id": release_id,
+                            },
+                        )
+                with pytest.raises(DBAPIError):
+                    async with connection.begin_nested():
+                        await connection.execute(
+                            text(
+                                "INSERT INTO assessment_results "
+                                "(id, tenant_id, user_id, course_release_id, assessment_key, "
+                                "attempt_number, status, grading_mode) "
+                                "VALUES (:id, :tenant_id, :user_id, :release_id, 'A88', 1, "
+                                "'draft', 'self_review')"
+                            ),
+                            {
+                                "id": uuid4(),
+                                "tenant_id": tenant_b,
+                                "user_id": user_b,
+                                "release_id": release_id,
+                            },
+                        )
+
+                # Own-row INSERT/UPDATE works, while DELETE remains denied because no DELETE
+                # policy is intentionally defined for learner progress or assessment records.
+                await connection.execute(
+                    text(
+                        "INSERT INTO learning_progress "
+                        "(id, tenant_id, user_id, course_release_id, module_key) "
+                        "VALUES (:id, :tenant_id, :user_id, :release_id, 'M03')"
+                    ),
+                    {
+                        "id": progress_new,
+                        "tenant_id": tenant_a,
+                        "user_id": user_a,
+                        "release_id": release_id,
+                    },
+                )
+                own_progress_update = await connection.execute(
+                    text("UPDATE learning_progress SET module_key = 'M04' WHERE id = :id"),
+                    {"id": progress_new},
+                )
+                assert own_progress_update.rowcount == 1
+                own_progress_delete = await connection.execute(
+                    text("DELETE FROM learning_progress WHERE id = :id"),
+                    {"id": progress_new},
+                )
+                assert own_progress_delete.rowcount == 0
+
+                await connection.execute(
+                    text(
+                        "INSERT INTO assessment_results "
+                        "(id, tenant_id, user_id, course_release_id, assessment_key, "
+                        "attempt_number, status, grading_mode) "
+                        "VALUES (:id, :tenant_id, :user_id, :release_id, 'A02', 1, "
+                        "'draft', 'self_review')"
+                    ),
+                    {
+                        "id": result_new,
+                        "tenant_id": tenant_a,
+                        "user_id": user_a,
+                        "release_id": release_id,
+                    },
+                )
+                own_assessment_update = await connection.execute(
+                    text(
+                        "UPDATE assessment_results SET response = CAST(:response AS jsonb) "
+                        "WHERE id = :id"
+                    ),
+                    {"response": '{"answer":"safe"}', "id": result_new},
+                )
+                assert own_assessment_update.rowcount == 1
+                own_assessment_delete = await connection.execute(
+                    text("DELETE FROM assessment_results WHERE id = :id"),
+                    {"id": result_new},
+                )
+                assert own_assessment_delete.rowcount == 0
+
+            # SET LOCAL context must not leak when the same pooled connection is reused.
+            async with connection.begin():
+                cleared_context = (
+                    await connection.execute(
+                        text(
+                            "SELECT COALESCE(current_setting('app.user_id', true), ''), "
+                            "COALESCE(current_setting('app.tenant_id', true), '')"
+                        )
+                    )
+                ).one()
+                assert cleared_context == ("", "")
+                assert (
+                    await connection.execute(text("SELECT id FROM tenants"))
+                ).scalars().all() == []
+                assert (
+                    await connection.execute(text("SELECT id FROM learning_progress"))
+                ).scalars().all() == []
 
             async with connection.begin():
                 await connection.execute(

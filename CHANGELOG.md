@@ -1,3 +1,11 @@
+## 0.40.10 — 2026-11-10
+
+### Real PostgreSQL RLS acceptance
+- Added a disposable PostgreSQL 18 acceptance script that applies the complete Alembic chain and tests with a non-owner, non-superuser runtime role without `BYPASSRLS`.
+- Expanded live RLS coverage for cross-tenant INSERT/UPDATE, same-tenant INSERT/UPDATE, denied DELETE, all protected-table FORCE RLS flags, membership revocation, bootstrap constraints and transaction-local context cleanup on pooled connection reuse.
+- Added the repeatable acceptance procedure and documented the RLS security boundary.
+- Verified: PostgreSQL 18.6, all 11 migrations applied, RLS integration test 1 passed; runtime role confirmed `rolsuper=false`, `rolbypassrls=false`.
+
 ## 0.40.9 — 2026-11-10
 
 - M20: matched 20/20 source occurrences against 16 current sources; added the occurrence-level review register.

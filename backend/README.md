@@ -67,7 +67,15 @@ See [ADR 0002](../docs/adr/0002-backend-modular-monolith.md) and [ADR 0003](../d
 
 ## RLS integration acceptance
 
-The optional integration test uses two separately provisioned PostgreSQL connections:
+For a reproducible real-database run, execute the repository-root script:
+
+```bash
+bash scripts/acceptance-postgres-rls.sh
+```
+
+It starts an isolated disposable PostgreSQL 18 container, applies the full Alembic migration chain, provisions a non-owner runtime role without `BYPASSRLS`, runs the integration test, and removes the container. See [PostgreSQL RLS Integration Acceptance](../docs/POSTGRES_RLS_ACCEPTANCE.md) for the security boundary and coverage.
+
+The integration test can also target a separately provisioned PostgreSQL database using two connections:
 
 - `ACADEMY_TEST_ADMIN_DATABASE_URL`: test-only superuser or `BYPASSRLS` role used only to seed and clean fixtures;
 - `ACADEMY_TEST_RUNTIME_DATABASE_URL`: the actual application-style non-owner role, with required table grants but without superuser or `BYPASSRLS`.
