@@ -60,9 +60,11 @@
 | `oidc_provider.py` 和 `api/auth.py` 仍偏大 | 中 | 后续拆分 discovery/JWKS、token exchange/verification、auth application service |
 | `Database.check_schema_revision` 在认证/learner API 请求路径重复访问数据库 | P2 性能 | 已增加 5 秒成功结果缓存、并发 miss 合并、失败不缓存和显式失效；部署仍要求 expand/contract 与 worker 重启，见 ADR-0007 |
 | OIDC login/callback 缺少应用层速率限制 | P2 上线前 | 在公开部署前加入基于 IP/会话/issuer 的限流与异常登录审计 |
-| PostgreSQL RLS 集成测试依赖专用数据库环境 | 验收限制 | 在隔离 PostgreSQL 环境中执行，不能以 mock 测试代替 |
+| PostgreSQL RLS 集成测试依赖专用数据库环境 | 已完成（2026-11-10） | 新增可重复临时 PostgreSQL 18 验收脚本；非 owner / 非 superuser / 非 BYPASSRLS 角色实测通过 |
 | OIDC 使用 fake provider transport 测试 | 验收限制 | 生产启用前必须完成真实测试 IdP 的端到端验收 |
-| localStorage 学习进度与草稿 | 产品边界 | 仍是设备本地数据；若引入账户同步，需定义冲突、迁移、隐私和删除策略 |
+| localStorage 学习进度与草稿 | P1 产品缺口 | 当前仍是设备本地数据；接入账户同步前须定义冲突、迁移、隐私和删除策略 |
+| Tenant discovery HTTP endpoint 缺失 | P1 功能缺口 | Migration 0010 已允许 self-only membership discovery，但尚无 HTTP route；新增受认证、RLS 约束的只读接口 |
+| 前端尚无 API runtime client | P1 功能缺口 | 仅有生成 OpenAPI 类型；开始调用时必须同时实现 Cookie credentials、CSRF、tenant header 和结构化错误处理 |
 
 ## 3.1 第二轮后端性能与一致性修复
 
@@ -87,3 +89,17 @@
 - 迁移 SQL S608 豁免仅用于固定 SQL 片段；RLS 集成测试表名来自代码中的固定 allowlist。
 - npm 官方 registry 生产依赖审计结果：未发现已知漏洞。
 - 代码 Review 的静态检查不能替代真实 PostgreSQL RLS、真实 OIDC provider、部署环境和渗透测试。
+
+
+## 5. 2026-11-10 后续质量与功能基线
+
+当前本地验证：Biome、TypeScript、OpenAPI drift、Vite production build 通过；Vitest 73 passed；Playwright 42 passed；Backend pytest 131 passed / 1 skipped；Ruff lint/format 通过。普通 pytest 的 RLS skip 是未提供双连接 URL 时的可选跳过；真实 PostgreSQL 18.6 验收已由独立脚本实际执行并通过。
+
+后续系统功能优先级：
+1. 增加 authenticated active-tenant discovery endpoint（Migration 0010 的 self-only RLS policy 已存在）。
+2. 实现前端 typed API transport，完整处理 HttpOnly Cookie、CSRF、tenant header、401/403/409/422/5xx。
+3. 将学习进度和测评从 localStorage-only 逐步接入后端，并定义本地历史数据迁移/冲突规则。
+4. 真实 OIDC Provider E2E、隐私/数据保留审查完成前，继续保持 learner APIs 默认关闭。
+5. 课程发布、Instructor 授权和云端编辑流程单独进行权限及审计设计，不从 learner-only role 推导管理权限。
+
+详细基线与 DoD：[`ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11.md`](./ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11.md)。

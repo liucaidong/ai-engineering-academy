@@ -51,17 +51,17 @@
 - [x] Add fail-closed OIDC settings validation, exact CORS/Origin allowlists and lifespan-scoped provider/JWKS cache
 - [ ] Configure the production OIDC provider registration, secrets, callback URL and same-site deployment
 - [x] Implement transaction-local user/tenant context helper and forced PostgreSQL RLS policies for identity/tenant tables
-- [x] Author optional PostgreSQL RLS integration acceptance using a separate non-owner runtime role (execution pending)
-- [ ] Execute RLS integration acceptance with provisioned admin/runtime database roles before learner-data APIs
+- [x] Execute repeatable PostgreSQL RLS integration acceptance using a separate non-owner runtime role (PostgreSQL 18.6, 2026-11-10; see [POSTGRES_RLS_ACCEPTANCE](./POSTGRES_RLS_ACCEPTANCE.md))
+- [x] Execute RLS integration acceptance with provisioned admin/runtime database roles before learner-data APIs
 - [x] Add tenant/user/course-release-scoped learning progress and assessment result schemas with lifecycle constraints
 - [x] Add pure progress/assessment lifecycle services with JSON payload and timestamp validation
-- [x] Apply forced RLS to learner records and author non-owner cross-tenant integration acceptance (execution pending)
-- [x] Add static migration-policy tests and same-tenant cross-user read/update isolation assertions to PostgreSQL acceptance (execution pending)
-- [ ] Execute PostgreSQL RLS acceptance with provisioned runtime role before learner-data APIs
+- [x] Apply forced RLS to learner records and execute non-owner cross-tenant integration acceptance
+- [x] Add static migration-policy tests and same-tenant cross-user read/update isolation assertions to PostgreSQL acceptance; execute against real PostgreSQL
+- [x] Execute PostgreSQL RLS acceptance with provisioned runtime role before learner-data APIs
 - [x] Implement self-scoped learner progress and assessment-attempt routes with session, membership, role and owner filters (disabled by default)
 - [x] Add database trigger preventing learner self-grading and assessment identity mutation
 - [x] Add self-only active-membership discovery so clients can select an authorized tenant context
-- [ ] Execute non-owner PostgreSQL RLS acceptance and privacy review before enabling learner APIs
+- [x] Execute non-owner PostgreSQL RLS acceptance; [ ] complete privacy review before enabling learner APIs
 - [ ] Add resource-scoped instructor authorization and instructor grading APIs
 - [ ] Sandboxed code execution with quotas and isolation
 - [ ] Model gateway with explicit provider configuration
@@ -71,3 +71,16 @@
 - Threat modelling, privacy review and operational controls
 - Performance, reliability and cost budgets
 - CI/CD enablement after workflow governance is approved
+
+
+## P5 — Code quality and system functionalization (2026-11-10)
+
+- [x] Establish current local quality baseline: 73 Vitest, 42 Playwright, 131 backend pytest passed / 1 optional RLS skip, Biome, Ruff, TypeScript, OpenAPI drift and production build passed.
+- [x] Execute real PostgreSQL 18.6 RLS acceptance with an unprivileged non-owner / non-superuser / non-BYPASSRLS runtime role.
+- [x] Document risk-based code-quality and system-functionalization backlog in [ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11](./ENGINEERING_QUALITY_AND_FUNCTIONALIZATION_2026-11.md).
+- [ ] Expose authenticated active-tenant discovery over HTTP using migration 0010's self-only RLS policy.
+- [ ] Implement the frontend API transport with Cookie credentials, session-bound CSRF, tenant context and structured errors.
+- [ ] Integrate learner progress and assessment attempts with backend persistence and local-state reconciliation.
+- [ ] Complete provider-backed OIDC E2E and privacy/retention review before enabling learner APIs.
+- [ ] Define and implement published course-release consumption in the learner UI.
+- [ ] Define instructor/course-authoring authorization and publishing workflow before exposing authoring APIs.
