@@ -17,6 +17,8 @@
 
 ## 2. 招募与样本分层
 
+招募文案、筛选问题、分层规则、数据最小化和招募完成定义见 [`LEARNER_PILOT_RECRUITMENT_KIT.md`](./LEARNER_PILOT_RECRUITMENT_KIT.md)。
+
 首轮目标 6–8 人，建议优先 8 人：
 - A 组（2 人）：基本计算机使用能力，无系统 AI/ML 工程经验；
 - B 组（3 人）：有软件/API/数据库/测试经验，LLM/Agent 实战有限；

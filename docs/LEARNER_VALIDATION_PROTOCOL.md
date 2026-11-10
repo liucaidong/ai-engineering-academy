@@ -98,7 +98,7 @@ FAIL 必须给出 assessment ID、失败证据、学习者影响、修复责任�
 
 ## 9. 执行步骤
 
-具体的招募、观察员操作、抽样安排和退出条件见 [学习者试测执行手册](./LEARNER_PILOT_RUNBOOK.md)；参与前使用 [知情同意模板](./LEARNER_PILOT_CONSENT.md)，由组织者补齐数据处理主体、联系人和保存期限。
+具体招募文案、筛选问题和样本分层见 [学习者试测招募工具包](./LEARNER_PILOT_RECRUITMENT_KIT.md)；观察员操作、抽样安排和退出条件见 [学习者试测执行手册](./LEARNER_PILOT_RUNBOOK.md)；逐项 Lesson/Assessment 分配见 [试测任务矩阵](./LEARNER_PILOT_TASK_MATRIX.md)。参与前使用 [知情同意模板](./LEARNER_PILOT_CONSENT.md)，由组织者补齐数据处理主体、联系人和保存期限。
 
 1. 招募并记录 6–8 位参与者的经验画像与知情同意。
 2. 完成入门诊断，记录答题时间、求助和误解。
