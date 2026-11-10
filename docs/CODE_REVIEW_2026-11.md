@@ -171,3 +171,20 @@
 - `pnpm acceptance:local`：Biome、TypeScript、OpenAPI drift、Vitest 90、Playwright 47、M04–M20 示例、Ruff、Backend pytest 154 passed / 2 skipped、Vite production build 全部通过。
 
 剩余风险：该锁只在 PostgreSQL 内生效；SQLite 或其他数据库不具备等价语义。本项目当前 learner API 的目标数据库为 PostgreSQL，部署不得将该事务锁替换为进程内 mutex。
+
+
+## 12. Session revocation and in-flight request ordering（2026-11-10）
+
+审计确认原 session resolver 在 token-hash bootstrap 查询后切换用户上下文，但未定义请求与 logout 并发时的事务顺序。若只在 token-hash bootstrap 查询上使用 `FOR UPDATE`，会因该阶段没有用户身份、且 bootstrap policy 仅允许 SELECT 而违反 RLS；不能通过扩大匿名 UPDATE policy 解决。
+
+修复采用 PostgreSQL transaction-scoped advisory lock：
+
+- session resolve：先用 token hash 进行原有窄范围 bootstrap SELECT，再对 session ID 获取 shared advisory lock；切换至已解析用户的 RLS context 后，重新确认该 session 仍未撤销、未过期且用户 active。
+- session revoke/logout：先按 token hash 定位 session，再获取同一 identity 的 exclusive advisory lock，最后在 owner RLS context 中执行带 `revoked_at IS NULL` 条件的更新。
+- session rotation：直接获取 exclusive lock，重新验证当前 session 后原子撤销并创建替代 session，避免 shared-to-exclusive lock upgrade。
+- 多个普通请求可共享 lifecycle lock；logout 等待已开始的请求事务结束。若 logout 先取得 exclusive lock，后续请求等待后重新检查并拒绝已撤销 session。last_seen_at 更新和 session 变更仍由数据库事务管理。
+- lock key 使用固定 namespace 和 session UUID，通过 SQL 参数传递；shared/exclusive 函数名由代码内固定分支选择。
+
+真实 PostgreSQL 双连接验收验证：第一事务持有 resolver shared lock 时，第二事务调用实际 `revoke_session` 必须等待；第一事务提交后撤销成功；之后再次解析同一 cookie 返回无效 session。完整 RLS acceptance 3 passed，runtime role `superuser=false`、`bypassrls=false`。普通 backend pytest 154 passed / 3 optional DB-only skips。
+
+残余语义：logout 不会中断已经通过认证并开始执行的请求；它会等待这些请求完成后再确认撤销。logout 完成后新请求无法继续使用该 session。这是明确的事务边界，不声称可以取消已经运行中的业务操作。

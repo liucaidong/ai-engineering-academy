@@ -65,7 +65,8 @@ async def test_revoke_session_uses_hash_and_returns_rowcount() -> None:
     results = [
         None,  # set transaction-local token-hash bootstrap context
         SimpleNamespace(scalar_one_or_none=lambda: record),
-        None,  # switch to authenticated user context and clear bootstrap hash
+        None,  # acquire exclusive lifecycle lock
+        None,  # switch to authenticated user context
         SimpleNamespace(rowcount=1),
     ]
     db = SimpleNamespace(
@@ -74,7 +75,8 @@ async def test_revoke_session_uses_hash_and_returns_rowcount() -> None:
     )
 
     assert await revoke_session(db, token.raw_token, now=now)
-    assert db.execute.await_count == 4
+    assert db.execute.await_count == 5
+    assert "pg_advisory_xact_lock(" in str(db.execute.call_args_list[2].args[0])
 
 
 def test_session_cookies_have_http_only_session_and_readable_csrf() -> None:
@@ -112,7 +114,9 @@ async def test_resolve_session_switches_from_token_hash_to_user_context() -> Non
     results = [
         None,  # set transaction-local token-hash bootstrap context
         SimpleNamespace(scalar_one_or_none=lambda: record),
-        None,  # set user context and clear token-hash bootstrap context
+        None,  # acquire shared lifecycle lock
+        None,  # switch to authenticated user context
+        SimpleNamespace(scalar_one_or_none=lambda: record),  # re-check active session
         SimpleNamespace(scalar_one_or_none=lambda: "active"),
     ]
     db = SimpleNamespace(
@@ -126,4 +130,5 @@ async def test_resolve_session_switches_from_token_hash_to_user_context() -> Non
     assert resolved.user_id == record.user_id
     assert resolved.session_id == record.id
     assert record.last_seen_at == now
-    assert db.execute.await_count == 4
+    assert db.execute.await_count == 6
+    assert "pg_advisory_xact_lock_shared" in str(db.execute.call_args_list[2].args[0])

@@ -248,3 +248,10 @@ Regression coverage now forces the first M01 dynamic import to fail and verifies
 The first-write race in both assessment attempt numbering and learning-progress creation is closed with PostgreSQL transaction-scoped advisory locks keyed by the complete logical record identity. The database unique constraints remain authoritative. The lock helper uses a parameterized `hashtextextended` key; lock lifetime is bounded by the authenticated learner transaction. A two-connection PostgreSQL integration test proves that a second creator blocks until the first transaction ends.
 
 Acceptance: 154 backend tests passed (2 optional DB-only skips in the ordinary run); disposable PostgreSQL RLS/concurrency acceptance passed 2 tests with a non-owner, non-superuser, non-BYPASSRLS runtime role; full `pnpm acceptance:local` passed with 90 Vitest and 47 Playwright tests.
+
+
+### CQ-02 — Session revocation ordering（implemented 2026-11-10）
+
+Session resolution and revocation now coordinate through PostgreSQL transaction-scoped shared/exclusive advisory locks. The token-hash bootstrap query remains SELECT-only; the resolver switches to the owner RLS context before rechecking active session state. Concurrent authenticated requests share the lock, while logout/rotation require the exclusive lock. This makes logout wait for in-flight requests without granting broader bootstrap RLS permissions.
+
+A real PostgreSQL two-connection test invokes `resolve_session` and `revoke_session`, verifies revocation waits for the in-flight transaction, and confirms subsequent resolution fails. Disposable PostgreSQL RLS acceptance passed 3 tests with a non-owner, non-superuser, non-BYPASSRLS role.

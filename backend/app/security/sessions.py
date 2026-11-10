@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi import Response
-from sqlalchemy import select, update
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import (
@@ -84,13 +84,60 @@ async def _lookup_unrevoked_session(
     return record
 
 
+async def _lock_session_lifecycle(
+    db: AsyncSession,
+    session_id: UUID,
+    *,
+    shared: bool,
+) -> None:
+    """Coordinate authenticated requests and revocation without serializing readers."""
+    lock_function = "pg_advisory_xact_lock_shared" if shared else "pg_advisory_xact_lock"
+    await db.execute(
+        text(f"SELECT {lock_function}(hashtextextended(:lock_key, 0))"),
+        {"lock_key": f"academy-auth-session:{session_id}"},
+    )
+
+
+async def _resolve_locked_session(
+    db: AsyncSession,
+    *,
+    record: AuthSession,
+    token_hash: str,
+    current: datetime,
+) -> ResolvedSession | None:
+    """Re-check a session after lifecycle locking and switch to its owner context."""
+    await set_security_context(db, user_id=record.user_id)
+    result = await db.execute(
+        select(AuthSession).where(
+            AuthSession.id == record.id,
+            AuthSession.user_id == record.user_id,
+            AuthSession.token_hash == token_hash,
+            AuthSession.revoked_at.is_(None),
+        )
+    )
+    active = result.scalar_one_or_none()
+    if active is None or active.expires_at <= current:
+        return None
+
+    user_result = await db.execute(select(User.status).where(User.id == active.user_id))
+    if user_result.scalar_one_or_none() != "active":
+        return None
+
+    active.last_seen_at = current
+    return ResolvedSession(
+        session_id=active.id,
+        user_id=active.user_id,
+        expires_at=active.expires_at,
+    )
+
+
 async def resolve_session(
     db: AsyncSession,
     raw_token: str,
     *,
     now: datetime | None = None,
 ) -> ResolvedSession | None:
-    """Resolve an active session, then switch RLS from token bootstrap to user context."""
+    """Resolve a session under a shared lifecycle lock; revocation waits for in-flight requests."""
     current = _now(now)
     try:
         token_hash = hash_session_token(raw_token)
@@ -99,21 +146,11 @@ async def resolve_session(
     record = await _lookup_unrevoked_session(db, token_hash)
     if record is None:
         return None
-    if record.expires_at <= current:
-        await clear_session_lookup_context(db)
-        return None
 
-    await set_security_context(db, user_id=record.user_id)
-    user_result = await db.execute(select(User.status).where(User.id == record.user_id))
-    if user_result.scalar_one_or_none() != "active":
-        return None
-
-    record.last_seen_at = current
-    return ResolvedSession(
-        session_id=record.id,
-        user_id=record.user_id,
-        expires_at=record.expires_at,
-    )
+    # Bootstrap token-hash RLS grants only SELECT. Lock after identifying the
+    # owner, then re-check revocation under that owner's RLS context.
+    await _lock_session_lifecycle(db, record.id, shared=True)
+    return await _resolve_locked_session(db, record=record, token_hash=token_hash, current=current)
 
 
 async def revoke_session(
@@ -122,7 +159,7 @@ async def revoke_session(
     *,
     now: datetime | None = None,
 ) -> bool:
-    """Revoke a session by hash after establishing its owner RLS context."""
+    """Revoke a session after all requests holding its shared lifecycle lock finish."""
     current = _now(now)
     try:
         token_hash = hash_session_token(raw_token)
@@ -131,12 +168,15 @@ async def revoke_session(
     record = await _lookup_unrevoked_session(db, token_hash)
     if record is None:
         return False
+
+    await _lock_session_lifecycle(db, record.id, shared=False)
     await set_security_context(db, user_id=record.user_id)
     result = await db.execute(
         update(AuthSession)
         .where(
             AuthSession.id == record.id,
             AuthSession.user_id == record.user_id,
+            AuthSession.token_hash == token_hash,
             AuthSession.revoked_at.is_(None),
         )
         .values(revoked_at=current)
@@ -151,12 +191,34 @@ async def rotate_session(
     ttl: timedelta,
     now: datetime | None = None,
 ) -> tuple[AuthSession, str] | None:
-    """Atomically revoke a live session and create its replacement."""
+    """Atomically revoke a live session under an exclusive lifecycle lock and replace it."""
     current = _now(now)
-    resolved = await resolve_session(db, raw_token, now=current)
+    try:
+        token_hash = hash_session_token(raw_token)
+    except (TypeError, ValueError):
+        return None
+    record = await _lookup_unrevoked_session(db, token_hash)
+    if record is None:
+        return None
+
+    await _lock_session_lifecycle(db, record.id, shared=False)
+    resolved = await _resolve_locked_session(
+        db, record=record, token_hash=token_hash, current=current
+    )
     if resolved is None:
         return None
-    if not await revoke_session(db, raw_token, now=current):
+
+    revoked = await db.execute(
+        update(AuthSession)
+        .where(
+            AuthSession.id == resolved.session_id,
+            AuthSession.user_id == resolved.user_id,
+            AuthSession.token_hash == token_hash,
+            AuthSession.revoked_at.is_(None),
+        )
+        .values(revoked_at=current)
+    )
+    if revoked.rowcount != 1:
         return None
     return await create_session(db, user_id=resolved.user_id, ttl=ttl, now=current)
 

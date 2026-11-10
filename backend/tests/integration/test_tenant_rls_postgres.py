@@ -22,7 +22,7 @@ from app.api import course_releases, tenants
 from app.api.tenants import _list_active_tenants
 from app.db.session import set_security_context
 from app.security.oidc import generate_session_token
-from app.security.sessions import SESSION_COOKIE_NAME
+from app.security.sessions import SESSION_COOKIE_NAME, resolve_session, revoke_session
 from app.services.learning_records import lock_record_identity
 
 
@@ -685,3 +685,65 @@ async def test_postgres_transaction_lock_serializes_concurrent_record_creation()
             assert await asyncio.wait_for(second_task, timeout=2)
     finally:
         await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_session_revocation_waits_for_in_flight_authenticated_transaction() -> None:
+    admin_url = os.getenv("ACADEMY_TEST_ADMIN_DATABASE_URL")
+    runtime_url = os.getenv("ACADEMY_TEST_RUNTIME_DATABASE_URL")
+    if not admin_url or not runtime_url:
+        pytest.skip("PostgreSQL RLS integration URLs are not configured")
+
+    admin_engine = create_async_engine(admin_url)
+    runtime_engine = create_async_engine(runtime_url)
+    sessions = async_sessionmaker(runtime_engine, expire_on_commit=False)
+    user_id = uuid4()
+    session_id = uuid4()
+    token = generate_session_token()
+    expires_at = datetime.now(UTC) + timedelta(hours=1)
+    second_started = asyncio.Event()
+
+    try:
+        async with admin_engine.begin() as connection:
+            await connection.execute(
+                text("INSERT INTO users (id, status) VALUES (:user_id, 'active')"),
+                {"user_id": user_id},
+            )
+            await connection.execute(
+                text(
+                    "INSERT INTO auth_sessions (id, user_id, token_hash, expires_at) "
+                    "VALUES (:id, :user_id, :token_hash, :expires_at)"
+                ),
+                {
+                    "id": session_id,
+                    "user_id": user_id,
+                    "token_hash": token.token_hash,
+                    "expires_at": expires_at,
+                },
+            )
+
+        async def revoke_from_second_transaction() -> bool:
+            async with sessions() as session, session.begin():
+                second_started.set()
+                return await revoke_session(session, token.raw_token)
+
+        async with sessions() as first_session:
+            async with first_session.begin():
+                active = await resolve_session(first_session, token.raw_token)
+                assert active is not None and active.session_id == session_id
+                revoke_task = asyncio.create_task(revoke_from_second_transaction())
+                await asyncio.wait_for(second_started.wait(), timeout=2)
+                await asyncio.sleep(0.05)
+                assert not revoke_task.done(), "revocation must wait for the in-flight session lock"
+
+            assert await asyncio.wait_for(revoke_task, timeout=2) is True
+
+        async with sessions() as verify_session, verify_session.begin():
+            assert await resolve_session(verify_session, token.raw_token) is None
+    finally:
+        async with admin_engine.begin() as connection:
+            await connection.execute(
+                text("DELETE FROM users WHERE id = :user_id"), {"user_id": user_id}
+            )
+        await runtime_engine.dispose()
+        await admin_engine.dispose()
